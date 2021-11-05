@@ -9,7 +9,7 @@ Created on Tue Nov  2 15:40:02 2021
 """
 
 import tkinter as tk
-import sqlite3 as db
+import sqlalchemy as db
 import pandas as pd
 
 
@@ -78,12 +78,15 @@ class Tableau(tk.Frame):
     def update_tableau(self, *args, **kargs):
         for idx, rang in zip(self.colonne_index, self.tableau_contenu):
             for col, val in zip(self.rangée_titres, rang):
-                print(val)
                 self.tableau.loc[idx['text'], col['text']] = val.get()
 
 if __name__ == '__main__':
     racine = tk.Tk()
-    cadre = pd.DataFrame({'a': [1, 2, 3], 'b': [1, 3, 2]})
+    cadre = pd.read_sql_table('test', 'sqlite:///référence.db', index_col='index')
     tableau = Tableau(racine, cadre)
     tableau.grid(0, 0)
     racine.mainloop()
+
+    engine = db.create_engine('sqlite:///référence.db')
+    with engine.begin() as con:
+        tableau.tableau.to_sql('test', con, if_exists='replace')
