@@ -20,7 +20,7 @@ class Tableau:
 
     def __init__(self, master, tableau: pd.DataFrame):
         """Wrap DataFrame & Frame."""
-        self.tableau = tableau.copy()
+        self.tableau = tableau
         self.master = master
 
         self.__init_tableau()
