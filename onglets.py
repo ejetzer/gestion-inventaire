@@ -19,6 +19,59 @@ import pandas as pd
 
 from afficher_dataframe import Tableau
 
+class OngletConfig(tk.Frame):
+
+    def __init__(self, master, config, fichier):
+        self.config = config
+
+        super().__init__(master)
+        self.build()
+
+    def build(self):
+        self.titre_étiquettes = {}
+        self.champs = {}
+        for titre in config.sections():
+            section = config[titre]
+
+            titre_étiquette = tk.Label(self, text=titre)
+            self.titre_étiquettes[titre] = titre_étiquette
+            self.champs[titre] = {}
+
+            for champ, valeur in section.items():
+                champ_étiquette = tk.Label(self, text=champ)
+                champ_variable = tk.StringVar(self, valeur)
+                champ_variable.trace_add('write', lambda x, i, m, v=champ_variable: self.update_config())
+                champ_entrée = tk.Entry(self, textvariable=champ_variable)
+
+                self.champs[titre][champ] = (champ_étiquette, champ_entrée)
+
+    def update_config(self):
+        for section in self.champs:
+            for clé, valeur in self.champs[section]:
+                self.config[section][clé] = valeur
+
+        with open(fichier, 'w') as f:
+            self.config.write(f)
+
+    def subgrid(self):
+        colonne = 0
+        for titre, étiquette in self.titre_étiquettes.items():
+            étiquette.grid(row=0, column=colonne, columnspan=2)
+            rangée = 1
+
+            for étiquette, entrée in self.champs[titre].values():
+                étiquette.grid(row=rangée, column=colonne)
+                entrée.grid(row=rangée, column=colonne+1)
+                rangée += 1
+
+            colonne += 2
+
+
+    def grid(self, *args, **kargs):
+        self.subgrid()
+        super().grid(*args, **kargs)
+
+
 class OngletBaseDeDonnées(tk.Frame):
 
     def __init__(self, master, base_de_données, table, *args, **kargs):
@@ -38,18 +91,19 @@ class OngletBaseDeDonnées(tk.Frame):
         contenant = tk.Frame(canevas)
         contenant.bind('<Configure>', lambda x: canevas.configure(scrollregion=canevas.bbox('all')))
 
-        cadre = pd.read_sql_table(self.table, 'sqlite:///référence.db', index_col='index')
+        cadre = pd.read_sql_table(self.table, self.base_de_données, index_col='index')
         tableau = Tableau(contenant, cadre)
 
         màj = tk.Button(self, text='Màj', command=lambda: tableau.update_grid())
         rangée = tk.Button(self, text='+', command=lambda: tableau.ajouter_rangée())
+        sauver = tk.Button(self, text='Sauver', command=lambda: self.update_db())
 
         self.canevas = canevas
         self.défiler = [défiler_horizontalement, défiler_verticalement]
         self.contenant = contenant
         self.df = cadre
         self.tableau = tableau
-        self.boutons = [màj, rangée]
+        self.boutons = [màj, rangée, sauver]
 
     def subgrid(self):
         self.défiler[0].grid(row=16, column=1, columnspan=1, sticky='we')
@@ -57,31 +111,55 @@ class OngletBaseDeDonnées(tk.Frame):
         self.canevas.grid(row=1, column=1, rowspan=15, sticky='news')
         self.canevas.create_window((30, 15), window=self.contenant)
         self.tableau.grid(0, 0)
-        self.boutons[0].grid(row=0, column=0)
-        self.boutons[1].grid(row=1, column=0)
+        for i, b in enumerate(self.boutons):
+            b.grid(row=i, column=0)
 
     def grid(self, *args, **kargs):
         self.subgrid()
         super().grid(*args, **kargs)
 
+    def update_db(self):
+        engine = db.create_engine(self.base_de_données)
+        with engine.begin() as con:
+            self.tableau.tableau.to_sql(self.table, con, if_exists='replace')
+
+        cadre = pd.read_sql_table(self.table, self.base_de_données, index_col='index')
+        self.cadre = cadre
+        self.tableau.tableau = cadre
+        self.tableau.update_grid()
 
 
-def générer_onglets(onglets, fichier_config):
-    config = cp.ConfigParser()
-    config.read(fichier_config)
+class Onglets(ttk.Notebook):
 
-    base_de_données = 'sqlite:///référence.db'
-    for nom_table in config.sections():
-        onglet = OngletBaseDeDonnées(onglets, base_de_données, nom_table)
-        onglets.add(onglet, text=nom_table)
-        onglet.subgrid()
+    def __init__(self, master, config, fichier):
+        super().__init__(master)
+
+        onglet = OngletConfig(self, config, fichier)
+        self.add(onglet, text=fichier)
+
+        base_de_données = config['base de données']['adresse']
+
+        tables = filter(lambda x: x in config.sections(),
+                        eval(config['base de données']['tables']))
+        for nom_table in tables:
+            onglet = OngletBaseDeDonnées(self, base_de_données, nom_table)
+            self.add(onglet, text=nom_table)
+
+    def grid(self, *args, **kargs):
+        for onglet in self.children.values():
+            onglet.subgrid()
+
+        super().grid(*args, **kargs)
+
 
 if __name__ == '__main__':
     racine = tk.Tk()
     racine.title('Bases de données')
 
-    onglets = ttk.Notebook(racine)
-    générer_onglets(onglets, 'référence.config')
+    config = cp.ConfigParser()
+    config.read('référence.config')
+
+    onglets = Onglets(racine, config, 'référence.config')
     onglets.grid(sticky='nsew')
 
     racine.mainloop()
