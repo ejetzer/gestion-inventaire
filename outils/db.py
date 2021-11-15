@@ -99,9 +99,9 @@ class BaseDeDonnées:
 
         return df
 
-    def màj(self, df):
+    def màj(self, df, table):
         with self.begin() as conn:
-            df.to_sql(df.name, con, if_exists='replace')
+            df.to_sql(table, conn, if_exists='replace')
 
     def begin(self):
         engine = db.create_engine(self.adresse)

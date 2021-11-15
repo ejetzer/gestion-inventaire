@@ -140,7 +140,7 @@ class Tableau:
             index = self.demander('Quelle rangée?', int)
 
         self.tableau = self.tableau.drop(index)
-        self.update_grip()
+        self.update_grid()
 
     def retirer_colonne(self, nom=None):
         if nom is None:

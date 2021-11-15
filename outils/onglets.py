@@ -119,7 +119,7 @@ class OngletBaseDeDonnées(tk.Frame):
         super().grid(*args, **kargs)
 
     def update_db(self):
-        self.base_de_données.màj(self.tableau.tableau)
+        self.base_de_données.màj(self.tableau.tableau, self.table)
         self.cadre = self.tableau.tableau = self.base_de_données.df(table=self.table)
         self.tableau.update_grid()
 
