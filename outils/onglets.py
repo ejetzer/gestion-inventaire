@@ -17,8 +17,8 @@ from tkinter import ttk
 import sqlalchemy as db
 import pandas as pd
 
-from afficher_dataframe import Tableau
-from définir_db import BaseDeDonnées
+from .df import Tableau
+from .db import BaseDeDonnées
 
 class OngletConfig(tk.Frame):
 
@@ -31,8 +31,8 @@ class OngletConfig(tk.Frame):
     def build(self):
         self.titre_étiquettes = {}
         self.champs = {}
-        for titre in config.sections():
-            section = config[titre]
+        for titre in self.config.sections():
+            section = self.config[titre]
 
             titre_étiquette = tk.Label(self, text=titre)
             self.titre_étiquettes[titre] = titre_étiquette
