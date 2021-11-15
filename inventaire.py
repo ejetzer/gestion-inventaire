@@ -14,7 +14,7 @@ import configparser as cp
 from outils.onglets import Onglets
 
 config = cp.ConfigParser()
-config.read(fichier_config := 'référence.config')
+config.read(fichier_config := 'référence.config', encoding='utf-8')
 
 racine = tk.Tk()
 racine.title(config['tkinter']['title'])
