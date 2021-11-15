@@ -18,6 +18,7 @@ import sqlalchemy as db
 import pandas as pd
 
 from afficher_dataframe import Tableau
+from définir_db import BaseDeDonnées
 
 class OngletConfig(tk.Frame):
 
@@ -66,7 +67,6 @@ class OngletConfig(tk.Frame):
 
             colonne += 2
 
-
     def grid(self, *args, **kargs):
         self.subgrid()
         super().grid(*args, **kargs)
@@ -75,7 +75,7 @@ class OngletConfig(tk.Frame):
 class OngletBaseDeDonnées(tk.Frame):
 
     def __init__(self, master, base_de_données, table, *args, **kargs):
-        self.base_de_données = base_de_données
+        self.base_de_données = BaseDeDonnées(base_de_données)
         self.table = table
 
         super().__init__(master, *args, **kargs)
@@ -91,7 +91,7 @@ class OngletBaseDeDonnées(tk.Frame):
         contenant = tk.Frame(canevas)
         contenant.bind('<Configure>', lambda x: canevas.configure(scrollregion=canevas.bbox('all')))
 
-        cadre = pd.read_sql_table(self.table, self.base_de_données, index_col='index')
+        cadre = self.base_de_données.df(table=self.table)
         tableau = Tableau(contenant, cadre)
 
         màj = tk.Button(self, text='Màj', command=lambda: tableau.update_grid())
@@ -119,13 +119,8 @@ class OngletBaseDeDonnées(tk.Frame):
         super().grid(*args, **kargs)
 
     def update_db(self):
-        engine = db.create_engine(self.base_de_données)
-        with engine.begin() as con:
-            self.tableau.tableau.to_sql(self.table, con, if_exists='replace')
-
-        cadre = pd.read_sql_table(self.table, self.base_de_données, index_col='index')
-        self.cadre = cadre
-        self.tableau.tableau = cadre
+        self.base_de_données.màj(self.tableau.tableau)
+        self.cadre = self.tableau.tableau = self.base_de_données.df(table=self.table)
         self.tableau.update_grid()
 
 

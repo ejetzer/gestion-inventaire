@@ -11,6 +11,8 @@ Created on Tue Nov  2 15:40:02 2021
 import itertools as it
 import tkinter as tk
 
+from tkinter.simpledialog import askstring, askinteger, askfloat
+
 import sqlalchemy as db
 import pandas as pd
 
@@ -45,10 +47,26 @@ class Tableau:
 
         return entrées
 
+    def __init_commandes_colonnes(self):
+        return [self.commandes_colonne(col) for col in self.tableau.columns]
+
+    def __init_commandes_rangées(self):
+        return [self.commandes_rangée(rangée) for rangée, _ in self.tableau.iterrows()]
+
+    def commandes_colonne(self, col):
+        return (tk.Button(self.master, text='+', command=lambda: self.ajouter_colonne()),
+                tk.Button(self.master, text='-', command=lambda: self.retirer_colonne(col)))
+
+    def commandes_rangée(self, rangée):
+        return (tk.Button(self.master, text='+', command=lambda: self.ajouter_rangée()),
+                tk.Button(self.master, text='-', command=lambda: self.retirer_rangée(rangée)))
+
     def __init_tableau(self):
         self.rangée_titres = self.__init_rangée_titres()
         self.colonne_index = self.__init_colonne_index()
         self.tableau_contenu = self.__init_tableau_contenu()
+        self.commandes_colonnes = self.__init_commandes_colonnes()
+        self.commandes_rangées = self.__init_commandes_rangées()
 
     def grid(self,
              row: int,
@@ -70,14 +88,16 @@ class Tableau:
         cols = slice(firstcolumn, firstcolumn+columnspan)
         rangs = slice(firstrow, firstrow+rowspan)
 
-        for i, col in enumerate(self.rangée_titres[cols]):
-            col.grid(row=row, column=column+i+1)
+        for i, (col, (plus, moins)) in enumerate(zip(self.rangée_titres[cols], self.commandes_colonnes)):
+            for k, w in enumerate((plus, moins, col)):
+                w.grid(row=row+k, column=column+i+3)
 
-        for i, (idx, rang) in enumerate(zip(self.colonne_index[rangs], self.tableau_contenu[rangs])):
-            idx.grid(row=row+i+1, column=column)
+        for i, (idx, rang, (plus, moins)) in enumerate(zip(self.colonne_index[rangs], self.tableau_contenu[rangs], self.commandes_rangées)):
+            for k, w in enumerate((plus, moins, idx)):
+                w.grid(row=row+i+3, column=column+k)
 
             for j, col in enumerate(rang[cols]):
-                col.grid(row=row+i+1, column=column+j+1)
+                col.grid(row=row+i+3, column=column+k+j+1)
 
 
     def update_tableau(self, *args, **kargs):
@@ -87,43 +107,45 @@ class Tableau:
 
     def update_grid(self):
         'Update the grid after a change to the DataFrame'
-        for widget in it.chain(self.rangée_titres, self.colonne_index, *self.tableau_contenu):
+        for widget in it.chain(self.rangée_titres, self.colonne_index, *self.tableau_contenu, *self.commandes_rangées, *self.commandes_colonnes):
             widget.destroy()
 
         self.__init_tableau()
         self.grid(**self.__grid_params)
 
-    def ajouter_rangée(self):
-        self.tableau = self.tableau.append(pd.Series(), ignore_index=True)
+    def ajouter_rangée(self, rangée=None):
+        if rangée is None or True: # Pour l'instant, toutes les rangées sont ajoutées à la fin
+            self.tableau = self.tableau.append(pd.Series(), ignore_index=True)
         self.update_grid()
 
-if __name__ == '__main__':
-    racine = tk.Tk()
-    racine.title('Base de données')
+    def demander(self, question='', type_=str):
+        if type_ == str:
+            return askstring('?', question)
+        elif type_ == int:
+            return askinteger('?', question)
+        elif type_ == float:
+            return askfloat('?', question)
 
-    canevas = tk.Canvas(racine, width='50c', height='15c')
-    défiler_horizontalement = tk.Scrollbar(racine, orient='horizontal', command=canevas.xview)
-    défiler_verticalement = tk.Scrollbar(racine, orient='vertical', command=canevas.yview)
-    canevas.configure(xscrollcommand=défiler_horizontalement.set,
-                      yscrollcommand=défiler_verticalement.set)
-    contenant = tk.Frame(canevas)
-    contenant.bind('<Configure>', lambda x: canevas.configure(scrollregion=canevas.bbox('all')))
+    def ajouter_colonne(self, nom_de_colonne=None):
+        if nom_de_colonne is None:
+            nom_de_colonne = self.demander('Quel nom de colonne?')
 
-    cadre = pd.read_sql_table('test', 'sqlite:///référence.db', index_col='index')
-    tableau = Tableau(contenant, cadre)
+        if nom_de_colonne not in self.tableau.columns:
+            self.tableau[nom_de_colonne] = None
 
-    màj = tk.Button(racine, text='Màj', command=lambda: tableau.update_grid())
-    rangée = tk.Button(racine, text='+', command=lambda: tableau.ajouter_rangée())
+        self.update_grid()
 
-    défiler_horizontalement.grid(row=16, column=1, columnspan=1, sticky='we')
-    défiler_verticalement.grid(row=1, column=2, rowspan=15, sticky='ns')
-    canevas.grid(row=1, column=1, rowspan=15, sticky='news')
-    canevas.create_window((30, 15), window=contenant)
-    tableau.grid(0, 0)
-    màj.grid(row=0, column=0)
-    rangée.grid(row=1, column=0)
-    racine.mainloop()
+    def retirer_rangée(self, index=None):
+        if index is None:
+            index = self.demander('Quelle rangée?', int)
 
-    engine = db.create_engine('sqlite:///référence.db')
-    with engine.begin() as con:
-        tableau.tableau.to_sql('test', con, if_exists='replace')
+        self.tableau = self.tableau.drop(index)
+        self.update_grip()
+
+    def retirer_colonne(self, nom=None):
+        if nom is None:
+            nom = self.demander('Quelle colonne?')
+
+        if nom in self.tableau.columns:
+            self.tableau = self.tableau.drop(nom, axis=1)
+        self.update_grid()
