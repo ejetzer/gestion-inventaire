@@ -58,11 +58,11 @@ class BaseDeDonnées:
         self.commun = commun
 
     def def_col(self, nom, type_):
-        type_db = types_db.get(type_, type_db)
+        type_ = types_db.get(type_, type_db)
         if nom == 'index':
-            return db.Column(nom, type_db, primary_key=True)
+            return db.Column(nom, type_, primary_key=True)
         else:
-            return db.Column(nom, type_db)
+            return db.Column(nom, type_)
 
     def def_db(self, tables):
         metadata = db.MetaData()
@@ -74,8 +74,7 @@ class BaseDeDonnées:
         self.metadata = metadata
 
     def config(self, config):
-        tables = filter(lambda x: x in config.sections(),
-                        eval(config['base de données']['tables']))
+        tables = {x: config[x] for x in config.sections() if x in config['base de données']['tables']}
         self.commun = config['common']
         self.def_db(tables)
 

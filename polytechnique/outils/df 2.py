@@ -12,40 +12,91 @@ import itertools as it
 import tkinter as tk
 
 from tkinter.simpledialog import askstring, askinteger, askfloat
+from dataclasses import dataclass, field, InitVar
+from typing import Callable, Any
 
 import sqlalchemy as db
 import pandas as pd
+
+@dataclass(frozen=True)
+class InterfaceHandler:
+    entrée: Callable[[str, Callable], Any]
+    texte: Callable[[str], Any]
+    bouton: Callable[[str, Callable], Any]
+
+@dataclass
+class tkHandler(InterfaceHandler):
+    master: InitVar[tk.Tk]
+
+    def __post_init__(self):
+        def entrée(texte: str, commande: Callable) -> tk.Entry:
+            variable = tk.StringVar(self.master, texte)
+            variable.trace_add('write', lambda x, i, m, v=variable: commande())
+            return tk.Entry(self.master, textvariable=variable)
+
+        texte = lambda s: tk.Label(self.master, s)
+        bouton = lambda s, c: tk.Button(self.master, text=s, command=c)
+
+        super().__init__(entrée=entrée, texte=texte, bouton=bouton)
+
+
+class HTMLÉlémentInterface:
+
+    def __init__(self, master=None, tag: str, attrs: dict[str, str]):
+        self.master = master
+
+    def grid(row: int, column: int):
+        pass
+
+    def __repr__(self):
+        return f'<Élément {tag} contenu dans {self.master.tag}>'
+
+    def __str__(self):
+        pass
+
+class HTMLTable(HTMLÉlémentInterface):
+
+    def grid(row: int, column: int):
+        pass
+
+class HTMLEntrée(HTMLÉlémentInterface):
+
+    def __init__(self, master, texte: str, commande: Callable):
+        pass
+
+    def grid(row, column):
+        pass
+
+
+class HTMLTexte(HTMLÉlémentInterface):
+    pass
+
+
+class HTMLBouton(HTMLÉlémentInterface):
+    pass
 
 
 class Tableau:
     """Wrapper for pandas.DataFrame & tkinter.Frame."""
 
-    def __init__(self, master, tableau: pd.DataFrame):
+    def __init__(self, handler: InterfaceHandler, tableau: pd.DataFrame):
         """Wrap DataFrame & Frame."""
         self.tableau = tableau
-        self.master = master
+        self.handler = handler
 
         self.__init_tableau()
 
     def __init_rangée_titres(self):
-        return [tk.Label(self.master, text=col) for col in self.tableau.columns]
+        return [self.handler.text(col) for col in self.tableau.columns]
 
     def __init_colonne_index(self):
-        return [tk.Label(self.master, text=k) for k, rang in self.tableau.iterrows()]
+        return [self.handler.text(k) for k, rang in self.tableau.iterrows()]
 
     def __init_tableau_contenu(self):
-        entrées = []
-
-        for k, rang in self.tableau.iterrows():
-            entrées.append([])
-
-            for col in rang:
-                variable = tk.StringVar(self.master, col)
-                variable.trace_add('write', lambda x, i, m, v=variable: self.update_tableau())
-                entrée = tk.Entry(self.master, textvariable=variable)
-                entrées[-1].append(entrée)
-
-        return entrées
+        return [[self.handler.entrée(col,
+                                     lambda: self.update_tableau())\
+                 for col in rang]\
+                for k, rang in self.tableau.iterrows()]
 
     def __init_commandes_colonnes(self):
         return [self.commandes_colonne(col) for col in self.tableau.columns]
@@ -54,12 +105,12 @@ class Tableau:
         return [self.commandes_rangée(rangée) for rangée, _ in self.tableau.iterrows()]
 
     def commandes_colonne(self, col):
-        return (tk.Button(self.master, text='+', command=lambda: self.ajouter_colonne()),
-                tk.Button(self.master, text='-', command=lambda: self.retirer_colonne(col)))
+        return (self.handler.bouton('+', lambda: self.ajouter_colonne()),
+                self.handler.bouton('-', lambda: self.retirer_colonne(col)))
 
     def commandes_rangée(self, rangée):
-        return (tk.Button(self.master, text='+', command=lambda: self.ajouter_rangée()),
-                tk.Button(self.master, text='-', command=lambda: self.retirer_rangée(rangée)))
+        return (self.handler.bouton('+', lambda: self.ajouter_rangée()),
+                self.handler.bouton('-', lambda: self.retirer_rangée(rangée)))
 
     def __init_tableau(self):
         self.rangée_titres = self.__init_rangée_titres()
