@@ -33,3 +33,7 @@ class FichierConfig(ConfigParser):
         for chemin in chemins:
             with open(chemin, 'r', encoding='utf-8') as f:
                 super().write(f)
+
+    def __setitem__(self, section, options):
+        super().__setitem__(section, options)
+        self.write()

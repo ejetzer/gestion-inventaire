@@ -78,13 +78,16 @@ class OngletConfig(tk.Frame):
 
 class OngletBaseDeDonnées(tk.Frame):
 
-    def __init__(self, master, base_de_données, table, *args, **kargs):
-        self.base_de_données = BaseDeDonnées(base_de_données)
+    def __init__(self, master: tk.Tk, config: FichierConfig, table: str, *args, **kargs):
+        self.config = config
         self.table = table
 
         super().__init__(master, *args, **kargs)
-
         self.build()
+
+    @property
+    def adresse(self):
+        return self.config.get('bd', 'adresse', fallback='test.db')
 
     def build(self):
         canevas = tk.Canvas(self, width='50c', height='15c')
@@ -95,20 +98,13 @@ class OngletBaseDeDonnées(tk.Frame):
         contenant = tk.Frame(canevas)
         contenant.bind('<Configure>', lambda x: canevas.configure(scrollregion=canevas.bbox('all')))
 
-        cadre = self.base_de_données.df(table=self.table)
-        gérant = tkHandler(contenant)
-        tableau = Tableau(gérant, cadre)
+        self.tableau = Tableau(tkHandler(contenant), BaseDeDonnées(self.config), self.table)
 
-        màj = tk.Button(self, text='Màj', command=lambda: tableau.update_grid())
-        rangée = tk.Button(self, text='+', command=lambda: tableau.ajouter_rangée())
-        sauver = tk.Button(self, text='Sauver', command=lambda: self.update_db())
+        màj = tk.Button(self, text='Màj', command=lambda: self.tableau.update_grid())
 
         self.canevas = canevas
         self.défiler = [défiler_horizontalement, défiler_verticalement]
-        self.contenant = contenant
-        self.df = cadre
-        self.tableau = tableau
-        self.boutons = [màj, rangée, sauver]
+        self.boutons = [màj]
 
     def subgrid(self):
         self.défiler[0].grid(row=16, column=1, columnspan=1, sticky='we')
@@ -123,11 +119,6 @@ class OngletBaseDeDonnées(tk.Frame):
         self.subgrid()
         super().grid(*args, **kargs)
 
-    def update_db(self):
-        self.base_de_données.màj(self.tableau.tableau, self.table)
-        self.cadre = self.tableau.tableau = self.base_de_données.df(table=self.table)
-        self.tableau.update_grid()
-
 
 class Onglets(ttk.Notebook):
 
@@ -137,12 +128,10 @@ class Onglets(ttk.Notebook):
         onglet = OngletConfig(self, config)
         self.add(onglet, text=onglet.chemin)
 
-        base_de_données = config['bd']['adresse']
-
         tables = filter(lambda x: x in config.sections(),
-                        eval(config['bd']['tables']))
+                        config.get('bd', 'tables').strip().split('\n'))
         for nom_table in tables:
-            onglet = OngletBaseDeDonnées(self, base_de_données, nom_table)
+            onglet = OngletBaseDeDonnées(self, config, nom_table)
             self.add(onglet, text=nom_table)
 
     def grid(self, *args, **kargs):
@@ -156,10 +145,9 @@ if __name__ == '__main__':
     racine = tk.Tk()
     racine.title('Bases de données')
 
-    config = cp.ConfigParser()
-    config.read('référence.config')
+    config = FichierConfig('référence.config')
 
-    onglets = Onglets(racine, config, 'référence.config')
+    onglets = Onglets(racine, config)
     onglets.grid(sticky='nsew')
 
     racine.mainloop()

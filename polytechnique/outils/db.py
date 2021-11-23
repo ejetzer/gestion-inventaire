@@ -13,7 +13,7 @@ import datetime
 
 import itertools as it
 
-from typing import Union, Any
+from typing import Union, Any, Callable
 
 import sqlalchemy as db
 import pandas as pd
@@ -77,7 +77,13 @@ TYPES: tuple[dict[str, Union[str, type]]] = ({'config': None,
                                               'sqlalchemy': db.PickleType,
                                               'tk': tk.StringVar})
 
-DATE_TYPES: tuple = ('datetime64[D]', 'datetime64[ns]')
+DATE_TYPES: tuple[str] = ('datetime64[D]', 'datetime64[ns]')
+
+TYPES_FICHIERS: dict[str, Callable] = {'xlsx': pd.read_excel,
+                                       'xls': pd.read_excel,
+                                       'csv': pd.read_csv,
+                                       'pickle': pd.read_pickle,
+                                       'txt': pd.read_table}
 
 def get_type(de: str, t: Union[type, str], à: str) -> Union[type, str]:
     for s in filter(lambda x: x[de] == t, TYPES):
@@ -96,30 +102,30 @@ class BaseDeDonnées:
 
     @property
     def adresse(self):
-        return self.config['bd']['adresse']
+        return self.config.get('bd', 'adresse', fallback='test.db')
 
     def dtypes(self, table: str) -> pd.Series:
         return pd.Series(map(lambda x: get_type('sqlalchemy', x.type, 'pandas'), cols:=self.columns(table)),
                          index=cols)
 
     def date_types(self, table: str) -> pd.Series:
-        return self.dtypes[self.dtypes.isin(DATE_TYPES)]
+        return self.dtypes[self.dtypes(table).isin(DATE_TYPES)]
 
     def columns(self, table: str, from_config=False) -> pd.Index:
         if from_config:
-            return pd.Index(it.chain(self.config['common'].items(), section.items()))
+            return pd.Index(it.chain(self.config['common'].items(), self.config[table].items()))
         return pd.Index(c.name for c in self.table(table).columns)
 
     def tables(self, from_config=False) -> dict[str, Union[str, db.Table]]:
         if from_config:
-            return dict(map(lambda n: (n, self.config[n]), config.get('bd', 'tables').strip().split('\n')))
+            return dict(map(lambda n: (n, self.config[n]), self.config.get('bd', 'tables').strip().split('\n')))
         return self.metadata.tables
 
     def table(self, table: str) -> db.Table:
         return self.metadata.tables[table]
 
     def index(self, table: str) -> pd.Index:
-        requête = db.select(column('index')).select_from(table)
+        requête = db.select(column('index')).select_from(db.table(table))
         with self.begin() as conn:
             résultat = conn.execute(requête)
         return pd.Index(résultat)
@@ -128,16 +134,16 @@ class BaseDeDonnées:
     def metadata(self) -> db.MetaData:
         metadata = db.MetaData()
 
-        for nom, section in self.tables(True):
-            colonnes = map(def_col, self.columns(nom, True))
+        for nom in self.tables(True):
+            colonnes = map(def_col, *zip(*self.columns(nom, True)))
             db.Table(nom, metadata, *colonnes)
 
         return metadata
 
-    def réinitialiser(self):
+    def réinitialiser(self, tables: tuple[str] = None):
         with self.begin() as conn:
-            self.metadata.drop_all(conn)
-            self.metadata.create_all(conn)
+            self.metadata.drop_all(conn, tables)
+            self.metadata.create_all(conn, tables)
 
     def loc(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore'):
         return self.select(table, columns, where, errors).loc
@@ -146,7 +152,7 @@ class BaseDeDonnées:
         return self.select(table, columns, where, errors).iloc
 
     def select(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore') -> pd.DataFrame:
-        requête = db.select(*map(column, columns)).select_from(table)
+        requête = db.select(*map(db.column, columns)).select_from(db.table(table))
 
         for clause in where:
             requête = requête.where(clause)
@@ -162,7 +168,7 @@ class BaseDeDonnées:
 
         with self.begin() as conn:
             for i, rangée in values.iterrows():
-                requête_précise = requête.where(column(index) == i).values(**rangée)
+                requête_précise = requête.where(db.column(index) == i).values(**rangée)
                 conn.execute(requête_précise)
 
     def insert(self, table: str, values: pd.DataFrame):
@@ -173,21 +179,78 @@ class BaseDeDonnées:
                 requête_précise = requête.values(index=i, **rangée)
                 conn.execute(requête_précise)
 
+    def append(self, table: str, values: pd.DataFrame):
+        indice_min = max(self.index(table)) + 1
+        indice_max = indice_min + len(values.index)
+        nouvel_index = pd.Index(range(indice_min, indice_max), name='index')
+        values = values.copy()
+        values.index = nouvel_index
+
+        self.insert(table, values)
+
     def delete(self, table: str, values: pd.DataFrame):
-        pass
+        requête = db.delete(table)
+        index = values.index.name
+
+        with self.begin() as conn:
+            for i in values.index:
+                requête_précise = requête.where(column(index) == i)
+                conn.execute(requête_précise)
 
     ## TODO Ajouter un support pour ALTER pour ajouter ou retirer des colonnes
+
+    def insert_columns(self, table: str, dtypes: pd.Series):
+        '''Méthode d'ajout de colonnes.
+Techniquement de la triche, efface et ré-entre les données.
+Ne fonctionnera pas avec les grosses bases de données.'''
+        vieille = self.select(table)
+
+        for col, dtype in columns.items():
+            self.config[table][col] = get_type('pandas', dtype, 'config')
+
+        self.réinitialiser([table])
+        self.insert(table, vieille)
+
+    def delete_columns(self, table: str, columns: pd.Series):
+        vieille = self.select(table)
+
+        for col in columns:
+            del self.config[table][col]
+
+        self.config.write()
+
+        self.réinitialiser([table])
+        self.insert(table, vieille)
+
+    def deviner_type_fichier(self, chemin: pathlib.Path):
+        return TYPES_FICHIERS[chemin.suffix]
+
+    def read_file(self, table: str, chemin: pathlib.Path, type_fichier: Union[str, Callable] = None):
+        if type_fichier is None:
+            type_fichier = self.deviner_type_fichier(chemin)
+        elif isinstance(type_fichier, str):
+            type_fichier = TYPES_FICHIERS[type_fichier]
+
+        df = type_fichier(chemin, index_col='index')
+        self.màj(table, df)
 
     def màj(self, table: str, values: pd.DataFrame):
         index = self.index(table)
         existe = values.index.isin(index)
 
+        test = ~values.columns.isin(self.columns(table, from_config=True))
+        if test.any():
+            nouvelles_colonnes = values.columns[test]
+            self.add_columns(table, nouvelles_colonnes.dtypes)
+
         self.update(table, values.loc[existe, :])
         self.insert(table, values.loc[~existe, :])
 
+    def create_engine(self):
+        return db.create_engine(self.adresse)
+
     def begin(self):
-        engine = db.create_engine(self.adresse)
-        return engine.begin()
+        return self.create_engine().begin()
 
 __all__ = [BaseDeDonnées]
 

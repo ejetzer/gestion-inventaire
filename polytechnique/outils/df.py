@@ -125,17 +125,17 @@ class HTMLBouton(HTMLCellule):
 class Tableau:
     """Wrapper for BaseDeDonnées & InterfaceHandler"""
 
-    def __init__(self, handler: InterfaceHandler, db: BaseDeDonnées, table: str, columns: tuple = tuple(), where: tuple = tuple()):
+    def __init__(self, handler: InterfaceHandler, db: BaseDeDonnées, table: str):
         """Wrap DataFrame & Frame."""
-        self.db = base_de_données
-        self.table, self.columns, self.where = table, columns, where
+        self.db = db
+        self.table = table
         self.handler = handler
 
-        self.__init_tableau()
+        self.build()
 
     @property
     def df(self):
-        return self.db.select(self.table, self.columns, self.where)
+        return self.db.select(self.table)
 
     def màj(self, values: pd.DataFrame):
         self.db.màj(self.table, values)
@@ -168,15 +168,16 @@ class Tableau:
                 self.handler.bouton('-', lambda: self.retirer_colonne(col)))
 
     def commandes_rangée(self, rangée):
-        return (self.handler.bouton('+', lambda: self.insert(rangée)),
+        return (self.handler.bouton('+', lambda: self.append()),
                 self.handler.bouton('-', lambda: self.retirer_rangée(rangée)))
 
     def build(self):
-        self.rangée_titres = [self.handler.texte(c) for c in self.columns]
-        self.colonne_index = [self.handler.texte(i) for i in self.index]
-        self.tableau_contenu = [[self.handler.entrée(self.loc[[i], [c]], lambda v: self.màj(v)) for c in self.columns] for i in self.index]
-        self.commandes_colonnes = [self.commandes_colonne(c) for c in self.columns]
-        self.commandes_rangées = [self.commandes_rangée(i) for i in self.index]
+        df = self.df
+        self.rangée_titres = [self.handler.texte(c) for c in df.columns]
+        self.colonne_index = [self.handler.texte(i) for i in df.index]
+        self.tableau_contenu = [[self.handler.entrée(df.loc[[i], [c]], lambda v: self.màj(v)) for c in df.columns] for i in df.index]
+        self.commandes_colonnes = [self.commandes_colonne(c) for c in df.columns]
+        self.commandes_rangées = [self.commandes_rangée(i) for i in df.index]
 
     @property
     def rowspan(self):
@@ -221,26 +222,33 @@ class Tableau:
 
     ## TODO Les fonctions d'ajout et de retrait de rangée et colonne devraient affecter directement la base de données
 
-    def insert(self, rangée=None):
-        if rangée is None or True: # Pour l'instant, toutes les rangées sont ajoutées à la fin
-            self.tableau = self.tableau.append(pd.Series(), ignore_index=True)
+    def append(self):
+        self.db.append(self.table, pd.DataFrame(None, columns=self.columns, index=[0]))
+        self.update_grid()
 
     def ajouter_colonne(self, nom_de_colonne=None):
         if nom_de_colonne is None:
             nom_de_colonne = self.handler.demander('Quel nom de colonne?')
 
         if nom_de_colonne not in self.columns:
-            self.tableau[nom_de_colonne] = None
+            self.db.insert_columns(pd.Series([nom_de_colonne], dtype='object'))
+
+        self.update_grid()
 
     def delete(self, index=None):
         if index is None:
             index = self.handler.demander('Quelle rangée?', int)
 
-        self.tableau = self.tableau.drop(index)
+        df = self.loc[[index], :]
+        self.db.delete(self.table, df)
+
+        self.update_grid()
 
     def retirer_colonne(self, nom=None):
         if nom is None:
             nom = self.handler.demander('Quelle colonne?')
 
         if nom in self.columns:
-            self.tableau = self.tableau.drop(nom, axis=1)
+            self.db.delete_columns(table, pd.Series([nom]))
+
+        self.update_grid()
