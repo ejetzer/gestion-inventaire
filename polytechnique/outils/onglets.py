@@ -17,16 +17,21 @@ from tkinter import ttk
 import sqlalchemy as db
 import pandas as pd
 
-from .df import Tableau
+from .df import Tableau, tkHandler
 from .db import BaseDeDonnées
+from .config import FichierConfig
 
 class OngletConfig(tk.Frame):
 
-    def __init__(self, master, config, fichier):
+    def __init__(self, master, config: FichierConfig):
         self.config = config
 
         super().__init__(master)
         self.build()
+
+    @property
+    def chemin(self):
+        return self.config.chemin
 
     def build(self):
         self.titre_étiquettes = {}
@@ -51,8 +56,7 @@ class OngletConfig(tk.Frame):
             for clé, valeur in self.champs[section]:
                 self.config[section][clé] = valeur
 
-        with open(fichier, 'w') as f:
-            self.config.write(f)
+        self.config.write()
 
     def subgrid(self):
         colonne = 0
@@ -92,7 +96,8 @@ class OngletBaseDeDonnées(tk.Frame):
         contenant.bind('<Configure>', lambda x: canevas.configure(scrollregion=canevas.bbox('all')))
 
         cadre = self.base_de_données.df(table=self.table)
-        tableau = Tableau(contenant, cadre)
+        gérant = tkHandler(contenant)
+        tableau = Tableau(gérant, cadre)
 
         màj = tk.Button(self, text='Màj', command=lambda: tableau.update_grid())
         rangée = tk.Button(self, text='+', command=lambda: tableau.ajouter_rangée())
@@ -126,16 +131,16 @@ class OngletBaseDeDonnées(tk.Frame):
 
 class Onglets(ttk.Notebook):
 
-    def __init__(self, master, config, fichier):
+    def __init__(self, master, config):
         super().__init__(master)
 
-        onglet = OngletConfig(self, config, fichier)
-        self.add(onglet, text=fichier)
+        onglet = OngletConfig(self, config)
+        self.add(onglet, text=onglet.chemin)
 
-        base_de_données = config['base de données']['adresse']
+        base_de_données = config['bd']['adresse']
 
         tables = filter(lambda x: x in config.sections(),
-                        eval(config['base de données']['tables']))
+                        eval(config['bd']['tables']))
         for nom_table in tables:
             onglet = OngletBaseDeDonnées(self, base_de_données, nom_table)
             self.add(onglet, text=nom_table)

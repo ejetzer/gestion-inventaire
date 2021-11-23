@@ -11,16 +11,13 @@ Created on Mon Nov 15 15:17:28 2021
 import tkinter as tk
 import configparser as cp
 
-from .outils.onglets import Onglets
+from polytechnique.outils.onglets import Onglets
+from polytechnique.outils.config import FichierConfig
 
 if __name__ == '__main__':
-    config = cp.ConfigParser()
-    config.read(fichier_config := 'référence.config', encoding='utf-8')
-
+    config = FichierConfig('référence.config')
     racine = tk.Tk()
-    racine.title(config['tkinter']['title'])
-
-    onglets = Onglets(racine, config, fichier_config)
+    racine.title(config.get('tkinter', 'title', fallback='Demo'))
+    onglets = Onglets(racine, config)
     onglets.grid(sticky='nsew')
-
     racine.mainloop()
