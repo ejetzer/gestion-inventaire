@@ -22,7 +22,7 @@ import tkinter as tk
 from .config import FichierConfig
 
 TYPES: tuple[dict[str, Union[str, type]]] = ({'config': None,
-                                              'python': object,
+                                              'python': str,
                                               'pandas': 'object',
                                               'sqlalchemy': db.PickleType,
                                               'tk': tk.StringVar},
@@ -66,18 +66,13 @@ TYPES: tuple[dict[str, Union[str, type]]] = ({'config': None,
                                               'pandas': 'boolean',
                                               'sqlalchemy': db.Boolean,
                                               'tk': tk.StringVar},
-                                             {'config': None,
-                                              'python': object,
-                                              'pandas': 'object',
-                                              'sqlalchemy': db.PickleType,
-                                              'tk': tk.StringVar},
                                              {'config': 'pathlib.Path',
                                               'python': pathlib.Path,
                                               'pandas': 'object',
                                               'sqlalchemy': db.PickleType,
                                               'tk': tk.StringVar})
 
-DATE_TYPES: tuple[str] = ('datetime64[D]', 'datetime64[ns]')
+#DATE_TYPES: tuple[str] = ('datetime64[D]', 'datetime64[ns]')
 
 TYPES_FICHIERS: dict[str, Callable] = {'xlsx': pd.read_excel,
                                        'xls': pd.read_excel,
@@ -104,12 +99,17 @@ class BaseDeDonnées:
     def adresse(self):
         return self.config.get('bd', 'adresse', fallback='test.db')
 
-    def dtypes(self, table: str) -> pd.Series:
-        return pd.Series(map(lambda x: get_type('sqlalchemy', x.type, 'pandas'), cols:=self.columns(table)),
-                         index=cols)
+    def dtype(self, table: str, champ: str):
+        return get_type('config', self.config.get(table, champ, fallback=self.config.get('common', champ, fallback=None)), 'pandas')
 
-    def date_types(self, table: str) -> pd.Series:
-        return self.dtypes[self.dtypes(table).isin(DATE_TYPES)]
+    def dtypes(self, table: str) -> pd.Series:
+        cols = self.columns(table)
+        dtypes = map(lambda x: self.dtype(table, x), self.columns(table))
+        dtypes = pd.Series(dtypes, index=cols)
+        return dtypes
+
+    # def date_types(self, table: str) -> pd.Series:
+    #     return self.dtypes[self.dtypes(table).isin(DATE_TYPES)]
 
     def columns(self, table: str, from_config=False) -> pd.Index:
         if from_config:
@@ -125,10 +125,10 @@ class BaseDeDonnées:
         return self.metadata.tables[table]
 
     def index(self, table: str) -> pd.Index:
-        requête = db.select(column('index')).select_from(db.table(table))
+        requête = db.select([db.column('index')]).select_from(db.table(table))
         with self.begin() as conn:
             résultat = conn.execute(requête)
-        return pd.Index(résultat)
+            return pd.Index(résultat)
 
     @property
     def metadata(self) -> db.MetaData:
@@ -140,10 +140,10 @@ class BaseDeDonnées:
 
         return metadata
 
-    def réinitialiser(self, tables: tuple[str] = None):
+    def réinitialiser(self): #, tables: tuple[str] = None):
         with self.begin() as conn:
-            self.metadata.drop_all(conn, tables)
-            self.metadata.create_all(conn, tables)
+            self.metadata.drop_all(conn) #, tables)
+            self.metadata.create_all(conn) #, tables)
 
     def loc(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore'):
         return self.select(table, columns, where, errors).loc
@@ -151,51 +151,58 @@ class BaseDeDonnées:
     def iloc(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore'):
         return self.select(table, columns, where, errors).iloc
 
+    def execute(self, *requests):
+        with self.begin() as conn:
+            for request in requests:
+                conn.execute(request)
+
     def select(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore') -> pd.DataFrame:
-        requête = db.select(*map(db.column, columns)).select_from(db.table(table))
+        if not columns:
+            columns = self.columns(table)
+
+        columns = map(db.column, columns)
+        requête = db.select(columns)
+        requête = requête.select_from(db.table(table))
 
         for clause in where:
             requête = requête.where(clause)
 
         with self.begin() as conn:
-            df = pd.read_sql(requête, conn, index_col='index', parse_dates=self.date_types(table))
+            print(f'{requête!s}')
+            df = pd.read_sql(requête, conn, index_col='index')
 
-        return df.astype(dict(self.dtypes(table)), errors=errors)
+        # Erreur avec le mapping dtypes, incertain pourquoi
+        #dtypes = dict(self.dtypes(table))
+        #df = df.astype(dtypes, errors=errors)
+
+        return df
 
     def update(self, table: str, values: pd.DataFrame):
-        requête = db.update(table)
+        requête = db.update(db.table(table))
         index = values.index.name
-
-        with self.begin() as conn:
-            for i, rangée in values.iterrows():
-                requête_précise = requête.where(db.column(index) == i).values(**rangée)
-                conn.execute(requête_précise)
+        requêtes = [requête.where(db.column(index) == i).values(**rangée) for i, rangée in values.iterrows()]
+        self.execute(*requêtes)
 
     def insert(self, table: str, values: pd.DataFrame):
-        requête = db.insert(table)
-
-        with self.begin() as conn:
-            for i, rangée in values.iterrows():
-                requête_précise = requête.values(index=i, **rangée)
-                conn.execute(requête_précise)
+        requête = db.insert(db.table(table))
+        requêtes = [requête.values(index=i, **rangée) for i, rangée in values.iterrows()]
+        for r in requêtes:
+            print(f'{r!r}')
+        self.execute(*requêtes)
 
     def append(self, table: str, values: pd.DataFrame):
-        indice_min = max(self.index(table)) + 1
-        indice_max = indice_min + len(values.index)
-        nouvel_index = pd.Index(range(indice_min, indice_max), name='index')
+        indice_min = max(self.index(table), default=-1) + 1
+        nouvel_index = pd.Index(range(len(values.index)), name='index') + indice_min
         values = values.copy()
         values.index = nouvel_index
-
+        print(f'{values!s}')
         self.insert(table, values)
 
     def delete(self, table: str, values: pd.DataFrame):
-        requête = db.delete(table)
+        requête = db.delete(db.table(table))
         index = values.index.name
-
-        with self.begin() as conn:
-            for i in values.index:
-                requête_précise = requête.where(column(index) == i)
-                conn.execute(requête_précise)
+        requêtes = [requête.where(column(index) == i) for i in values.index]
+        self.execute(*requêtes)
 
     ## TODO Ajouter un support pour ALTER pour ajouter ou retirer des colonnes
 
@@ -205,10 +212,10 @@ Techniquement de la triche, efface et ré-entre les données.
 Ne fonctionnera pas avec les grosses bases de données.'''
         vieille = self.select(table)
 
-        for col, dtype in columns.items():
+        for col, dtype in self.dtypes(table).items():
             self.config[table][col] = get_type('pandas', dtype, 'config')
 
-        self.réinitialiser([table])
+        self.réinitialiser()
         self.insert(table, vieille)
 
     def delete_columns(self, table: str, columns: pd.Series):
@@ -219,7 +226,7 @@ Ne fonctionnera pas avec les grosses bases de données.'''
 
         self.config.write()
 
-        self.réinitialiser([table])
+        self.réinitialiser()
         self.insert(table, vieille)
 
     def deviner_type_fichier(self, chemin: pathlib.Path):
@@ -241,7 +248,7 @@ Ne fonctionnera pas avec les grosses bases de données.'''
         test = ~values.columns.isin(self.columns(table, from_config=True))
         if test.any():
             nouvelles_colonnes = values.columns[test]
-            self.add_columns(table, nouvelles_colonnes.dtypes)
+            self.insert_columns(table, values.dtypes[test])
 
         self.update(table, values.loc[existe, :])
         self.insert(table, values.loc[~existe, :])

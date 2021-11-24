@@ -90,19 +90,18 @@ class OngletBaseDeDonnées(tk.Frame):
         return self.config.get('bd', 'adresse', fallback='test.db')
 
     def build(self):
-        canevas = tk.Canvas(self, width='50c', height='15c')
-        défiler_horizontalement = tk.Scrollbar(self, orient='horizontal', command=canevas.xview)
-        défiler_verticalement = tk.Scrollbar(self, orient='vertical', command=canevas.yview)
-        canevas.configure(xscrollcommand=défiler_horizontalement.set,
-                          yscrollcommand=défiler_verticalement.set)
-        contenant = tk.Frame(canevas)
-        contenant.bind('<Configure>', lambda x: canevas.configure(scrollregion=canevas.bbox('all')))
+        self.canevas = tk.Canvas(self, width='50c', height='15c')
+        défiler_horizontalement = tk.Scrollbar(self, orient='horizontal', command=self.canevas.xview)
+        défiler_verticalement = tk.Scrollbar(self, orient='vertical', command=self.canevas.yview)
+        self.canevas.configure(xscrollcommand=défiler_horizontalement.set,
+                               yscrollcommand=défiler_verticalement.set)
+        self.contenant = tk.Frame(self.canevas)
+        self.contenant.bind('<Configure>', lambda x: self.canevas.configure(scrollregion=self.canevas.bbox('all')))
 
-        self.tableau = Tableau(tkHandler(contenant), BaseDeDonnées(self.config), self.table)
+        self.tableau = Tableau(tkHandler(self.contenant), BaseDeDonnées(self.config), self.table)
 
         màj = tk.Button(self, text='Màj', command=lambda: self.tableau.update_grid())
 
-        self.canevas = canevas
         self.défiler = [défiler_horizontalement, défiler_verticalement]
         self.boutons = [màj]
 

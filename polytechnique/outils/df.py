@@ -30,12 +30,13 @@ class InterfaceHandler:
 
 def tkHandler(master: tk.Tk) -> InterfaceHandler:
     def entrée(value: pd.DataFrame, commande: Callable, dtype: str = 'object') -> tk.Entry:
-        variable = get_type('pandas', dtype, 'tk')(master, value)
+        variable = get_type('pandas', dtype, 'tk')(master, value.iloc[0, 0])
         conversion = get_type('pandas', dtype, 'python')
-        variable.trace_add('write', lambda x, i, m, v=variable: commande(pd.Series(conversion(v.get()),
-                                                                                   index=value.index,
-                                                                                   name=value.name,
-                                                                                   dtype=dtype)))
+
+        variable.trace_add('write', lambda x, i, m, v=variable: commande(pd.DataFrame(conversion(v.get()),
+                                                                                      index=value.index,
+                                                                                      columns=value.columns,
+                                                                                      dtype=dtype)))
 
         if dtype == 'boolean':
             widget = Tkinter.Checkbutton(master, variable=variable)
@@ -47,7 +48,7 @@ def tkHandler(master: tk.Tk) -> InterfaceHandler:
     texte = lambda s: tk.Label(master, text=s)
     bouton = lambda s, c: tk.Button(master, text=s, command=c)
 
-    def demander(questio: str = '', dtype: type = str):
+    def demander(question: str = '', dtype: type = str):
         if dtype == str:
             return askstring('?', question)
         elif dtype == int:
@@ -121,7 +122,6 @@ class HTMLBouton(HTMLCellule):
     def __init__(self, master: HTMLTable, texte: str, commande: Callable):
         pass
 
-
 class Tableau:
     """Wrapper for BaseDeDonnées & InterfaceHandler"""
 
@@ -136,6 +136,10 @@ class Tableau:
     @property
     def df(self):
         return self.db.select(self.table)
+
+    @property
+    def dtypes(self):
+        return self.db.dtypes(self.table)
 
     def màj(self, values: pd.DataFrame):
         self.db.màj(self.table, values)
@@ -163,16 +167,29 @@ class Tableau:
     def iloc(self):
         return self.df.iloc
 
+    def oublie_pas_la_màj(self, f: Callable, *args):
+        def F():
+            f(*args)
+            self.update_grid()
+
+        return F
+
     def commandes_colonne(self, col):
-        return (self.handler.bouton('+', lambda: self.ajouter_colonne()),
-                self.handler.bouton('-', lambda: self.retirer_colonne(col)))
+        return (self.handler.bouton('+', self.oublie_pas_la_màj(self.ajouter_colonne)),
+                self.handler.bouton('-', self.oublie_pas_la_màj(self.retirer_colonne)))
 
     def commandes_rangée(self, rangée):
-        return (self.handler.bouton('+', lambda: self.append()),
-                self.handler.bouton('-', lambda: self.retirer_rangée(rangée)))
+        return (self.handler.bouton('+', self.oublie_pas_la_màj(self.append)),
+                self.handler.bouton('-', self.oublie_pas_la_màj(self.retirer_rangée, rangé)))
 
     def build(self):
         df = self.df
+
+        if df.shape[0] == 0:
+            self.append()
+        if df.shape[1] == 0:
+            self.ajouter_colonne('index')
+
         self.rangée_titres = [self.handler.texte(c) for c in df.columns]
         self.colonne_index = [self.handler.texte(i) for i in df.index]
         self.tableau_contenu = [[self.handler.entrée(df.loc[[i], [c]], lambda v: self.màj(v)) for c in df.columns] for i in df.index]
@@ -199,7 +216,7 @@ class Tableau:
             for k, w in enumerate((plus, moins, idx)):
                 w.grid(row=row+i+3, column=column+k)
 
-            for j, col in enumerate(rang[cols]):
+            for j, col in enumerate(rang):
                 col.grid(row=row+i+3, column=column+k+j+1)
 
     @property
@@ -222,18 +239,19 @@ class Tableau:
 
     ## TODO Les fonctions d'ajout et de retrait de rangée et colonne devraient affecter directement la base de données
 
-    def append(self):
-        self.db.append(self.table, pd.DataFrame(None, columns=self.columns, index=[0]))
-        self.update_grid()
+    def append(self, values: pd.DataFrame = None):
+        if values is None:
+            values = pd.DataFrame({c: [get_type('pandas', t, 'python')()] for c, t in self.dtypes.items()})
+            values = values.set_index('index')
+
+        self.db.append(self.table, values)
 
     def ajouter_colonne(self, nom_de_colonne=None):
         if nom_de_colonne is None:
             nom_de_colonne = self.handler.demander('Quel nom de colonne?')
 
         if nom_de_colonne not in self.columns:
-            self.db.insert_columns(pd.Series([nom_de_colonne], dtype='object'))
-
-        self.update_grid()
+            self.db.insert_columns(self.table, {nom_de_colonne: 'object'})
 
     def delete(self, index=None):
         if index is None:
@@ -242,13 +260,9 @@ class Tableau:
         df = self.loc[[index], :]
         self.db.delete(self.table, df)
 
-        self.update_grid()
-
     def retirer_colonne(self, nom=None):
         if nom is None:
             nom = self.handler.demander('Quelle colonne?')
 
         if nom in self.columns:
             self.db.delete_columns(table, pd.Series([nom]))
-
-        self.update_grid()
