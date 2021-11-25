@@ -131,8 +131,6 @@ class Tableau:
         self.table = table
         self.handler = handler
 
-        self.build()
-
     @property
     def df(self):
         return self.db.select(self.table)
@@ -166,6 +164,9 @@ class Tableau:
     @property
     def iloc(self):
         return self.df.iloc
+
+    def réinitialiser(self):
+        self.db.réinitialiser()
 
     def oublie_pas_la_màj(self, f: Callable, *args):
         def F():
@@ -207,6 +208,8 @@ class Tableau:
     def grid(self, row: int, column: int):
         """Display the DataFrame."""
         self.__grid_params = {'row': row, 'column': column}
+
+        self.build()
 
         for i, (col, (plus, moins)) in enumerate(zip(self.rangée_titres, self.commandes_colonnes)):
             for k, w in enumerate((plus, moins, col)):

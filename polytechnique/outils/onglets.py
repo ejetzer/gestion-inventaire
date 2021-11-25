@@ -13,6 +13,7 @@ import configparser as cp
 import tkinter as tk
 
 from tkinter import ttk
+from typing import Callable
 
 import sqlalchemy as db
 import pandas as pd

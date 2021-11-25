@@ -151,10 +151,10 @@ class BaseDeDonnées:
     def iloc(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore'):
         return self.select(table, columns, where, errors).iloc
 
-    def execute(self, *requests):
+    def execute(self, requête, *args, **kargs):
         with self.begin() as conn:
-            for request in requests:
-                conn.execute(request)
+            print(f'{requête!s}')
+            conn.execute(requête, *args, **kargs)
 
     def select(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore') -> pd.DataFrame:
         if not columns:
@@ -162,7 +162,7 @@ class BaseDeDonnées:
 
         columns = map(db.column, columns)
         requête = db.select(columns)
-        requête = requête.select_from(db.table(table))
+        requête = requête.select_from(self.table(table))
 
         for clause in where:
             requête = requête.where(clause)
@@ -178,28 +178,25 @@ class BaseDeDonnées:
         return df
 
     def update(self, table: str, values: pd.DataFrame):
-        requête = db.update(db.table(table))
+        requête = db.update(self.table(table))
         index = values.index.name
         requêtes = [requête.where(db.column(index) == i).values(**rangée) for i, rangée in values.iterrows()]
         self.execute(*requêtes)
 
     def insert(self, table: str, values: pd.DataFrame):
-        requête = db.insert(db.table(table))
-        requêtes = [requête.values(index=i, **rangée) for i, rangée in values.iterrows()]
-        for r in requêtes:
-            print(f'{r!r}')
-        self.execute(*requêtes)
+        params = [({'index': i} | {c: v for c, v in r.items()}) for i, r in values.iterrows()]
+        requête = self.table(table).insert(params)
+        self.execute(requête, *params)
 
     def append(self, table: str, values: pd.DataFrame):
         indice_min = max(self.index(table), default=-1) + 1
         nouvel_index = pd.Index(range(len(values.index)), name='index') + indice_min
         values = values.copy()
         values.index = nouvel_index
-        print(f'{values!s}')
         self.insert(table, values)
 
     def delete(self, table: str, values: pd.DataFrame):
-        requête = db.delete(db.table(table))
+        requête = db.delete(self.table(table))
         index = values.index.name
         requêtes = [requête.where(column(index) == i) for i in values.index]
         self.execute(*requêtes)
