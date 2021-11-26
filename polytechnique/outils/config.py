@@ -15,9 +15,12 @@ from typing import Union, Iterable
 
 class FichierConfig(ConfigParser):
 
-    def __init__(self, chemin: Union[Iterable[Path], Path]):
+    def __init__(self,
+                 chemin: Union[Iterable[Path], Path],
+                 inline_comment_prefixes=('#', ';'),
+                 **kargs):
         self.__chemin = chemin
-        super().__init__()
+        super().__init__(inline_comment_prefixes=inline_comment_prefixes, **kargs)
         self.read()
 
     @property
@@ -37,6 +40,16 @@ class FichierConfig(ConfigParser):
     def __setitem__(self, section, options):
         super().__setitem__(section, options)
         self.write()
+
+    def getlist(sec: str, clé: str, fallback: list = []):
+        """Obtenir une liste, à partir d'une énumération multiligne."""
+        if fallback is not None:
+            val = self.get(sec, clé, '')
+        else:
+            val = self.get(sec, clé, '')
+
+        val = list(map(str.strip, val.split('\n')))
+        return val
 
 
 def main() -> FichierConfig:

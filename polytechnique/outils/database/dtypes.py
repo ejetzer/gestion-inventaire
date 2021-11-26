@@ -78,3 +78,6 @@ def get_type(de: str, t: Union[type, str], à: str) -> Union[type, str]:
     for s in filter(lambda x: x[de] == t, TYPES):
         return s[à]
     return next(filter(lambda x: x['config'] == None, TYPES))[à]
+
+def column(name: str, dtype: type = str, *args, **kargs):
+    return sqla.Column(name, get_type('python', dtype, 'sqlalchemy'), *args, **kargs)
