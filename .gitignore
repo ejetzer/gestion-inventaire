@@ -128,3 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 >>>>>>> 5eb1f1d3a14e591d07a1ab3762ec9668039363bf
+
+# MacOS
+.DS_Store
+
+# Database
+*.db
+*.sqlite
+
