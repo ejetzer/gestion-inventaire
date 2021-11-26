@@ -15,12 +15,13 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Callable
 
-import sqlalchemy as db
+import sqlalchemy as sqla
 import pandas as pd
 
-from .df import Tableau, tkHandler
-from .db import BaseDeDonnées
-from .config import FichierConfig
+from .df import Tableau
+from .tkinter import tkHandler
+from ..database import BaseDeDonnées
+from ..config import FichierConfig
 
 class OngletConfig(tk.Frame):
 
@@ -79,9 +80,10 @@ class OngletConfig(tk.Frame):
 
 class OngletBaseDeDonnées(tk.Frame):
 
-    def __init__(self, master: tk.Tk, config: FichierConfig, table: str, *args, **kargs):
+    def __init__(self, master: tk.Tk, db: BaseDeDonnées, table: str, *args, config: FichierConfig = None, **kargs):
         self.config = config
         self.table = table
+        self.db = db
 
         super().__init__(master, *args, **kargs)
         self.build()
@@ -99,7 +101,7 @@ class OngletBaseDeDonnées(tk.Frame):
         self.contenant = tk.Frame(self.canevas)
         self.contenant.bind('<Configure>', lambda x: self.canevas.configure(scrollregion=self.canevas.bbox('all')))
 
-        self.tableau = Tableau(tkHandler(self.contenant), BaseDeDonnées(self.config), self.table)
+        self.tableau = Tableau(tkHandler(self.contenant), self.db, self.table)
 
         màj = tk.Button(self, text='Màj', command=lambda: self.tableau.update_grid())
 
@@ -122,16 +124,16 @@ class OngletBaseDeDonnées(tk.Frame):
 
 class Onglets(ttk.Notebook):
 
-    def __init__(self, master, config):
+    def __init__(self, master, config, schema):
         super().__init__(master)
 
         onglet = OngletConfig(self, config)
         self.add(onglet, text=onglet.chemin)
 
-        tables = filter(lambda x: x in config.sections(),
-                        config.get('bd', 'tables').strip().split('\n'))
+        tables = config.get('bd', 'tables').strip().split('\n')
+        db = BaseDeDonnées(config.get('bd', 'adresse'), schema)
         for nom_table in tables:
-            onglet = OngletBaseDeDonnées(self, config, nom_table)
+            onglet = OngletBaseDeDonnées(self, db, nom_table, config=config)
             self.add(onglet, text=nom_table)
 
     def grid(self, *args, **kargs):
@@ -141,13 +143,26 @@ class Onglets(ttk.Notebook):
         super().grid(*args, **kargs)
 
 
-if __name__ == '__main__':
+def main(config: FichierConfig = None, md: sqla.MetaData = None):
+    if config is None:
+        import polytechnique.outils.config
+        config = polytechnique.outils.config.main()
+
+    if md is None:
+        import polytechnique.outils.database
+        base, md = polytechnique.outils.database.main()
+
+    print('Création de l\'interface...')
     racine = tk.Tk()
-    racine.title('Bases de données')
+    racine.title(config.get('tkinter', 'title', fallback='Demo'))
+    onglets = Onglets(racine, config, md)
+    print('Interface créée.')
 
-    config = FichierConfig('référence.config')
-
-    onglets = Onglets(racine, config)
+    print('Affichage...')
     onglets.grid(sticky='nsew')
-
     racine.mainloop()
+
+    return racine, onglets
+
+if __name__ == '__main__':
+    main()

@@ -8,21 +8,24 @@ Created on Mon Nov 15 15:17:28 2021
 @author: ejetzer
 """
 
-import tkinter as tk
-import configparser as cp
-
-from polytechnique.outils.onglets import Onglets, OngletBaseDeDonnées
+from polytechnique.outils.interface.onglets import Onglets
 from polytechnique.outils.config import FichierConfig
+from polytechnique.outils.database.dtypes import get_type
+from polytechnique.outils.database import BaseDeDonnées
+
+def main():
+    print('Démonstration du module polytechnique:')
+
+    import polytechnique.outils.database
+    base, md = polytechnique.outils.database.main()
+
+    import polytechnique.outils.config
+    config = polytechnique.outils.config.main()
+
+    import polytechnique.outils.interface.onglets
+    racine, onglets = polytechnique.outils.interface.onglets.main(config, md)
+
+    print('Fin.')
 
 if __name__ == '__main__':
-    config = FichierConfig('base.cfg')
-    racine = tk.Tk()
-    racine.title(config.get('tkinter', 'title', fallback='Demo'))
-    onglets = Onglets(racine, config)
-
-    # Réinitialisation forcée
-    for onglet in filter(lambda x: isinstance(x, OngletBaseDeDonnées), onglets.children.values()):
-        onglet.tableau.réinitialiser()
-
-    onglets.grid(sticky='nsew')
-    racine.mainloop()
+    main()

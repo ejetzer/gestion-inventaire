@@ -37,3 +37,11 @@ class FichierConfig(ConfigParser):
     def __setitem__(self, section, options):
         super().__setitem__(section, options)
         self.write()
+
+
+def main() -> FichierConfig:
+    print('Ouvrir un fichier de configuration...')
+    config = FichierConfig('base.cfg')
+    print('Configuration ouverte...')
+
+    return config
