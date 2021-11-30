@@ -157,7 +157,8 @@ if __name__ == '__main__':
     racine.title('Bases de données')
 
     config = cp.ConfigParser()
-    config.read('référence.config')
+    config.optionxform = lambda x: str(x)
+    config.read('référence.config', encoding='utf-8')
 
     onglets = Onglets(racine, config, 'référence.config')
     onglets.grid(sticky='nsew')
