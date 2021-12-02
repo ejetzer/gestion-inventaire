@@ -102,7 +102,7 @@ class Tableau(BaseTableau):
         """Wrap DataFrame & Frame."""
         super().__init__(db, table)
         self.__widgets = pd.DataFrame()
-        self.__commandes = {'index': [], 'columns': []}
+        self.__commandes = []
         self.__handler = handler
 
     def oublie_pas_la_màj(self, f: Callable, *args):
@@ -180,7 +180,106 @@ class Tableau(BaseTableau):
     def update_grid(self):
         """Update the grid after a change to the DataFrame"""
         self.destroy_children()
+        self.grid(**self.__grid_params)
+
+
+class Formulaire(BaseTableau):
+
+    def __init__(self, handler: InterfaceHandler, db: BaseDeDonnées, table: str):
+        """Wrap DataFrame & Frame."""
+        super().__init__(db, table)
+        self.__widgets = pd.DataFrame()
+        self.__commandes = []
+        self.__handler = handler
+
+
+    def oublie_pas_la_màj(self, f: Callable, *args):
+        """Force la mise à jour de la grille après un changement à la base de données."""
+        def F():
+            f(*args)
+            self.update_grid()
+
+        return F
+
+    @property
+    def __index(self):
+        if len(self.index):
+            return max(self.index) + 1
+        else:
+            return 0
+
+    def effacer(self):
+        self.update_grid()
+        # TODO: rentrer la date automatiquement
+
+    def soumettre(self):
+        self.append(pd.DataFrame({c.cget('text'): [v.get()] for c, v in self.__widgets.loc[0, :].items()},
+                                 index=[self.__index]))
+        self.effacer()
+
+    def build_commandes(self):
+        return (self.__handler.bouton('Effacer', self.effacer),
+                self.__handler.bouton('Soumettre', self.soumettre))
+
+    def build(self):
+        self.__widgets = pd.DataFrame(None, columns=self.columns, index=[0])
+
+        colonnes = filter(lambda x: x != 'index', self.columns)
+        colonnes = list(map(self.__handler.texte, colonnes))
+        self.__widgets.columns = colonnes
+
+        for col in colonnes:
+            n = self.__handler.entrée(pd.DataFrame(None, columns=[col], index=[self.__index]),
+                                      lambda x: None)
+            self.__widgets.loc[0, col] = n
+
+        self.__commandes = self.build_commandes()
+
+    @property
+    def rowspan(self):
+        """Retourne le nombre de rangées + 1 (pour l'index)."""
+        return self.shape[1] + 2
+
+    @property
+    def columnspan(self):
+        """Retourne le nombre de colonnes + 1 (pour l'en-tête)."""
+        return 2
+
+    def grid(self, row: int, column: int):
+        """Display the DataFrame."""
+        self.__grid_params = {'row': row, 'column': column}
+
         self.build()
+
+        for j, (c, v) in enumerate(zip(self.__widgets.columns, self.__widgets.loc[0, :])):
+            c.grid(row=row+j, column=column)
+            v.grid(row=row+j, column=column+1)
+
+        for i, c in enumerate(self.__commandes):
+            c.grid(row=row+j+1, column=column+i)
+
+    def pack(self, *args, **kargs):
+        pass
+
+    @property
+    def children(self):
+        print(self.__widgets)
+        return it.chain(self.__widgets.columns,
+                        *self.__widgets.values,
+                        self.__commandes)
+
+    def destroy_children(self):
+        for widget in self.children:
+            print(f'{widget=}')
+            widget.destroy()
+
+    def destroy(self):
+        self.destroy_children()
+        super().destroy()
+
+    def update_grid(self):
+        """Update the grid after a change to the DataFrame"""
+        self.destroy_children()
         self.grid(**self.__grid_params)
 
 
@@ -201,6 +300,20 @@ def main():
 
     tableau.grid(0, 0)
 
+    racine.mainloop()
+
+    print('On réouvre, pour montrer que les changements sont bien soumis à la base de données...')
+    racine = tkinter.Tk()
+    handler = polytechnique.outils.interface.tkinter.tkHandler(racine)
+    tableau = Tableau(handler, base, 'demo')
+    tableau.grid(0, 0)
+    racine.mainloop()
+
+    print('On teste le formulaire...')
+    racine = tkinter.Tk()
+    handler = polytechnique.outils.interface.tkinter.tkHandler(racine)
+    formulaire = Formulaire(handler, base, 'demo')
+    formulaire.grid(0, 0)
     racine.mainloop()
 
     print('On réouvre, pour montrer que les changements sont bien soumis à la base de données...')

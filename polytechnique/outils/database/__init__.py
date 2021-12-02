@@ -111,14 +111,18 @@ class BaseDeDonnées:
             self.insert(table, values.loc[~existe, :])
 
     def create_engine(self):
-        return sqla.create_engine(self.__adresse)
+        return sqla.create_engine(str(self.__adresse))
 
     def begin(self):
         return self.create_engine().begin()
 
-    def réinitialiser(self):
+    def initialiser(self, checkfirst=True):
         with self.begin() as con:
-            self.__schema.drop_all(con)
+            self.__schema.create_all(con, checkfirst=checkfirst)
+
+    def réinitialiser(self, checkfirst=True):
+        with self.begin() as con:
+            self.__schema.drop_all(con, checkfirst=checkfirst)
             self.__schema.create_all(con)
 
     ## Interface de pandas.DataFrame
