@@ -18,7 +18,7 @@ from typing import Callable
 import sqlalchemy as sqla
 import pandas as pd
 
-from .df import Tableau
+from .df import Tableau, Formulaire
 from .tkinter import tkHandler
 from ..database import BaseDeDonnées
 from ..config import FichierConfig
@@ -121,20 +121,70 @@ class OngletBaseDeDonnées(tk.Frame):
         self.subgrid()
         super().grid(*args, **kargs)
 
+class OngletFormulaire(tk.Frame):
+
+    def __init__(self, master: tk.Tk, db: BaseDeDonnées, table: str, *args, config: FichierConfig = None, **kargs):
+        self.config = config
+        self.table = table
+        self.db = db
+
+        super().__init__(master, *args, **kargs)
+        self.build()
+
+    @property
+    def adresse(self):
+        return self.config.get('bd', 'adresse', fallback='test.db')
+
+    def build(self):
+        self.canevas = tk.Canvas(self, width='50c', height='15c')
+        défiler_horizontalement = tk.Scrollbar(self, orient='horizontal', command=self.canevas.xview)
+        défiler_verticalement = tk.Scrollbar(self, orient='vertical', command=self.canevas.yview)
+        self.canevas.configure(xscrollcommand=défiler_horizontalement.set,
+                               yscrollcommand=défiler_verticalement.set)
+        self.contenant = tk.Frame(self.canevas)
+        self.contenant.bind('<Configure>', lambda x: self.canevas.configure(scrollregion=self.canevas.bbox('all')))
+
+        self.formulaire = Formulaire(tkHandler(self.contenant), self.db, self.table)
+        self.défiler = [défiler_horizontalement, défiler_verticalement]
+
+    def subgrid(self):
+        self.défiler[0].grid(row=16, column=1, columnspan=1, sticky='we')
+        self.défiler[1].grid(row=1, column=2, rowspan=15, sticky='ns')
+        self.canevas.grid(row=1, column=1, rowspan=15, sticky='news')
+        self.canevas.create_window((30, 15), window=self.contenant)
+        self.formulaire.grid(0, 0)
+
+    def grid(self, *args, **kargs):
+        self.subgrid()
+        super().grid(*args, **kargs)
+
 
 class Onglets(ttk.Notebook):
 
     def __init__(self, master, config, schema):
         super().__init__(master)
+        self.onglets = []
 
         onglet = OngletConfig(self, config)
         self.add(onglet, text=onglet.chemin)
 
-        tables = config.get('bd', 'tables').strip().split('\n')
         db = BaseDeDonnées(config.get('bd', 'adresse'), schema)
+
+        tables = config.getlist('bd', 'tables')
         for nom_table in tables:
+            print(f'{nom_table=}')
             onglet = OngletBaseDeDonnées(self, db, nom_table, config=config)
             self.add(onglet, text=nom_table)
+
+        formulaires = config.getlist('bd', 'formulaires')
+        for nom_formulaire in formulaires:
+            print(f'{nom_formulaire=}')
+            onglet = OngletFormulaire(self, db, nom_formulaire)
+            self.add(onglet, text=f'[Formulaire] {nom_formulaire}')
+
+    def add(self, obj: tk.Frame, *args, **kargs):
+        self.onglets.append(obj)
+        super().add(obj, *args, **kargs)
 
     def grid(self, *args, **kargs):
         for onglet in self.children.values():

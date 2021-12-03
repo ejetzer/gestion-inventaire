@@ -14,7 +14,7 @@ from pathlib import Path
 
 from ..outils.config import FichierConfig
 from ..outils.database import BaseDeDonnées
-from ..outils.interface.onglets import Onglets
+from ..outils.interface.onglets import Onglets, OngletBaseDeDonnées
 
 from .modeles import metadata
 
@@ -29,6 +29,17 @@ def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
         print(f'[{sec}]')
         for c, v in config[sec].items():
             print(f'{c}: {v}')
+
+    print('Chargement de la base de données...')
+    base = BaseDeDonnées(config.get('bd', 'adresse'), metadata)
+    base.initialiser()
+
+    for n, t in base.tables.items():
+        print(f'[{n}]')
+        for c in t.columns:
+            print(f'{c}')
+    print(base.select('boites'))
+    print(base.select('inventaire'))
 
     print('Préparation de l\'interface...')
     racine = tk.Tk()

@@ -111,6 +111,7 @@ class BaseDeDonnées:
             self.insert(table, values.loc[~existe, :])
 
     def create_engine(self):
+        print(self.__adresse)
         return sqla.create_engine(str(self.__adresse))
 
     def begin(self):

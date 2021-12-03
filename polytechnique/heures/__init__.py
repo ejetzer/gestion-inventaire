@@ -33,7 +33,7 @@ def main(cfg='~/Documents/Polytechnique/Heures/heures.cfg'):
             print(f'{c}: {v}')
 
     print('Chargement de la base de données...')
-    base = BaseDeDonnées('sqlite:///./heures.sqlite', metadata)
+    base = BaseDeDonnées(config.get('bd', 'adresse'), metadata)
     base.initialiser()
 
     for n, t in base.tables.items():

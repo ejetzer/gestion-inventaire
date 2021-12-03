@@ -41,14 +41,15 @@ class FichierConfig(ConfigParser):
         super().__setitem__(section, options)
         self.write()
 
-    def getlist(sec: str, clé: str, fallback: list = []):
+    def getlist(self, sec: str, clé: str, fallback: list = None):
         """Obtenir une liste, à partir d'une énumération multiligne."""
-        if fallback is not None:
-            val = self.get(sec, clé, '')
-        else:
-            val = self.get(sec, clé, '')
+        val = self.get(sec, clé, fallback=None)
 
-        val = list(map(str.strip, val.split('\n')))
+        if val is not None:
+            val = list(map(str.strip, val.strip().split('\n')))
+        else:
+            val = fallback.copy()
+
         return val
 
 
