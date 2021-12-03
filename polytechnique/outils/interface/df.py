@@ -8,74 +8,77 @@ Created on Tue Nov  2 15:40:02 2021
 @author: ejetzer
 """
 
-import pathlib
-
 import itertools as it
-import tkinter as tk
 
-from typing import Callable, Any, Union
+from typing import Callable, Any, Union, Iterator, NamedTuple
 
 import pandas as pd
 import sqlalchemy as sqla
 
 from ..database import BaseDeDonnées
-from ..database.dtypes import get_type
 from ..interface import InterfaceHandler
+
 
 class BaseTableau:
     """Encapsulation de la classe BaseDeDonnées."""
 
     def __init__(self, db: BaseDeDonnées, table: str):
-        """Encapsule de la classe BaseDeDonnées, avec accès seulement è la table table."""
+        """
+        Encapsule de la classe BaseDeDonnées, avec accès seulement à la table table.
+
+        Parameters
+        ----------
+        db : BaseDeDonnées
+            Une interface à une base de données.
+        table : str
+            Le nom d'un tableau dans db.
+
+        Returns
+        -------
+        None.
+
+        """
         self.__table: str = table
         self.__db: BaseDeDonnées = db
 
-    @property
-    def table(self) -> sqla.Table:
-        """Structure et métadonnées de la table de données."""
-        return self.__db.table(self.__table)
+    #  TODO: Les méthodes devraient référer le plus directement possible à la base de données
+    def __getattr__(self, attr: str) -> Any:
+        if hasattr(self.__db,  attr):
+            return getattr(self.__db, attr)(self.__table)
+        elif hasattr(pd.DataFrame, attr):
+            return getattr(self.df, attr)
+        else:
+            msg = f'{self!r} de type {type(self)} n\'a pas d\'attribut {attr}, ni (self.__db: BaseDeDonnées, self.df: pandas.DataFrame).'
+            raise AttributeError(msg)
 
     @property
     def df(self) -> pd.DataFrame:
+        """
+        Le contenu du tableau, comme un pandas.DataFrame.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Tableau facilement manipulable.
+
+        """
         """Retourne un DataFrame contenant la table de données."""
-        return self.__db.select(self.__table)
-
-    @property
-    def dtypes(self):
-        """Retourne les types des colonnes."""
-        return self.__db.dtypes(self.__table)
-
-    @property
-    def shape(self):
-        """Retourne les dimensions de la table de données."""
-        return self.__db.shape(self.__table)
-
-    @property
-    def columns(self):
-        """Retourne une liste des colonnes de la table de données."""
-        cols = self.__db.columns(self.__table)
-        return cols
-
-    @property
-    def index(self):
-        """Retourne un liste des indices de la table de données."""
-        return self.__db.index(self.__table)
-
-    def iterrows():
-        """Itère sur les rangées de la table de données."""
-        return self.df.iterrows()
-
-    @property
-    def loc(self):
-        """Retourne l'objet loc du DataFrame de la table de données."""
-        return self.__db.loc(self.__table, self.columns)
-
-    @property
-    def iloc(self):
-        """Retourne l'object iloc du DataFrame de la table de données."""
-        return self.__db.iloc(self.__table, self.columns)
+        return self.select(self.__table)
 
     def append(self, values: pd.DataFrame = None):
+        """
+
+
+        Parameters
+        ----------
+        values : pd.DataFrame, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         """Ajoute les entrées décrites par le cadre values dans la table de données."""
         if values is None:
             cols = self.columns
@@ -84,14 +87,48 @@ class BaseTableau:
         self.__db.append(self.__table, values)
 
     def delete(self, index: int):
+        """
+
+
+        Parameters
+        ----------
+        index : int
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         """Retire l'entrée avec l'index approprié."""
         self.__db.delete(self.__table, self.loc[[index], :])
 
     def réinitialiser(self):
+        """
+
+
+        Returns
+        -------
+        None.
+
+        """
         """Réinitialise la base de données, selon son schéma interne."""
         self.__db.réinitialiser()
 
     def màj(self, values: pd.DataFrame):
+        """
+
+
+        Parameters
+        ----------
+        values : pd.DataFrame
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         self.__db.màj(self.__table, values)
 
 
@@ -191,7 +228,6 @@ class Formulaire(BaseTableau):
         self.__widgets = pd.DataFrame()
         self.__commandes = []
         self.__handler = handler
-
 
     def oublie_pas_la_màj(self, f: Callable, *args):
         """Force la mise à jour de la grille après un changement à la base de données."""
@@ -322,6 +358,7 @@ def main():
     tableau = Tableau(handler, base, 'demo')
     tableau.grid(0, 0)
     racine.mainloop()
+
 
 if __name__ == '__main__':
     main()

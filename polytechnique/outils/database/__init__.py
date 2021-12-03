@@ -27,6 +27,7 @@ TYPES_FICHIERS: dict[str, Callable] = {'xlsx': pd.read_excel,
                                        'pickle': pd.read_pickle,
                                        'txt': pd.read_table}
 
+
 class BaseDeDonnées:
 
     def __init__(self, adresse: str, schema: sqla.MetaData):
@@ -37,7 +38,7 @@ class BaseDeDonnées:
     def adresse(self):
         return self.__adresse
 
-    ## Interface de sqlalchemy
+    # Interface de sqlalchemy
 
     @property
     def tables(self) -> dict[str, sqla.Table]:
@@ -56,7 +57,8 @@ class BaseDeDonnées:
         if not len(columns):
             columns = self.columns(table)
 
-        columns = [self.table(table).columns['index']] + list(filter(lambda x: x.name in columns, self.table(table).columns))
+        columns = [self.table(table).columns['index']] + list(
+            filter(lambda x: x.name in columns, self.table(table).columns))
         requête = sqla.select(columns).select_from(self.table(table))
 
         for clause in where:
@@ -77,13 +79,15 @@ class BaseDeDonnées:
             self.execute(r)
 
     def insert(self, table: str, values: pd.DataFrame):
-        params = [({'index': i} | {c: v for c, v in r.items()}) for i, r in values.iterrows()]
+        params = [({'index': i} | {c: v for c, v in r.items()})
+                  for i, r in values.iterrows()]
         requête = self.table(table).insert(params)
         self.execute(requête)
 
     def append(self, table: str, values: pd.DataFrame):
         indice_min = max(self.index(table), default=-1) + 1
-        nouvel_index = pd.Index(range(len(values.index)), name='index') + indice_min
+        nouvel_index = pd.Index(range(len(values.index)),
+                                name='index') + indice_min
         values = values.copy()
         values.index = nouvel_index
         self.insert(table, values)
@@ -126,7 +130,7 @@ class BaseDeDonnées:
             self.__schema.drop_all(con, checkfirst=checkfirst)
             self.__schema.create_all(con)
 
-    ## Interface de pandas.DataFrame
+    # Interface de pandas.DataFrame
 
     def dtype(self, table: str, champ: str):
         type_champ = self.table(table).columns[champ].type
@@ -143,15 +147,20 @@ class BaseDeDonnées:
         return pd.Index(c.name for c in self.table(table).columns if c.name != 'index')
 
     def index(self, table: str) -> pd.Index:
-        requête = sqla.select(self.table(table).columns['index']).select_from(self.table(table))
+        requête = sqla.select(self.table(
+            table).columns['index']).select_from(self.table(table))
         with self.begin() as conn:
             résultat = conn.execute(requête)
             return pd.Index(r['index'] for r in résultat)
 
-    def loc(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore'):
+    def loc(self, table: str, columns: tuple[str] = None, where: tuple = tuple(), errors: str = 'ignore'):
+        if columns is None:
+            colums = self.columns(table)
         return self.select(table, columns, where, errors).loc
 
     def iloc(self, table: str, columns: tuple[str] = tuple(), where: tuple = tuple(), errors: str = 'ignore'):
+        if columns is None:
+            colums = self.columns(table)
         return self.select(table, columns, where, errors).iloc
 
     def deviner_type_fichier(self, chemin: pathlib.Path):
@@ -171,8 +180,9 @@ def main() -> tuple[BaseDeDonnées, sqla.MetaData]:
     print('Définition d\'une base de données...')
     md = sqla.MetaData()
     table = sqla.Table('demo', md,
-                  sqla.Column('index', get_type('python', int, 'sqlalchemy'), primary_key=False),
-                  sqla.Column('desc', get_type('python', str, 'sqlalchemy')))
+                       sqla.Column('index', get_type('python', int,
+                                   'sqlalchemy'), primary_key=False),
+                       sqla.Column('desc', get_type('python', str, 'sqlalchemy')))
 
     base = BaseDeDonnées('sqlite:///demo.db', md)
     base.réinitialiser()
@@ -194,6 +204,7 @@ def main() -> tuple[BaseDeDonnées, sqla.MetaData]:
     print(f'Données ajoutées:\n{df}')
 
     return base, md
+
 
 if __name__ == '__main__':
     main()
