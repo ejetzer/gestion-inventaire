@@ -11,6 +11,8 @@ Created on Tue Nov  2 15:40:02 2021
 import itertools as it
 
 from typing import Callable, Any, Union, Iterator, NamedTuple
+from functools import partial
+from inspect import signature
 
 import pandas as pd
 import sqlalchemy as sqla
@@ -41,10 +43,19 @@ class BaseTableau:
         self.__table: str = table
         self.__db: BaseDeDonnées = db
 
-    #  TODO: Les méthodes devraient référer le plus directement possible à la base de données
     def __getattr__(self, attr: str) -> Any:
-        if hasattr(self.__db,  attr):
-            return getattr(self.__db, attr)(self.__table)
+        if hasattr(BaseDeDonnées,  attr):
+            obj = getattr(self.__db, attr)
+            if isinstance(obj, Callable):
+                sig = signature(obj)
+                if len(sig.parameters) == 1 and 'table' in sig.parameters:
+                    return partial(obj, self.__table)()
+                elif 'table' in sig.parameters:
+                    return partial(obj, self.__table)
+                else:
+                    return obj
+            else:
+                return obj
         elif hasattr(pd.DataFrame, attr):
             return getattr(self.df, attr)
         else:
@@ -53,83 +64,13 @@ class BaseTableau:
 
     @property
     def df(self) -> pd.DataFrame:
-        """
-        Le contenu du tableau, comme un pandas.DataFrame.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Tableau facilement manipulable.
-
-        """
-        """Retourne un DataFrame contenant la table de données."""
-        return self.select(self.__table)
+        return self.select()
 
     def append(self, values: pd.DataFrame = None):
-        """
-
-
-        Parameters
-        ----------
-        values : pd.DataFrame, optional
-            DESCRIPTION. The default is None.
-
-        Returns
-        -------
-        None.
-
-        """
-        """Ajoute les entrées décrites par le cadre values dans la table de données."""
         if values is None:
-            cols = self.columns
-            idx = max(self.index) + 1
+            cols, idx = self.columns, [max(self.index, default=0) + 1]
             values = pd.DataFrame(None, columns=cols, index=[idx])
         self.__db.append(self.__table, values)
-
-    def delete(self, index: int):
-        """
-
-
-        Parameters
-        ----------
-        index : int
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
-        """
-        """Retire l'entrée avec l'index approprié."""
-        self.__db.delete(self.__table, self.loc[[index], :])
-
-    def réinitialiser(self):
-        """
-
-
-        Returns
-        -------
-        None.
-
-        """
-        """Réinitialise la base de données, selon son schéma interne."""
-        self.__db.réinitialiser()
-
-    def màj(self, values: pd.DataFrame):
-        """
-
-
-        Parameters
-        ----------
-        values : pd.DataFrame
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.__db.màj(self.__table, values)
 
 
 class Tableau(BaseTableau):
@@ -166,7 +107,7 @@ class Tableau(BaseTableau):
 
         I, C = self.__widgets.shape
         for i, c in it.product(range(I), range(C)):
-            self.__widgets.iloc[i, c] = self.__handler.entrée(self.iloc[[i], [c]],
+            self.__widgets.iloc[i, c] = self.__handler.entrée(self.iloc()[[i], [c]],
                                                               self.màj)
         self.__commandes = list(map(self.build_commandes, self.index))
 
