@@ -66,10 +66,13 @@ class BaseTableau:
     def df(self) -> pd.DataFrame:
         return self.select()
 
-    def append(self, values: pd.DataFrame = None):
+    def append(self, values: Union[pd.Series, pd.DataFrame] = None):
         if values is None:
             cols, idx = self.columns, [max(self.index, default=0) + 1]
             values = pd.DataFrame(None, columns=cols, index=[idx])
+        elif isinstance(values, pd.Series):
+            cols, idx = self.columns, [max(self.index, default=0) + 1]
+            values = pd.DataFrame([values], index=[idx])
         self.__db.append(self.__table, values)
 
 
@@ -156,7 +159,6 @@ class Tableau(BaseTableau):
         super().destroy()
 
     def update_grid(self):
-        """Update the grid after a change to the DataFrame"""
         self.destroy_children()
         self.grid(**self.__grid_params)
 
@@ -190,8 +192,8 @@ class Formulaire(BaseTableau):
         # TODO: rentrer la date automatiquement
 
     def soumettre(self):
-        self.append(pd.DataFrame({c.cget('text'): [v.get()] for c, v in self.__widgets.loc[0, :].items()},
-                                 index=[self.__index]))
+        self.append(pd.Series(
+            {c.cget('text'): [v.get()] for c, v in self.__widgets.loc[0, :].items()}))
         self.effacer()
 
     def build_commandes(self):
@@ -212,12 +214,12 @@ class Formulaire(BaseTableau):
 
         self.__commandes = self.build_commandes()
 
-    @property
+    @ property
     def rowspan(self):
         """Retourne le nombre de rangées + 1 (pour l'index)."""
         return self.shape[1] + 2
 
-    @property
+    @ property
     def columnspan(self):
         """Retourne le nombre de colonnes + 1 (pour l'en-tête)."""
         return 2
@@ -238,7 +240,7 @@ class Formulaire(BaseTableau):
     def pack(self, *args, **kargs):
         pass
 
-    @property
+    @ property
     def children(self):
         print(self.__widgets)
         return it.chain(self.__widgets.columns,

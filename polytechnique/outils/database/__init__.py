@@ -29,25 +29,41 @@ TYPES_FICHIERS: dict[str, Callable] = {'xlsx': pd.read_excel,
 
 
 class BaseDeDonnées:
+    """Lien avec une base de données spécifique."""
 
     def __init__(self, adresse: str, schema: sqla.MetaData):
-        self.__adresse = adresse
-        self.__schema = schema
+        """
+        Lien avec la base de donnée se trouvant à adresse.
+        Utilise le schema schema.
 
-    @property
-    def adresse(self):
-        return self.__adresse
+        Parameters
+        ----------
+        adresse : str
+            Adresse vers la base de données.
+        schema : sqla.MetaData
+            Structure de la base de données.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.adresse = adresse
+        self.__schema = schema
 
     # Interface de sqlalchemy
 
     @property
     def tables(self) -> dict[str, sqla.Table]:
+        """Liste des tables contenues dans la base de données."""
         return self.__schema.tables
 
     def table(self, table: str) -> sqla.Table:
+        """Retourne une table de la base de données"""
         return self.tables[table]
 
     def execute(self, requête, *args, **kargs):
+        """Exécute la requête SQL donnée et retourne le résultat."""
         with self.begin() as con:
             print(f'{requête!s}')
             res = con.execute(requête, *args, **kargs)
