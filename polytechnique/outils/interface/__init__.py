@@ -1,7 +1,9 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Outils de création d'interface graphique, en particulier pour des bases de données.
+Outils de création d'interface graphique.
+
+En particulier pour des bases de données.
 
 Créé le Fri Nov 26 10:41:14 2021
 

@@ -11,7 +11,7 @@ Créé le Fri Nov 26 10:43:12 2021
 import tkinter as tk
 
 from tkinter.simpledialog import askstring, askinteger, askfloat
-from typing import Callable, Any, Union
+from typing import Callable
 
 import pandas as pd
 
@@ -20,6 +20,7 @@ from ..interface import InterfaceHandler
 
 
 def demander(question: str = '', dtype: type = str):
+    """Demander une entrée."""
     if dtype == str:
         return askstring('?', question)
     elif dtype == int:
@@ -27,24 +28,30 @@ def demander(question: str = '', dtype: type = str):
     elif dtype == float:
         return askfloat('?', question)
 
+
 def tkHandler(master: tk.Tk) -> InterfaceHandler:
-    def entrée(value: pd.DataFrame, commande: Callable, dtype: str = 'object') -> tk.Entry:
+    """Retourne une instance InterfaceHandler pour tk."""
+    def entrée(value: pd.DataFrame,
+               commande: Callable,
+               dtype: str = 'object') -> tk.Entry:
         variable = get_type('pandas', dtype, 'tk')(master, value.iloc[0, 0])
         conversion = get_type('pandas', dtype, 'python')
 
-        variable.trace_add('write', lambda x, i, m, v=variable: commande(pd.DataFrame(conversion(v.get()),
-                                                                                      index=value.index,
-                                                                                      columns=value.columns,
-                                                                                      dtype=dtype)))
+        def F(x, i, m, v=variable):
+            return commande(pd.DataFrame(conversion(v.get()),
+                                         index=value.index,
+                                         columns=value.columns,
+                                         dtype=dtype))
+        variable.trace_add('write', F)
 
         if dtype == 'boolean':
-            widget = Tkinter.Checkbutton(master, variable=variable)
+            widget = tk.Checkbutton(master, variable=variable)
         else:
             widget = tk.Entry(master, textvariable=variable)
 
         return widget
 
-    texte = lambda s: tk.Label(master, text=s)
-    bouton = lambda s, c: tk.Button(master, text=s, command=c)
+    def texte(s): return tk.Label(master, text=s)
+    def bouton(s, c): return tk.Button(master, text=s, command=c)
 
     return InterfaceHandler(entrée, texte, bouton, demander)

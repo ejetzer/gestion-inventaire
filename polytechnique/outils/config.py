@@ -1,17 +1,20 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Enveloppe pour les fichiers de configuration, permettant de garder en mémoire le chemin du fichier.
+Enveloppe pour les fichiers de configuration.
+
+Permet de garder en mémoire le chemin du fichier.
 
 Created on Mon Nov 22 14:22:36 2021
 
 @author: ejetzer
 """
 
+import logging
+
 from pathlib import Path
 from configparser import ConfigParser
 from typing import Union, Iterable
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -156,11 +159,11 @@ class FichierConfig(ConfigParser):
 
 def main() -> FichierConfig:
     """Exemple très simple d'utilisation du fichier de configuration."""
-    print('Ouvrir un fichier de configuration...')
+    logger.info('Ouvrir un fichier de configuration...')
     import pathlib
-    fichier_config = pathlib.Path(__file__).parent.absolute() / 'base.cfg'
+    fichier_config = pathlib.Path(__file__).parent.absolute() / '../base.cfg'
     config = FichierConfig(fichier_config)
-    print('Configuration ouverte...')
-    print(config)
+    logger.info('Configuration ouverte...')
+    logger.info(config)
 
     return config
