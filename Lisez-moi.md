@@ -17,38 +17,52 @@ Ce programme est en développement actif, et ne devrait être utilisé que
 [Git]: https://git-scm.com/
 [emile.jetzer@polymtl.ca]: mailto:emile.jetzer@polymtl.ca?subject=[gestion-inventaire]
 
-## Fichiers
+### Tag `v1`
 
-1. `afficher_dataframe.py` est une module Python contenant la classe `Tableau`, qui permet d'afficher des `pandas.DataFrame` dans `tkinter`.
-2. `définir_db.py` permet de définir la structure d'une base de données, telle que décrit dans `référence.config`.
-3. `onglets.py` permet d'afficher et éditer le fichier de configuration et les bases de données qui y sont décrites. **Il s'agit du fichier à exécuter.**
-4. `*.db` sont les fichiers de base de données SQL. SVP ne pas y toucher.
-5. `*.config` sont des fichiers de configuration.
+La version `v1` est stable et peut-être utilisée telle quelle.
+
+### Branche `alpha`
+
+La branche `alpha` est en développement constant, et ne devrait pas être utilisée pour développer un programme plus ocmplexe.
+
+### Branche `beta`
+
+La branche `beta` est toujours fonctionnelle, mais peut changer d'un `commit` à l'autre dans les interfaces de classe, fonctionnalités, etc.
+
+## Modules
+
+1. `outils` comprend différents modules utilitaires.
+    1. `config.py` contient une interface facilitant la manipulation de fichiers de configuration.
+    2. `database` comprend des outils de manipulation de base de données.
+        1. `__init__.py` comprend la classe `BaseDeDonnées` incluant le gros des fonctionnalités, y compris une interface entre SQLAlchemy et Pandas.
+        2. `dtypes.py` comprend des fonctions de correspondance des types de données entre SQLAlchemy, Pandas, tkinter et Python.
+        3. `gestion.py` contiendra des fonctions de migration de base de données.
+    3. `interface` comprend des modules d'affichage.
+        1.  `df.py` facilite l'affichage de bases de données comme tableurs ou formulaires.
+        2. `onglets.py` facilite l'affichage de plusieurs bases de données et fichiers de configuration.
+        3. `tkinter.py` facilite l'utilisation des classes tkinter.
+        4. `html.py` facilitera bientôt l'affichage en html.
+2. `heures` contient une ébauche de programme de gestion des heures.
+3. `inventaire` contient une ébauche de programme d'inventaire.
+4. `demo.py` est un script d'exemple des fonctionnalités du programme.
 
 ## Configuration
 
-Le fichier de configuration comporte différentes sections:
+Le fichier de configuration `base.cfg` comporte différentes sections:
 
-1. `base de données` contient les informations sur la base de données et les tables de données à utiliser.
-2. `common` contient une liste des champs communs à toutes les bases de données.
+1. `bd` contient les informations sur la base de données et les tables de données à utiliser.
+2. `tkinter` liste des paramètres de configuration de l'affichage.
 3. Les autres sections décrivent différentes tables de données.
 
-### Base de données
+### `bd`
 
 1. `adresse` indique la position du fichier de base de données, et le protocole SQLAlchemy à utiliser. En ce moment n'utilisez que `sqlite`, qui stocke la base de données dans un fichier localement.
-2. `tables` doit être une valeur littérale de liste de chaînes en Python, contenant les tables de la base de données à considérer.
+2. `tables` est une énumération ligne par ligne des tableaux de base de données à afficher.
+3. `formulaires` est une énumération ligne par ligne des tableaux pour lesquels afficher des formulaires.
 
-### Common
+### `tkinter`
 
-Les champs `index`, `quantité` et `description` sont communs à toutes les tables de données.
-
-1. `index` est un nombre unique à chaque élément à l'intérieur d'une même table. On doit le considérer comme immuable, et on peut utiliser le nom de table et l'index pour désigner un élément particulier avec précision et sans ambiguité.
-2. `quantité` désigne la qantité d'un item qu'on a en inventaire
-3. `description` décrit l'item. Il n'y a pas de limite de longueur, n'hésitez pas à inclure des détails.
-
-### Boîtes
-
-La table des boîtes est la seule en service actif en ce moment, pour tester le système.
+1. `title` donne le titre de la fenêtre principale.
 
 # À faire
 
