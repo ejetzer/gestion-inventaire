@@ -45,7 +45,7 @@ cols_locaux = colonnes_communes() + (column('description', str),
                                      column('Numéro de pièce', str),
                                      column('Fournisseur', str),
                                      column('Fabricant', str),
-                                     column('Fonctionnel', str),
+                                     column('Fonctionnel', bool),
                                      column('Informations supplémentaires',
                                             str))
 locaux = Table('inventaire', metadata, *cols_locaux)

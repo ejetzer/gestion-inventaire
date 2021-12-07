@@ -17,7 +17,10 @@ from pathlib import Path
 
 from ..outils.config import FichierConfig, logger as logcfg
 from ..outils.database import BaseDeDonnées, logger as logdb
+from ..outils.database.dtypes import logger as logdt
+from ..outils.interface.df import logger as logdf
 from ..outils.interface.onglets import Onglets, logger as logong
+from ..outils.interface.tkinter import logger as logtk
 
 from .modeles import metadata
 
@@ -32,14 +35,20 @@ def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
 
     logger.addHandler(h)
     logcfg.addHandler(h)
-    logdb.addHandler(h)
-    logong.addHandler(h)
+    # logdf.addHandler(h)
+    logdt.addHandler(h)
+    # logdb.addHandler(h)
+    # logong.addHandler(h)
+    logtk.addHandler(h)
 
     h.setLevel(logging.DEBUG)
-    logger.setLevel(logging.DEBUG)
-    logcfg.setLevel(logging.DEBUG)
-    logdb.setLevel(logging.DEBUG)
-    logong.setLevel(logging.DEBUG)
+    logger.setLevel(logging.WARNING)
+    logcfg.setLevel(logging.WARNING)
+    logdf.setLevel(logging.WARNING)
+    logdt.setLevel(logging.DEBUG)
+    logdb.setLevel(logging.WARNING)
+    logong.setLevel(logging.WARNING)
+    logtk.setLevel(logging.WARNING)
 
     logger.debug(f'{__name__} .main({cfg=})')
 

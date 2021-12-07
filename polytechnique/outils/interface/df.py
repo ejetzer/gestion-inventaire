@@ -11,6 +11,7 @@ Created on Tue Nov  2 15:40:02 2021
 import logging
 
 import itertools as it
+import tkinter as tk
 
 from typing import Callable, Any, Union
 from functools import partial
@@ -238,7 +239,10 @@ class Tableau(BaseTableau):
             df = self.iloc()[[i], [c]]
             logger.debug(f'\t\t{df=}')
 
-            _ = self.__handler.entrée(df, self.màj)
+            dtype = self.dtype(self.columns[c])
+            logger.debug(f'\t\t{dtype=}')
+
+            _ = self.__handler.entrée(df, self.màj, dtype)
             logger.debug(f'\t\t{_=}')
 
             self.__widgets.iloc[i, c] = _
@@ -426,8 +430,14 @@ class Formulaire(BaseTableau):
         """
         logger.debug(f'{self!r} .soumettre')
 
-        _ = pd.Series({c.cget('text'): [v.get()] for c, v
-                       in self.__widgets.loc[0, :].items()})
+        _ = {}
+        for c, v in self.__widgets.loc[0, :].items():
+            if hasattr(v, 'get'):
+                _[c.cget('text')] = v.get()
+            elif isinstance(v, tk.Checkbutton):
+                _[c.cget('text')] = v.instate(['selected'])
+
+        _ = pd.Series(_)
         logger.debug(f'\t{_=}')
 
         self.append(_)
@@ -475,16 +485,19 @@ class Formulaire(BaseTableau):
         logger.debug(f'\t{self.__widgets=}')
 
         logger.debug(f'\t{colonnes=}')
-        for col in colonnes:
+        for n, col in zip(self.columns, colonnes):
             df = pd.DataFrame(None,
                               columns=[col],
                               index=[max(self.index, default=0)+1])
             logger.debug(f'\t\t{df=}')
 
-            n = self.__handler.entrée(df, lambda x: None)
-            logger.debug(f'\t\t{n=}')
+            dtype = self.dtype(n)
+            logger.debug(f'\t\t{dtype=}')
 
-            self.__widgets.loc[0, col] = n
+            _ = self.__handler.entrée(df, lambda x: None, dtype)
+            logger.debug(f'\t\t{_=}')
+
+            self.__widgets.loc[0, col] = _
         logger.debug(f'\t{self.__widgets=}')
 
         logger.debug(f'\t{self.__commandes=}')

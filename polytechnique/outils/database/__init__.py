@@ -375,7 +375,7 @@ class BaseDeDonnées:
 
     # Interface de pandas.DataFrame
 
-    def dtype(self, table: str, champ: str):
+    def dtype(self, table: str, champ: str) -> str:
         """
         Retourne le type de données d'un champ dans un tableau.
 
