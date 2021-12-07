@@ -608,9 +608,14 @@ class BaseDeDonnées:
         self.màj(table, df)
 
 
-def main() -> tuple[BaseDeDonnées, sqla.MetaData]:
+def main(fichier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
     """
     Démonstration du module de base de données.
+
+    Parameters
+    -------
+    fichier: str
+        Chemin vers la base de données.
 
     Returns
     -------
@@ -632,7 +637,10 @@ def main() -> tuple[BaseDeDonnées, sqla.MetaData]:
     logger.info(f'\t{md=} {table=}')
 
     logger.info('Ouverture du fichier de base de données...')
-    fichier = pathlib.Path(__file__).parent.absolute() / '../../demo.db'
+
+    if fichier is None:
+        fichier = pathlib.Path(__file__).parent.absolute() / '../../demo.db'
+
     adresse = f'sqlite:///{fichier!s}'
     logger.info(f'\t{adresse=}')
     base = BaseDeDonnées(adresse, md)

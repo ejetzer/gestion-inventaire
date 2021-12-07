@@ -21,6 +21,7 @@ import tkinter as tk
 
 from ..config import FichierConfig
 
+
 TYPES: tuple[dict[str, Union[str, type]]] = ({'config': None,
                                               'python': str,
                                               'pandas': 'object',
@@ -74,10 +75,17 @@ TYPES: tuple[dict[str, Union[str, type]]] = ({'config': None,
 
 #DATE_TYPES: tuple[str] = ('datetime64[D]', 'datetime64[ns]')
 
+
 def get_type(de: str, t: Union[type, str], à: str) -> Union[type, str]:
     for s in filter(lambda x: x[de] == t, TYPES):
         return s[à]
     return next(filter(lambda x: x['config'] == None, TYPES))[à]
+
+
+# TODO: fonction de conversion pour les types autre que chaîne
+def convert(de: str, o: Any, t: Union[type, str], à: str):
+    pass
+
 
 def column(name: str, dtype: type = str, *args, **kargs):
     return sqla.Column(name, get_type('python', dtype, 'sqlalchemy'), *args, **kargs)

@@ -8,44 +8,74 @@ Créé le Fri Nov 26 15:15:36 2021
 @author: ejetzer
 """
 
+import logging
+import sys
+
 import tkinter as tk
 
 from pathlib import Path
 
-from ..outils.config import FichierConfig
-from ..outils.database import BaseDeDonnées
-from ..outils.interface.onglets import Onglets, OngletBaseDeDonnées
+from ..outils.config import FichierConfig, logger as logcfg
+from ..outils.database import BaseDeDonnées, logger as logdb
+from ..outils.interface.onglets import Onglets, logger as logong
 
 from .modeles import metadata
 
+logger = logging.getLogger(__name__)
+
+
 def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
-    print('Chargement de la configuration...')
-    print(f'L\'adresse est {cfg}.')
+    """Programme de gestion d'inventaire."""
+    h = logging.StreamHandler(sys.stderr)
+    f = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    h.setFormatter(f)
+
+    logger.addHandler(h)
+    logcfg.addHandler(h)
+    logdb.addHandler(h)
+    logong.addHandler(h)
+
+    h.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
+    logcfg.setLevel(logging.DEBUG)
+    logdb.setLevel(logging.DEBUG)
+    logong.setLevel(logging.DEBUG)
+
+    logger.debug(f'{__name__} .main({cfg=})')
+
+    logger.info('Chargement de la configuration...')
 
     cfg = Path(cfg).expanduser()
+    logger.debug(f'{cfg=}')
+
     config = FichierConfig(cfg)
+    logger.debug(f'{config=}')
 
     for sec in config.sections():
-        print(f'[{sec}]')
+        logger.info(f'[{sec}]')
         for c, v in config[sec].items():
-            print(f'{c}: {v}')
+            logger.info(f'{c}: {v}')
 
-    print('Chargement de la base de données...')
+    logger.info('Chargement de la base de données...')
+
     base = BaseDeDonnées(config.get('bd', 'adresse'), metadata)
-    base.initialiser()
+    logger.debug(f'{base=}')
+
+    base.réinitialiser()
 
     for n, t in base.tables.items():
-        print(f'[{n}]')
+        logger.info(f'[{n}]')
         for c in t.columns:
-            print(f'{c}')
-    print(base.select('boites'))
-    print(base.select('inventaire'))
+            logger.info(f'{c}')
 
-    print('Préparation de l\'interface...')
+    logger.info(base.select('boites'))
+    logger.info(base.select('inventaire'))
+
+    logger.info('Préparation de l\'interface...')
     racine = tk.Tk()
     racine.title(config.get('tkinter', 'title', fallback='Inventaire'))
 
-    print('Chargement de la base de données...')
+    logger.info('Chargement de la base de données...')
     onglets = Onglets(racine, config, metadata)
 
     onglets.grid(sticky='nsew')

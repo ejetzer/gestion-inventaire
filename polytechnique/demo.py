@@ -10,6 +10,7 @@ Created on Mon Nov 15 15:17:28 2021
 
 import logging
 import sys
+import pathlib
 
 logger = logging.getLogger(__name__)
 
@@ -27,17 +28,24 @@ def main():
     import polytechnique.outils.database
     polytechnique.outils.database.logger.addHandler(ch)
     polytechnique.outils.database.logger.setLevel(logging.DEBUG)
-    base, md = polytechnique.outils.database.main()
+    fichier_db = str(pathlib.Path(__file__).absolute().parent / 'demo.db')
+    base, md = polytechnique.outils.database.main(fichier_db)
 
     import polytechnique.outils.config
     polytechnique.outils.config.logger.addHandler(ch)
     polytechnique.outils.config.logger.setLevel(logging.DEBUG)
-    config = polytechnique.outils.config.main()
+    fichier_cfg = pathlib.Path(__file__).absolute().parent / 'base.cfg'
+    config = polytechnique.outils.config.main(fichier_cfg)
+
+    swap_db = config.get('bd', 'adresse')
+    config.set('bd', 'adresse', f'sqlite:///{fichier_db!s}')
 
     import polytechnique.outils.interface.onglets
     polytechnique.outils.interface.onglets.logger.addHandler(ch)
     polytechnique.outils.interface.onglets.logger.setLevel(logging.DEBUG)
     racine, onglets = polytechnique.outils.interface.onglets.main(config, md)
+
+    config.set('bd', 'adresse', swap_db)
 
     logger.info('Fin.')
 

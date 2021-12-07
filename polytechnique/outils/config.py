@@ -78,7 +78,7 @@ class FichierConfig(ConfigParser):
         logger.debug(f'{chemins!r}')
 
         for chemin in chemins:
-            with open(chemin, 'r', encoding='utf-8') as f:
+            with open(chemin, 'w', encoding='utf-8') as f:
                 logger.debug(f'{f!r}')
                 super().write(f)
 
@@ -157,12 +157,16 @@ class FichierConfig(ConfigParser):
         return résultat
 
 
-def main() -> FichierConfig:
+def main(fichier: str = None) -> FichierConfig:
     """Exemple très simple d'utilisation du fichier de configuration."""
     logger.info('Ouvrir un fichier de configuration...')
     import pathlib
-    fichier_config = pathlib.Path(__file__).parent.absolute() / '../base.cfg'
-    config = FichierConfig(fichier_config)
+
+    if fichier is None:
+        fichier = pathlib.Path(
+            __file__).parent.absolute() / '../base.cfg'
+
+    config = FichierConfig(fichier)
     logger.info('Configuration ouverte...')
     logger.info(config)
 

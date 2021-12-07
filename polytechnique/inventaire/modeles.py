@@ -8,19 +8,33 @@ Créé le Fri Nov 26 15:36:57 2021
 @author: ejetzer
 """
 
-import sqlalchemy as sqla
+from sqlalchemy import MetaData, Table
 
-from sqlalchemy import Column, MetaData, Table
-from sqlalchemy.orm import declarative_base
-
-from ..outils.database.dtypes import get_type, column
+from ..outils.database.dtypes import column
 
 metadata = MetaData()
 
+
 def colonnes_communes():
+    """
+    Retourne les colonnes communes à tous les tableaux.
+
+    Returns
+    -------
+    tuple[Column]
+        Colonnes.
+
+    """
     return column('index', int, primary_key=True), column('responsable', str)
 
-cols = colonnes_communes() + (column('description', str), column('local', str))
+
+cols = colonnes_communes() +\
+    (column('description', str),
+     column('local', str),
+     column('quantité', int),
+     column('largeur (cm)', float),
+     column('longueur (cm)', float),
+     column('hauteur (cm)', float))
 boîtes = Table('boites', metadata, *cols)
 
 cols_locaux = colonnes_communes() + (column('description', str),
@@ -31,6 +45,7 @@ cols_locaux = colonnes_communes() + (column('description', str),
                                      column('Numéro de pièce', str),
                                      column('Fournisseur', str),
                                      column('Fabricant', str),
-                                     column('Fonctionnel', bool),
-                                     column('Informations supplémentaires', str))
+                                     column('Fonctionnel', str),
+                                     column('Informations supplémentaires',
+                                            str))
 locaux = Table('inventaire', metadata, *cols_locaux)
