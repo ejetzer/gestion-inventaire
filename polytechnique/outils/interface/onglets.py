@@ -405,7 +405,8 @@ class Onglets(ttk.Notebook):
     def __init__(self,
                  master: tk.Frame,
                  config: FichierConfig,
-                 schema: sqla.MetaData):
+                 schema: sqla.MetaData,
+                 dialect: str = 'sqlite'):
         """
         Crée un groupe d'onglets.
 
@@ -432,7 +433,8 @@ class Onglets(ttk.Notebook):
         logger.debug(f'\t{onglet=}')
         self.add(onglet, text=onglet.chemin)
 
-        db = BaseDeDonnées(config.get('bd', 'adresse'), schema)
+        db = BaseDeDonnées(config.geturl(
+            'bd', 'adresse', dialect=dialect), schema)
         logger.debug(f'\t{db=}')
 
         tables = config.getlist('bd', 'tables')
@@ -529,9 +531,10 @@ def main(config: FichierConfig = None, md: sqla.MetaData = None):
         config = polytechnique.outils.config.main()
     logger.debug(f'\t{config=}')
 
+    adresse = config.geturl('bd', 'adresse', dialect='sqlite')
     if md is None:
         import polytechnique.outils.database
-        base, md = polytechnique.outils.database.main()
+        base, md = polytechnique.outils.database.main(adresse)
     logger.debug(f'\t{md=}')
 
     logger.info('Création de l\'interface...')

@@ -641,7 +641,11 @@ def main(fichier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
     if fichier is None:
         fichier = pathlib.Path(__file__).parent.absolute() / '../../demo.db'
 
-    adresse = f'sqlite:///{fichier!s}'
+    if 'sqlite' not in fichier:
+        adresse = f'sqlite:///{fichier!s}'
+    else:
+        adresse = fichier
+
     logger.info(f'\t{adresse=}')
     base = BaseDeDonnées(adresse, md)
     logger.info(f'\t{base=}')

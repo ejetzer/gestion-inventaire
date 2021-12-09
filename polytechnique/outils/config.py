@@ -15,6 +15,7 @@ import logging
 from pathlib import Path
 from configparser import ConfigParser
 from typing import Union, Iterable
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +105,7 @@ class FichierConfig(ConfigParser):
         super().set(section, option, value)
         self.write()
 
-    def getlist(self, sec: str, clé: str, fallback: list = []) -> list[str]:
+    def getlist(self, sec: str, clé: str, fallback: list = tuple()) -> list[str]:
         """
         Transforme une énumération en une liste Python.
 
@@ -138,6 +139,74 @@ class FichierConfig(ConfigParser):
 
         return val
 
+    def geturl(self,
+               sec: str,
+               clé: str,
+               fallback: str = '',
+               **kargs):
+        champ = self.get(sec, clé, fallback=None)
+
+        if champ is None and fallback != '':
+            champ = fallback
+        elif champ is None:
+            raise KeyError(f'{clé!r} not found in {sec!r}.')
+
+        url = urlparse(champ)
+        d = {'dialect': '',
+             'driver': '',
+             'nom': '',
+             'mdp': '',
+             'netloc': '',
+             'port': '',
+             'path': '',
+             'params': '',
+             'query': '',
+             'fragment': ''}
+
+        if '+' in url.scheme:
+            d['dialect'], d['driver'] = url.scheme.split('+')
+        else:
+            d['dialect'] = url.scheme
+
+        if '@' in url.netloc:
+            userdetails, d['netloc'] = url.netloc.split('@')
+        else:
+            userdetails, d['netloc'] = '', url.netloc
+
+        if ':' in d['netloc']:
+            d['netloc'], d['port'] = d['netloc'].split(':')
+
+        if ':' in userdetails:
+            d['nom'], d['mdp'] = userdetails.split(':')
+        else:
+            d['nom'] = userdetails
+
+        d['path'] = url.path
+        d['params'] = url.params
+        d['query'] = url.query
+        d['fragment'] = url.fragment
+
+        for c in d.keys() & kargs.keys():
+            d[c] = kargs[c]
+
+        for clé, préfixe in (('driver', '+'),
+                             ('mdp', ':'),
+                             ('port', ':'),
+                             ('params', ';'),
+                             ('query', '?'),
+                             ('fragment', '#')):
+            if d[clé]:
+                d[clé] = préfixe + d[clé]
+        if d['nom']:
+            d['netloc'] = '@' + d['netloc']
+
+        if d['netloc'] in ('localhost', '127.0.0.1') or not d['netloc']:
+            d['path'] = str(Path(d['path']).expanduser().absolute())
+
+        d['netloc'] = d['netloc'] + '/'
+
+        return '{dialect}{driver}://{nom}{mdp}{netloc}{port}{path}{params}{query}{fragment}'.format(**d)
+
     def __str__(self) -> str:
         """
         Retourne le contenu du fichier de configuration.
@@ -170,4 +239,11 @@ def main(fichier: str = None) -> FichierConfig:
     logger.info('Configuration ouverte...')
     logger.info(config)
 
+    logger.info('Assurer la bonne forme de l\'adresse de base de donnée:')
+    logger.info(config.geturl('bd', 'adresse', dialect='sqlite'))
+
     return config
+
+
+if __name__ == '__main__':
+    main()
