@@ -14,6 +14,8 @@ import logging
 import tkinter as tk
 
 from tkinter import ttk
+from tkinter.filedialog import askopenfilename, asksaveasfilename
+from pathlib import Path
 
 import sqlalchemy as sqla
 
@@ -232,6 +234,18 @@ class OngletBaseDeDonnées(tk.Frame):
         logger.debug(f'\t{res=}')
         return res
 
+    def importer(self):
+        chemin = Path(askopenfilename())
+        self.tableau.read_file(chemin)
+
+    def exporter(self):
+        chemin = asksaveasfilename()
+        self.tableau.to_excel(chemin, self.table)
+
+    def exporter_modèle(self):
+        chemin = asksaveasfilename()
+        self.tableau.loc()[[], :].to_excel(chemin, self.table)
+
     def build(self):
         """Construit les widgets."""
         logger.debug(f'{self!r} .build')
@@ -263,10 +277,22 @@ class OngletBaseDeDonnées(tk.Frame):
                         command=lambda: self.tableau.update_grid())
         logger.debug(f'\t{màj=}')
 
+        importer = tk.Button(self, text='Importer',
+                             command=self.importer)
+        logger.debug(f'{importer=}')
+
+        exporter = tk.Button(self, text='Exporter',
+                             command=self.exporter)
+        logger.debug(f'{exporter=}')
+
+        modèle = tk.Button(self, text='Modèle',
+                           command=self.exporter_modèle)
+        logger.debug(f'{modèle=}')
+
         self.défiler = [défiler_horizontalement, défiler_verticalement]
         logger.debug(f'\t{self.défiler=}')
 
-        self.boutons = [màj]
+        self.boutons = [màj, importer, exporter, modèle]
         logger.debug(f'\t{self.boutons=}')
 
     def subgrid(self):
@@ -301,7 +327,7 @@ class OngletFormulaire(tk.Frame):
                  config: FichierConfig = None,
                  **kargs):
         """
-        Crée un formulaire d'entrée de données.'
+        Crée un formulaire d'entrée de données.
 
         Parameters
         ----------

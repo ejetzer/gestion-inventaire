@@ -20,11 +20,11 @@ from .dtypes import get_type
 
 logger = logging.getLogger(__name__)
 
-TYPES_FICHIERS: dict[str, Callable] = {'xlsx': pd.read_excel,
-                                       'xls': pd.read_excel,
-                                       'csv': pd.read_csv,
-                                       'pickle': pd.read_pickle,
-                                       'txt': pd.read_table}
+TYPES_FICHIERS: dict[str, Callable] = {'.xlsx': pd.read_excel,
+                                       '.xls': pd.read_excel,
+                                       '.csv': pd.read_csv,
+                                       '.pickle': pd.read_pickle,
+                                       '.txt': pd.read_table}
 
 
 class BaseDeDonnées:

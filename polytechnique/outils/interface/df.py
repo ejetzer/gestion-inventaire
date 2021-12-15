@@ -20,6 +20,7 @@ from inspect import signature
 import pandas as pd
 
 from ..database import BaseDeDonnées
+from ..database.dtypes import default
 from ..interface import InterfaceHandler
 
 logger = logging.getLogger(__name__)
@@ -486,13 +487,13 @@ class Formulaire(BaseTableau):
 
         logger.debug(f'\t{colonnes=}')
         for n, col in zip(self.columns, colonnes):
-            df = pd.DataFrame(None,
+            dtype = self.dtype(n)
+            logger.debug(f'\t\t{dtype=}')
+
+            df = pd.DataFrame(default(dtype),
                               columns=[col],
                               index=[max(self.index, default=0)+1])
             logger.debug(f'\t\t{df=}')
-
-            dtype = self.dtype(n)
-            logger.debug(f'\t\t{dtype=}')
 
             _ = self.__handler.entrée(df, lambda x: None, dtype)
             logger.debug(f'\t\t{_=}')

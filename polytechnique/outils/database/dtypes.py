@@ -91,6 +91,15 @@ def get_type(de: str, t: Union[Any, type, str], à: str) -> Union[type, str]:
     return next(filter(lambda x: x['config'] is None, TYPES))[à]
 
 
+def default(dtype: str):
+    if 'period' in dtype:
+        return datetime.timedelta()
+    elif 'date' in dtype or 'time' in dtype:
+        return datetime.datetime().now()
+    else:
+        return get_type('pandas', dtype, 'python')()
+
+
 def column(name: str, dtype: type = str, *args, **kargs):
     return sqla.Column(name,
                        get_type('python', dtype, 'sqlalchemy'),

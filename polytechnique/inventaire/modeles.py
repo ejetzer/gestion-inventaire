@@ -37,12 +37,14 @@ cols = colonnes_communes() +\
      column('hauteur (cm)', float))
 boîtes = Table('boites', metadata, *cols)
 
-cols_locaux = colonnes_communes() + (column('description', str),
+cols_locaux = colonnes_communes() + (column('nom', str),
+                                     column('description', str),
+                                     column('nombre', int),
                                      column('local', str),
                                      column('armoire', str),
                                      column('étagère', str),
                                      column('Numéro de série', str),
-                                     column('Numéro de pièce', str),
+                                     column('Numéro de modèle', str),
                                      column('Fournisseur', str),
                                      column('Fabricant', str),
                                      column('Fonctionnel', bool),

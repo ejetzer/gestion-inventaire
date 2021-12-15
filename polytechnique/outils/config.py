@@ -49,7 +49,8 @@ class FichierConfig(ConfigParser):
         logger.debug(
             f'{self!r} {chemin=!r} {inline_comment_prefixes=!r} {kargs=!r}')
         self.chemin = chemin
-        super().__init__(inline_comment_prefixes=inline_comment_prefixes, **kargs)
+        super().__init__(inline_comment_prefixes=inline_comment_prefixes,
+                         **kargs)
         self.read()
 
     def read(self):
@@ -105,7 +106,10 @@ class FichierConfig(ConfigParser):
         super().set(section, option, value)
         self.write()
 
-    def getlist(self, sec: str, clé: str, fallback: list = tuple()) -> list[str]:
+    def getlist(self,
+                sec: str,
+                clé: str,
+                fallback: list = tuple()) -> list[str]:
         """
         Transforme une énumération en une liste Python.
 
@@ -197,15 +201,31 @@ class FichierConfig(ConfigParser):
                              ('fragment', '#')):
             if d[clé]:
                 d[clé] = préfixe + d[clé]
+
+        logger.debug(f'{self!r} .geturl {d["netloc"]=!r}')
+        if d['netloc'] in ('localhost', '127.0.0.1', ''):
+            logger.debug(f'{self!r} .geturl {d["path"]=}')
+            d['path'] = str(Path(d['path'].strip('/')).expanduser())
+            logger.debug(f'{self!r} .geturl {d["path"]=}')
+
         if d['nom']:
             d['netloc'] = '@' + d['netloc']
 
-        if d['netloc'] in ('localhost', '127.0.0.1') or not d['netloc']:
-            d['path'] = str(Path(d['path']).expanduser().absolute())
-
-        d['netloc'] = d['netloc'] + '/'
+        if Path(d['path']).is_absolute():
+            d['netloc'] = d['netloc'] + '/'
 
         return '{dialect}{driver}://{nom}{mdp}{netloc}{port}{path}{params}{query}{fragment}'.format(**d)
+
+    def getpath(self,
+                sec: str,
+                clé: str,
+                fallback: str = '') -> Path:
+        champ = self.get(sec, clé, fallback=None)
+
+        if champ is None:
+            return fallback
+
+        return Path(champ).expanduser().absolute()
 
     def __str__(self) -> str:
         """

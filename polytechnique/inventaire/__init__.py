@@ -35,18 +35,18 @@ def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
 
     logger.addHandler(h)
     logcfg.addHandler(h)
-    # logdf.addHandler(h)
+    logdf.addHandler(h)
     logdt.addHandler(h)
-    # logdb.addHandler(h)
-    # logong.addHandler(h)
+    logdb.addHandler(h)
+    logong.addHandler(h)
     logtk.addHandler(h)
 
     h.setLevel(logging.DEBUG)
-    logger.setLevel(logging.WARNING)
-    logcfg.setLevel(logging.WARNING)
+    logger.setLevel(logging.DEBUG)
+    logcfg.setLevel(logging.DEBUG)
     logdf.setLevel(logging.WARNING)
     logdt.setLevel(logging.DEBUG)
-    logdb.setLevel(logging.WARNING)
+    logdb.setLevel(logging.DEBUG)
     logong.setLevel(logging.WARNING)
     logtk.setLevel(logging.WARNING)
 
@@ -67,10 +67,13 @@ def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
 
     logger.info('Chargement de la base de données...')
 
-    base = BaseDeDonnées(config.get('bd', 'adresse'), metadata)
+    adresse = config.geturl('bd', 'adresse')
+    logger.debug(f'{adresse=}')
+
+    base = BaseDeDonnées(adresse, metadata)
     logger.debug(f'{base=}')
 
-    base.réinitialiser()
+    base.initialiser()
 
     for n, t in base.tables.items():
         logger.info(f'[{n}]')
