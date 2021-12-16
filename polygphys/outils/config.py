@@ -211,7 +211,11 @@ class FichierConfig(ConfigParser):
         if d['nom']:
             d['netloc'] = '@' + d['netloc']
 
+        if not d['netloc'].endswith('/'):
+            d['netloc'] = d['netloc'] + '/'
         if Path(d['path']).is_absolute():
+            d['netloc'] = d['netloc'] + '//'
+        else:
             d['netloc'] = d['netloc'] + '/'
 
         return '{dialect}{driver}://{nom}{mdp}{netloc}{port}{path}{params}{query}{fragment}'.format(**d)
@@ -257,7 +261,7 @@ def main(fichier: str = None) -> FichierConfig:
 
     config = FichierConfig(fichier)
     logger.info('Configuration ouverte...')
-    logger.info(config)
+    logger.info(f'{config=}')
 
     logger.info('Assurer la bonne forme de l\'adresse de base de donnée:')
     logger.info(config.geturl('bd', 'adresse', dialect='sqlite'))

@@ -670,7 +670,3 @@ def main(fichier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
     logger.info(f'Données ajoutées:\n{df}')
 
     return base, md
-
-
-if __name__ == '__main__':
-    main()

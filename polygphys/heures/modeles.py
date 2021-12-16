@@ -10,17 +10,16 @@ Créé le Fri Nov 26 15:36:57 2021
 
 import datetime
 
-import sqlalchemy as sqla
+from sqlalchemy import MetaData, Table
 
-from sqlalchemy import Column, MetaData, Table
-from sqlalchemy.orm import declarative_base
-
-from ..outils.database.dtypes import get_type, column
+from ..outils.database.dtypes import column
 
 metadata = MetaData()
 
+
 def colonnes_communes():
     return (column('index', int, primary_key=True),)
+
 
 cols = colonnes_communes() + (column('Technicien', str),
                               column('Payeur', str),
@@ -34,4 +33,4 @@ cols = colonnes_communes() + (column('Technicien', str),
 cols_admin = cols + (column('Facturé', bool),)
 
 heures = Table('heures', metadata, *cols)
-#admin = Table('admin', metadata, *cols_admin)
+# admin = Table('admin', metadata, *cols_admin)

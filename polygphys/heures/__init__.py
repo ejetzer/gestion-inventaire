@@ -11,14 +11,14 @@ Créé le Fri Nov 26 15:15:36 2021
 import tkinter as tk
 
 from pathlib import Path
-from urllib.parse import urlparse, urlunparse
 
 from ..outils.config import FichierConfig
 from ..outils.database import BaseDeDonnées
 from ..outils.interface.df import Formulaire
 from ..outils.interface.tkinter import tkHandler
 
-from .modeles import metadata
+from ..heures.modeles import metadata
+
 
 def main(cfg='~/Documents/Polytechnique/Heures/heures.cfg'):
     print('Chargement de la configuration...')
@@ -51,7 +51,3 @@ def main(cfg='~/Documents/Polytechnique/Heures/heures.cfg'):
 
     formulaire.grid(0, 0)
     racine.mainloop()
-
-
-if __name__ == '__main__':
-    main()

@@ -22,7 +22,7 @@ from ..outils.interface.df import logger as logdf
 from ..outils.interface.onglets import Onglets, logger as logong
 from ..outils.interface.tkinter import logger as logtk
 
-from .modeles import metadata
+from ..inventaire.modeles import metadata
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,3 @@ def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
 
     onglets.grid(sticky='nsew')
     racine.mainloop()
-
-
-if __name__ == '__main__':
-    main()

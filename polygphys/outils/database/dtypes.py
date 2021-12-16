@@ -93,9 +93,9 @@ def get_type(de: str, t: Union[Any, type, str], à: str) -> Union[type, str]:
 
 def default(dtype: str):
     if 'period' in dtype:
-        return datetime.timedelta()
+        return datetime.timedelta(0)
     elif 'date' in dtype or 'time' in dtype:
-        return datetime.datetime().now()
+        return datetime.datetime.now()
     else:
         return get_type('pandas', dtype, 'python')()
 
