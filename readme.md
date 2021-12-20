@@ -23,7 +23,7 @@ La version `v1` est stable et peut-être utilisée telle quelle.
 
 ### Branche `alpha`
 
-La branche `alpha` est en développement constant, et ne devrait pas être utilisée pour développer un programme plus ocmplexe.
+La branche `alpha` est en développement constant, et ne devrait pas être utilisée pour développer un programme plus complexe.
 
 ### Branche `beta`
 
@@ -34,7 +34,7 @@ La branche `beta` est toujours fonctionnelle, mais peut changer d'un `commit` à
 1. `outils` comprend différents modules utilitaires.
     1. `config.py` contient une interface facilitant la manipulation de fichiers de configuration.
     2. `database` comprend des outils de manipulation de base de données.
-        1. `__init__.py` comprend la classe `BaseDeDonnées` incluant le gros des fonctionnalités, y compris une interface entre SQLAlchemy et Pandas.
+        `__init__.py` comprend la classe `BaseDeDonnées` incluant le gros des fonctionnalités, y compris une interface entre SQLAlchemy et Pandas.
         2. `dtypes.py` comprend des fonctions de correspondance des types de données entre SQLAlchemy, Pandas, tkinter et Python.
         3. `gestion.py` contiendra des fonctions de migration de base de données.
     3. `interface` comprend des modules d'affichage.
@@ -71,4 +71,4 @@ Le fichier de configuration `base.cfg` comporte différentes sections:
 - [ ] Permettre d'ajouter des sections de configuration
 - [ ] Permettre d'ajouter des champs de configuration
 - [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
-- [ ] Faciliter l'importation de documents Excel & d'autres bases de données
+- [x] Faciliter l'importation de documents Excel & d'autres bases de données
