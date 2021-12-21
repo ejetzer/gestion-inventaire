@@ -25,9 +25,19 @@ La version `v1` est stable et peut-être utilisée telle quelle.
 
 La branche `alpha` est en développement constant, et ne devrait pas être utilisée pour développer un programme plus complexe.
 
+1. [ ] Filtrer par valeur dans des colonnes
+2. [ ] Permettre l'ajout de colonnes de l'intérieur de l'application
+3. [ ] Permettre d'ajouter des sections de configuration
+4. [ ] Permettre d'ajouter des champs de configuration
+5. [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
+
 ### Branche `beta`
 
 La branche `beta` est toujours fonctionnelle, mais peut changer d'un `commit` à l'autre dans les interfaces de classe, fonctionnalités, etc.
+
+- [x] Permettre d'effacer des rangées
+- [x] Faciliter l'importation de documents Excel & d'autres bases de données
+
 
 ## Modules
 
@@ -63,12 +73,3 @@ Le fichier de configuration `base.cfg` comporte différentes sections:
 ### `tkinter`
 
 1. `title` donne le titre de la fenêtre principale.
-
-# À faire
-
-- [ ] Permettre l'ajout de colonnes de l'intérieur de l'application
-- [ ] Permettre d'effacer des rangées
-- [ ] Permettre d'ajouter des sections de configuration
-- [ ] Permettre d'ajouter des champs de configuration
-- [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
-- [x] Faciliter l'importation de documents Excel & d'autres bases de données

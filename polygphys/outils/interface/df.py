@@ -13,6 +13,7 @@ import logging
 import itertools as it
 import tkinter as tk
 
+from tkinter import ttk
 from typing import Callable, Any, Union
 from functools import partial
 from inspect import signature
@@ -358,6 +359,110 @@ class Tableau(BaseTableau):
         logger.debug(f'{self!r} .update_grid')
         self.destroy_children()
         self.grid(**self.__grid_params)
+
+
+class Filtre:
+
+    def __init__(self,
+                 handler: InterfaceHandler,
+                 tableau: TableauFiltré):
+        self.handler = handler
+        self.tableau = tableau
+        self.build()
+
+    def build(self):
+        self.children = []
+
+        for col in it.chain([self.tableau.index], self.tableau.columns):
+            var = tk.StringVar()
+            nouvelle = self.handler.combobox(...)
+            self.children.append(nouvelle)
+
+    @property
+    def columnspan(self):
+        return len(self.tableau.columns) + 1
+
+    @property
+    def rowspan(self):
+        return 1
+
+    def grid(self, row: int, column: int):
+        for i, w in enumerate(self.children):
+            c.grid(row=row, column=column+i)
+
+    def destroy(self):
+        self.destroy_children()
+
+    def destroy_children(self):
+        for c in self.children:
+            c.destroy()
+        self.children = []
+
+    def update_row(self):
+        self.destroy_children()
+        self.build()
+        self.grid()
+
+    def update_tableau(self):
+        self.tableau.update_grid()
+
+    def select(self):
+        pass
+
+
+class TableauFiltré(Tableau):
+
+    def __init__(self,
+                 interface: InterfaceHandler,
+                 db: BaseDeDonnées,
+                 table: str,
+                 filtre: Filtre):
+        self.filtre = filtre
+        super().__init__(interface, db, table)
+
+    def build(self):
+        """
+        Construire les widgets.
+
+        Returns
+        -------
+        None.
+
+        """
+        logger.debug(f'{self!r} .build')
+
+        self.__widgets = self.df.copy()
+        logger.debug(f'\t{self.__widgets=}')
+
+        colonnes = filter(lambda x: x != 'index', self.columns)
+        colonnes = list(map(self.__handler.texte, colonnes))
+        self.__widgets.columns = colonnes
+        logger.debug(f'\t{self.__widgets=}')
+
+        index = list(map(self.__handler.texte, self.index))
+        self.__widgets.index = index
+        logger.debug(f'\t{self.__widgets=}')
+
+        I, C = self.__widgets.shape
+        logger.debug(f'\t{I=}, {C=}')
+
+        for i, c in it.product(range(I), range(C)):
+            logger.debug(f'\t\t{i=}, {c=}')
+
+            df = self.iloc()[[i], [c]]
+            logger.debug(f'\t\t{df=}')
+
+            dtype = self.dtype(self.columns[c])
+            logger.debug(f'\t\t{dtype=}')
+
+            _ = self.__handler.entrée(df, self.màj, dtype)
+            logger.debug(f'\t\t{_=}')
+
+            self.__widgets.iloc[i, c] = _
+            logger.debug(f'\t\t{self.__widgets=}')
+
+        self.__commandes = list(map(self.build_commandes, self.index))
+        logger.debug(f'\t{self.__commandes=}')
 
 
 class Formulaire(BaseTableau):

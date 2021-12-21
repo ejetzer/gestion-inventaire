@@ -42,3 +42,4 @@ class InterfaceHandler:
     texte: Callable[[str], Any]
     bouton: Callable[[str, Callable], Any]
     demander: Callable[[str, type], Callable]
+    combobox: Callable[[str, type], Callable]
