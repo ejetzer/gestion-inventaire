@@ -46,8 +46,10 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        logger.debug(
-            f'{self!r} {chemin=!r} {inline_comment_prefixes=!r} {kargs=!r}')
+        logger.debug('chemin = %r\tinline_comment_prefixes = %r\tkargs = %r',
+                     chemin,
+                     inline_comment_prefixes,
+                     kargs)
         self.chemin = chemin
         super().__init__(inline_comment_prefixes=inline_comment_prefixes,
                          **kargs)
@@ -62,7 +64,7 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        logger.debug(f'{self!r} .read({self.chemin=})')
+        logger.debug('chemin = %r', self.chemin)
         super().read(self.chemin, encoding='utf-8')
 
     def write(self):
@@ -74,14 +76,14 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        logger.debug(f'{self!r} FichierConfig.write({self.chemin=})')
+        logger.debug('chemin = %r', self.chemin)
         chemins = (self.chemin,) if isinstance(
             self.chemin, (Path, str)) else self.chemin
-        logger.debug(f'{chemins!r}')
+        logger.debug('chemins = %r', chemins)
 
         for chemin in chemins:
             with open(chemin, 'w', encoding='utf-8') as f:
-                logger.debug(f'{f!r}')
+                logger.debug('f = %r', f)
                 super().write(f)
 
     def set(self, section: str, option: str, value: str):
@@ -102,7 +104,10 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        logger.debug(f'{self!r}[{section!r}][{option!r}] = {value!r}')
+        logger.debug('section = %r\toption = %r\tvalue = %r',
+                     section,
+                     option,
+                     value)
         super().set(section, option, value)
         self.write()
 
@@ -128,18 +133,21 @@ class FichierConfig(ConfigParser):
             DESCRIPTION.
 
         """
-        logger.debug(f'{self!r} .getlist({sec=}, {clé=}, {fallback=})')
+        logger.debug('sec = %r\tclé = %r\tfallback = %r',
+                     sec,
+                     clé,
+                     fallback)
         val = self.get(sec, clé, fallback=None)
-        logger.debug(f'{self!r} .getlist(...) {val=}')
+        logger.debug('val = %r', val)
 
-        logger.debug(f'{self!r} .getlist(...) {val is not None=}')
+        logger.debug('val is not None = %r', val is not None)
 
         if val is not None:
             val = list(map(str.strip, val.strip().split('\n')))
         else:
             val = fallback
 
-        logger.debug(f'{self!r} .getlist(...) {val=}')
+        logger.debug('val = %r', val)
 
         return val
 
@@ -147,7 +155,32 @@ class FichierConfig(ConfigParser):
                sec: str,
                clé: str,
                fallback: str = '',
-               **kargs):
+               **kargs) -> str:
+        """
+        Retire une url du fichier de configuration.
+
+        Parameters
+        ----------
+        sec : str
+            Section.
+        clé : str
+            Clé.
+        fallback : str, optional
+            Valeur par défaut. The default is ''.
+        **kargs : TYPE
+            Valeurs à forcer.
+
+        Raises
+        ------
+        KeyError
+            Si clé ou sec n'existent pas.
+
+        Returns
+        -------
+        str
+            Adresse (pour base de données).
+
+        """
         champ = self.get(sec, clé, fallback=None)
 
         if champ is None and fallback != '':
@@ -202,11 +235,11 @@ class FichierConfig(ConfigParser):
             if d[clé]:
                 d[clé] = préfixe + d[clé]
 
-        logger.debug(f'{self!r} .geturl {d["netloc"]=!r}')
+        logger.debug('d["netloc"] = %r', d['netloc'])
         if d['netloc'] in ('localhost', '127.0.0.1', ''):
-            logger.debug(f'{self!r} .geturl {d["path"]=}')
+            logger.debug('d["path"] = %r', d['path'])
             d['path'] = str(Path(d['path'].strip('/')).expanduser())
-            logger.debug(f'{self!r} .geturl {d["path"]=}')
+            logger.debug('d["path"] = %r', d['path'])
 
         if d['nom']:
             d['netloc'] = '@' + d['netloc']
@@ -218,12 +251,31 @@ class FichierConfig(ConfigParser):
         else:
             d['netloc'] = d['netloc'] + '/'
 
-        return '{dialect}{driver}://{nom}{mdp}{netloc}{port}{path}{params}{query}{fragment}'.format(**d)
+        return '{dialect}{driver}://{nom}{mdp}{netloc}{port}\
+{path}{params}{query}{fragment}'.format(**d)
 
     def getpath(self,
                 sec: str,
                 clé: str,
                 fallback: str = '') -> Path:
+        """
+        Obtiens un chemin dans le fichier de configuration.
+
+        Parameters
+        ----------
+        sec : str
+            Section.
+        clé : str
+            Clé.
+        fallback : str, optional
+            Valeur par défaut. The default is ''.
+
+        Returns
+        -------
+        Path
+            Chemin.
+
+        """
         champ = self.get(sec, clé, fallback=None)
 
         if champ is None:
@@ -261,7 +313,7 @@ def main(fichier: str = None) -> FichierConfig:
 
     config = FichierConfig(fichier)
     logger.info('Configuration ouverte...')
-    logger.info(f'{config=}')
+    logger.info('config = %r', config)
 
     logger.info('Assurer la bonne forme de l\'adresse de base de donnée:')
     logger.info(config.geturl('bd', 'adresse', dialect='sqlite'))

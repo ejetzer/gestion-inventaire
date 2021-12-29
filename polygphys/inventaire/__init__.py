@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Programme ou module pour ...
+Programme de gestion d'inventaire.
 
 Créé le Fri Nov 26 15:15:36 2021
 
@@ -18,9 +18,10 @@ from pathlib import Path
 from ..outils.config import FichierConfig, logger as logcfg
 from ..outils.database import BaseDeDonnées, logger as logdb
 from ..outils.database.dtypes import logger as logdt
-from ..outils.interface.df import logger as logdf
+from ..outils.interface.tableau import logger as logdf
 from ..outils.interface.onglets import Onglets, logger as logong
 from ..outils.interface.tkinter import logger as logtk
+from ..outils.journal import Formats
 
 from ..inventaire.modeles import metadata
 
@@ -29,8 +30,8 @@ logger = logging.getLogger(__name__)
 
 def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
     """Programme de gestion d'inventaire."""
-    h = logging.StreamHandler(sys.stderr)
-    f = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    h = logging.StreamHandler(sys.stdout)
+    f = logging.Formatter(Formats().default)
     h.setFormatter(f)
 
     logger.addHandler(h)
@@ -50,35 +51,35 @@ def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
     logong.setLevel(logging.WARNING)
     logtk.setLevel(logging.WARNING)
 
-    logger.debug(f'{__name__} .main({cfg=})')
+    logger.debug('cfg = %r', cfg)
 
     logger.info('Chargement de la configuration...')
 
     cfg = Path(cfg).expanduser()
-    logger.debug(f'{cfg=}')
+    logger.debug('cfg = %r', cfg)
 
     config = FichierConfig(cfg)
-    logger.debug(f'{config=}')
+    logger.debug('config = %r', config)
 
     for sec in config.sections():
-        logger.info(f'[{sec}]')
+        logger.info('[%r]', sec)
         for c, v in config[sec].items():
-            logger.info(f'{c}: {v}')
+            logger.info('%r: %r', c, v)
 
     logger.info('Chargement de la base de données...')
 
     adresse = config.geturl('bd', 'adresse')
-    logger.debug(f'{adresse=}')
+    logger.debug('adresse = %r', adresse)
 
     base = BaseDeDonnées(adresse, metadata)
-    logger.debug(f'{base=}')
+    logger.debug('base = %r', base)
 
     base.initialiser()
 
     for n, t in base.tables.items():
-        logger.info(f'[{n}]')
+        logger.info('[%r]', n)
         for c in t.columns:
-            logger.info(f'{c}')
+            logger.info('%r', c)
 
     logger.info(base.select('boites'))
     logger.info(base.select('inventaire'))

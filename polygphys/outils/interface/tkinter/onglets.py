@@ -19,7 +19,7 @@ from pathlib import Path
 
 import sqlalchemy as sqla
 
-from .df import Tableau, Formulaire
+from .df import Tableau, Formulaire, Filtre
 from .tkinter import tkHandler
 from ..database import BaseDeDonnées
 from ..config import FichierConfig
@@ -316,6 +316,77 @@ class OngletBaseDeDonnées(tk.Frame):
         super().grid(*args, **kargs)
 
 
+class OngletBaseDeDonnéesFiltrée(OngletBaseDeDonnées):
+
+    def build(self):
+        """Construit les widgets."""
+        logger.debug(f'{self!r} .build')
+
+        self.canevas = tk.Canvas(self, width='50c', height='15c')
+        logger.debug(f'\t{self.canevas=}')
+
+        défiler_horizontalement = tk.Scrollbar(
+            self, orient='horizontal', command=self.canevas.xview)
+        logger.debug(f'\t{défiler_horizontalement=}')
+
+        défiler_verticalement = tk.Scrollbar(
+            self, orient='vertical', command=self.canevas.yview)
+        logger.debug(f'\t{défiler_verticalement=}')
+
+        self.canevas.configure(xscrollcommand=défiler_horizontalement.set,
+                               yscrollcommand=défiler_verticalement.set)
+
+        self.contenant = tk.Frame(self.canevas)
+        logger.debug(f'\t{self.contenant=}')
+
+        self.contenant.bind('<Configure>', lambda x: self.canevas.configure(
+            scrollregion=self.canevas.bbox('all')))
+
+        h = tkHandler(self.contenant)
+
+        self.tableau = Tableau(h, self.db, self.table)
+        logger.debug(f'\t{self.tableau=}')
+
+        self.filtre = Filtre(h, self.tableau)
+        logger.debug(f'\t{self.filtre=}')
+
+        màj = tk.Button(self, text='Màj',
+                        command=lambda: self.tableau.update_grid())
+        logger.debug(f'\t{màj=}')
+
+        importer = tk.Button(self, text='Importer',
+                             command=self.importer)
+        logger.debug(f'{importer=}')
+
+        exporter = tk.Button(self, text='Exporter',
+                             command=self.exporter)
+        logger.debug(f'{exporter=}')
+
+        modèle = tk.Button(self, text='Modèle',
+                           command=self.exporter_modèle)
+        logger.debug(f'{modèle=}')
+
+        self.défiler = [défiler_horizontalement, défiler_verticalement]
+        logger.debug(f'\t{self.défiler=}')
+
+        self.boutons = [màj, importer, exporter, modèle]
+        logger.debug(f'\t{self.boutons=}')
+
+    def subgrid(self):
+        """Afficher les widgets."""
+        logger.debug(f'{self!r} .subgrid')
+
+        self.défiler[0].grid(row=16, column=1, columnspan=1, sticky='we')
+        self.défiler[1].grid(row=1, column=2, rowspan=15, sticky='ns')
+        self.canevas.grid(row=1, column=1, rowspan=15, sticky='news')
+        self.canevas.create_window((30, 15), window=self.contenant)
+        self.filtre.grid(0, 0)
+        self.tableau.grid(1, 0)
+
+        for i, b in enumerate(self.boutons):
+            b.grid(row=i, column=0)
+
+
 class OngletFormulaire(tk.Frame):
     """Afficher un formulaire d'entrée de données."""
 
@@ -467,7 +538,8 @@ class Onglets(ttk.Notebook):
         logger.debug(f'\t{tables=}')
         for nom_table in tables:
             logger.debug(f'\t\t{nom_table=}')
-            onglet = OngletBaseDeDonnées(self, db, nom_table, config=config)
+            onglet = OngletBaseDeDonnéesFiltrée(
+                self, db, nom_table, config=config)
             logger.debug(f'\t\t{onglet=}')
             self.add(onglet, text=nom_table)
 
@@ -553,14 +625,14 @@ def main(config: FichierConfig = None, md: sqla.MetaData = None):
     logger.debug(f'{__name__} .main({config=}, {md=})')
 
     if config is None:
-        import polytechnique.outils.config
-        config = polytechnique.outils.config.main()
+        import polygphys.outils.config
+        config = polygphys.outils.config.main()
     logger.debug(f'\t{config=}')
 
     adresse = config.geturl('bd', 'adresse', dialect='sqlite')
     if md is None:
-        import polytechnique.outils.database
-        base, md = polytechnique.outils.database.main(adresse)
+        import polygphys.outils.database
+        base, md = polygphys.outils.database.main(adresse)
     logger.debug(f'\t{md=}')
 
     logger.info('Création de l\'interface...')

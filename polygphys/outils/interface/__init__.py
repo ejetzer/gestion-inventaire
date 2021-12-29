@@ -13,6 +13,8 @@ Créé le Fri Nov 26 10:41:14 2021
 from typing import Callable, Any
 from dataclasses import dataclass
 
+from pandas import DataFrame
+
 
 @dataclass
 class InterfaceHandler:
@@ -38,8 +40,7 @@ class InterfaceHandler:
 
     """
 
-    entrée: Callable[[str, Callable, type], Any]
+    entrée: Callable[[DataFrame, Callable, type], Any]
     texte: Callable[[str], Any]
     bouton: Callable[[str, Callable], Any]
-    demander: Callable[[str, type], Callable]
-    combobox: Callable[[str, type], Callable]
+    demander: Callable[[str, type], Any]

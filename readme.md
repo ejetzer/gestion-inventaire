@@ -31,6 +31,83 @@ La branche `alpha` est en développement constant, et ne devrait pas être utili
 4. [ ] Permettre d'ajouter des champs de configuration
 5. [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
 
+#### 1. Filtre
+
+- [ ] __init__.py
+- [ ] __main__.py
+- [ ] heures
+    - [ ] __init__.py
+    - [ ] __main__.py
+    - [ ] modeles.py
+- [ ] inventaire
+    - [ ] __init__.py
+    - [ ] __main__.py
+    - [ ] modeles.py
+- [ ] journal_de_laboratoire
+    - [ ] __init__.py
+    - [ ] __main__.py
+    - [ ] modeles.py
+- [ ] outils
+    - [ ] __init__.py
+    - [ ] __main__.py
+    - [ ] config.py
+    - [ ] journal.py
+    - [ ] database
+        - [ ] __init__.py
+        - [ ] __main__.py
+        - [ ] dtypes.py
+        - [ ] gestion.py
+    - [ ] interface
+        - [ ] __init__.py
+        - [ ] __main__.py
+        - [ ] tableau.py
+        - [ ] html.py
+        - [ ] tkinter
+            - [ ] __init__.py
+            - [ ] __main__.py
+            - [ ] onglets.py
+
+#### 5. Journalisation
+
+Modifier tous les fichiers pour:
+
+1. Changer le nom du module `polygphys.outils.interface.df` à `polygphys.outils.interface.tableau`
+2. Normaliser la journalisation des erreurs et messages avec le module `polygphys.outils.journal`
+
+- [x] __init__.py
+- [x] __main__.py
+- [x] heures
+    - [x] __init__.py
+    - [x] __main__.py
+    - [x] modeles.py
+- [x] inventaire
+    - [x] __init__.py
+    - [x] __main__.py
+    - [x] modeles.py
+- [x] journal_de_laboratoire
+    - [x] __init__.py
+    - [x] __main__.py
+    - [x] modeles.py
+- [ ] outils
+    - [x] __init__.py
+    - [x] __main__.py
+    - [x] config.py
+    - [x] journal.py
+    - [ ] database
+        - [ ] __init__.py
+        - [ ] __main__.py
+        - [ ] dtypes.py
+        - [ ] gestion.py
+    - [ ] interface
+        - [ ] __init__.py
+        - [ ] __main__.py
+        - [ ] tableau.py
+        - [ ] html.py
+        - [ ] tkinter
+            - [ ] __init__.py
+            - [ ] __main__.py
+            - [ ] onglets.py
+
 ### Branche `beta`
 
 La branche `beta` est toujours fonctionnelle, mais peut changer d'un `commit` à l'autre dans les interfaces de classe, fonctionnalités, etc.

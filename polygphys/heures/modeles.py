@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Programme ou module pour ...
+Modèles de bases de données pour l'entrée des heures.
 
 Créé le Fri Nov 26 15:36:57 2021
 
@@ -18,6 +18,7 @@ metadata = MetaData()
 
 
 def colonnes_communes():
+    """Colonnes communes à toutes les bases de données."""
     return (column('index', int, primary_key=True),)
 
 

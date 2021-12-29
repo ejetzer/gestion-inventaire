@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Programme ou module pour ...
+Modèles de bases de données d'inventaire.
 
 Créé le Fri Nov 26 15:36:57 2021
 

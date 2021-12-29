@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Programme pour afficher et modifier visuellement des DataFrames Pandas.
+Manipulation et affichage de base de données.
 
 Created on Tue Nov  2 15:40:02 2021
 
@@ -13,7 +13,6 @@ import logging
 import itertools as it
 import tkinter as tk
 
-from tkinter import ttk
 from typing import Callable, Any, Union
 from functools import partial
 from inspect import signature
@@ -48,7 +47,8 @@ class BaseTableau:
         None.
 
         """
-        logger.debug('{self!r} __init__({db=}, {table=})')
+        logger.debug('db = %r\ttable = %r', db, table)
+
         self.table: str = table
         self.db: BaseDeDonnées = db
 
@@ -75,18 +75,20 @@ class BaseTableau:
             L'attribut demandé.
 
         """
-        logger.debug(f'{self!r} __getattr__({attr=})')
+        logger.debug('attr = %r', attr)
 
-        logger.debug(f'\t{hasattr(BaseDeDonnées, attr)=}')
-        logger.debug(f'\t{hasattr(pd.DataFrame, attr)=}')
+        logger.debug('hasattr(BaseDeDonnées, attr) = %r',
+                     hasattr(BaseDeDonnées, attr))
+        logger.debug('hasattr(pd.DataFrame, attr) = %r',
+                     hasattr(pd.DataFrame, attr))
         if hasattr(BaseDeDonnées,  attr):
             obj = getattr(self.db, attr)
-            logger.debug(f'\t{obj=}')
+            logger.debug('obj = %r', obj)
 
-            logger.debug(f'\t{type(obj)=}')
+            logger.debug('type(obj) = %r', type(obj))
             if isinstance(obj, Callable):
                 sig = signature(obj)
-                logger.debug(f'\t{sig=}')
+                logger.debug('sig = %r', sig)
 
                 if len(sig.parameters) == 1 and 'table' in sig.parameters:
                     return partial(obj, self.table)()
@@ -99,13 +101,13 @@ class BaseTableau:
         elif hasattr(pd.DataFrame, attr):
             return getattr(self.df, attr)
         else:
-            msg = f'{self!r} de type {type(self)} n\'a pas d\'attribut {attr}, ni (self.__db: BaseDeDonnées, self.df: pandas.DataFrame).'
+            msg = f'{self!r} de type {type(self)} n\'a pas d\'attribut {attr}\
+, ni (self.__db: BaseDeDonnées, self.df: pandas.DataFrame).'
             raise AttributeError(msg)
 
     @property
     def df(self) -> pd.DataFrame:
         """Le tableau comme pandas.DataFrame."""
-        logger.debug(f'{self!r} .df')
         return self.select()
 
     def append(self, values: Union[pd.Series, pd.DataFrame] = None):
@@ -122,16 +124,16 @@ class BaseTableau:
         None.
 
         """
-        logger.debug(f'{self!r} .append({values=})')
+        logger.debug('values = %r', values)
 
-        logger.debug(f'\t{type(values)=}')
+        logger.debug('type(values) = %r', type(values))
         if values is None:
-            cols, idx = self.columns, [max(self.index, default=0) + 1]
+            cols, idx = self.columns, [max(self.index, default=-1) + 1]
             values = pd.DataFrame(None, columns=cols, index=[idx])
         elif isinstance(values, pd.Series):
-            cols, idx = self.columns, [max(self.index, default=0) + 1]
+            cols, idx = self.columns, [max(self.index, default=-1) + 1]
             values = pd.DataFrame([values], index=[idx])
-        logger.debug(f'\t{values=}')
+        logger.debug('values = %r', values)
 
         self.db.append(self.table, values)
 
@@ -160,26 +162,39 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .__init__({handler=}, {db=}, {table=})')
+        logger.debug('handler = %r\tdb = %r\ttable = %r', handler, db, table)
         super().__init__(db, table)
-        self.__widgets = pd.DataFrame()
-        self.__commandes = []
-        self.__handler = handler
+        self.widgets = pd.DataFrame()
+        self.commandes = []
+        self.handler = handler
 
-    def oublie_pas_la_màj(self, f: Callable, *args):
+    def oublie_pas_la_màj(self, f: Callable, *args) -> Callable:
         """
         Force la mise à jour de la grille.
 
         À utiliser après un changement à la base de données.
+
+        Parameters
+        ----------
+        f : Callable
+            Fonction à envelopper.
+        *args : TYPE
+            Arguments transmis à f.
+
+        Returns
+        -------
+        F : Callable
+            Fonction enveloppée.
+
         """
-        logger.debug(f'{self!r} .oublie_pas_la_màj({f=}, {args=})')
+        logger.debug('f = %r\targs = %r', f, args)
 
         def F():
-            logger.debug(f'** F() avec {f=} et {args=}.')
+            logger.debug('** F() avec f=%r et args=%r.', f, args)
             f(*args)
             self.update_grid()
 
-        logger.debug(f'\t{F=}')
+        logger.debug('F = %r', F)
 
         return F
 
@@ -200,12 +215,12 @@ class Tableau(BaseTableau):
             Les widgets.
 
         """
-        logger.debug(f'{self!r} .build_commandes({rangée=})')
+        logger.debug('rangée = %r', rangée)
 
-        a = self.__handler.bouton('+', self.oublie_pas_la_màj(self.append))
-        b = self.__handler.bouton('-', self.oublie_pas_la_màj(self.delete,
-                                                              rangée))
-        logger.debug(f'\t{a=} {b=}')
+        a = self.handler.bouton('+', self.oublie_pas_la_màj(self.append))
+        b = self.handler.bouton('-', self.oublie_pas_la_màj(self.delete,
+                                                            rangée))
+        logger.debug('a = %r\tb = %r', a, b)
 
         return a, b
 
@@ -218,40 +233,38 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .build')
-
-        self.__widgets = self.df.copy()
-        logger.debug(f'\t{self.__widgets=}')
+        self.widgets = self.df.copy()
+        logger.debug('widgets = %r', self.widgets)
 
         colonnes = filter(lambda x: x != 'index', self.columns)
-        colonnes = list(map(self.__handler.texte, colonnes))
-        self.__widgets.columns = colonnes
-        logger.debug(f'\t{self.__widgets=}')
+        colonnes = list(map(self.handler.texte, colonnes))
+        self.widgets.columns = colonnes
+        logger.debug('widgets = %r', self.widgets)
 
-        index = list(map(self.__handler.texte, self.index))
-        self.__widgets.index = index
-        logger.debug(f'\t{self.__widgets=}')
+        index = list(map(self.handler.texte, self.index))
+        self.widgets.index = index
+        logger.debug('widgets = %r', self.widgets)
 
-        I, C = self.__widgets.shape
-        logger.debug(f'\t{I=}, {C=}')
+        I, C = self.widgets.shape
+        logger.debug('I = %r\tC = %r', I, C)
 
         for i, c in it.product(range(I), range(C)):
-            logger.debug(f'\t\t{i=}, {c=}')
+            logger.debug('i = %r\tc = %r', i, c)
 
             df = self.iloc()[[i], [c]]
-            logger.debug(f'\t\t{df=}')
+            logger.debug('df = %r', df)
 
             dtype = self.dtype(self.columns[c])
-            logger.debug(f'\t\t{dtype=}')
+            logger.debug('dtype = %r', dtype)
 
-            _ = self.__handler.entrée(df, self.màj, dtype)
-            logger.debug(f'\t\t{_=}')
+            _ = self.handler.entrée(df, self.màj, dtype)
+            logger.debug('_ = %r', _)
 
-            self.__widgets.iloc[i, c] = _
-            logger.debug(f'\t\t{self.__widgets=}')
+            self.widgets.iloc[i, c] = _
+            logger.debug('widgets = %r', self.widgets)
 
-        self.__commandes = list(map(self.build_commandes, self.index))
-        logger.debug(f'\t{self.__commandes=}')
+        self.commandes = list(map(self.build_commandes, self.index))
+        logger.debug('commandes = %r', self.commandes)
 
     @property
     def rowspan(self):
@@ -279,18 +292,18 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .grid({row=}, {column=})')
+        logger.debug('row = %r\tcolumn = %r', row, column)
 
         self.__grid_params = {'row': row, 'column': column}
 
         self.build()
 
-        logger.debug(f'\t{self.__widgets.columns=}')
-        for i, c in enumerate(self.__widgets.columns):
+        logger.debug('widgets.columns = %r', self.widgets.columns)
+        for i, c in enumerate(self.widgets.columns):
             c.grid(row=row, column=column+i+3)
 
-        logger.debug(f'\t{self.__widgets=}')
-        logger.debug(f'\t{self.__commandes=}')
+        logger.debug('widgets = %r', self.widgets)
+        logger.debug('commandes = %r', self.commandes)
         for i, ((idx, rang),
                 (plus, moins)) in enumerate(zip(self.__widgets.iterrows(),
                                                 self.__commandes)):
@@ -314,7 +327,6 @@ class Tableau(BaseTableau):
             Itérateur de tous les widgets.
 
         """
-        logger.debug(f'{self!r} .children')
         return it.chain(self.__widgets.columns,
                         self.__widgets.index,
                         *self.__widgets.values,
@@ -329,8 +341,7 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .destroy_children')
-        logger.debug(f'\t{self.children=}')
+        logger.debug('children = %r', self.children)
         for widget in self.children:
             widget.destroy()
 
@@ -343,7 +354,6 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .destroy')
         self.destroy_children()
         super().destroy()
 
@@ -356,26 +366,66 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .update_grid')
         self.destroy_children()
         self.grid(**self.__grid_params)
 
 
+class TableauFiltré(Tableau):
+
+    def __init__(self,
+                 handler: InterfaceHandler,
+                 db: BaseDeDonnées,
+                 table: str):
+        self.__where = tuple()
+        super().__init__(handler, db, table)
+
+    def filtre(self, where: tuple):
+        self.__where = where
+
+    @property
+    def df(self):
+        """Le tableau comme pandas.DataFrame."""
+        logger.debug(f'{self!r} .df')
+        return self.select(where=self.__where)
+
+
 class Filtre:
+    """Filtre pour TableauFiltré."""
 
     def __init__(self,
                  handler: InterfaceHandler,
                  tableau: TableauFiltré):
-        self.handler = handler
-        self.tableau = tableau
+        """
+        Filtre pour TableauFiltré.
+
+        Parameters
+        ----------
+        handler : InterfaceHandler
+            Gestionnaire d'interface.
+        tableau : TableauFiltré
+            Tableau à filtrer.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.handler: InterfaceHandler = handler
+        self.tableau: TableauFiltré = tableau
         self.build()
 
     def build(self):
         self.children = []
 
         for col in it.chain([self.tableau.index], self.tableau.columns):
-            var = tk.StringVar()
-            nouvelle = self.handler.combobox(...)
+            variable = tk.StringVar()
+
+            def F():
+                pass
+
+            variable.trace_add('write', F)
+
+            nouvelle = self.handler.entrée(...)
             self.children.append(nouvelle)
 
     @property
@@ -388,7 +438,7 @@ class Filtre:
 
     def grid(self, row: int, column: int):
         for i, w in enumerate(self.children):
-            c.grid(row=row, column=column+i)
+            w.grid(row=row, column=column+i)
 
     def destroy(self):
         self.destroy_children()
@@ -405,64 +455,6 @@ class Filtre:
 
     def update_tableau(self):
         self.tableau.update_grid()
-
-    def select(self):
-        pass
-
-
-class TableauFiltré(Tableau):
-
-    def __init__(self,
-                 interface: InterfaceHandler,
-                 db: BaseDeDonnées,
-                 table: str,
-                 filtre: Filtre):
-        self.filtre = filtre
-        super().__init__(interface, db, table)
-
-    def build(self):
-        """
-        Construire les widgets.
-
-        Returns
-        -------
-        None.
-
-        """
-        logger.debug(f'{self!r} .build')
-
-        self.__widgets = self.df.copy()
-        logger.debug(f'\t{self.__widgets=}')
-
-        colonnes = filter(lambda x: x != 'index', self.columns)
-        colonnes = list(map(self.__handler.texte, colonnes))
-        self.__widgets.columns = colonnes
-        logger.debug(f'\t{self.__widgets=}')
-
-        index = list(map(self.__handler.texte, self.index))
-        self.__widgets.index = index
-        logger.debug(f'\t{self.__widgets=}')
-
-        I, C = self.__widgets.shape
-        logger.debug(f'\t{I=}, {C=}')
-
-        for i, c in it.product(range(I), range(C)):
-            logger.debug(f'\t\t{i=}, {c=}')
-
-            df = self.iloc()[[i], [c]]
-            logger.debug(f'\t\t{df=}')
-
-            dtype = self.dtype(self.columns[c])
-            logger.debug(f'\t\t{dtype=}')
-
-            _ = self.__handler.entrée(df, self.màj, dtype)
-            logger.debug(f'\t\t{_=}')
-
-            self.__widgets.iloc[i, c] = _
-            logger.debug(f'\t\t{self.__widgets=}')
-
-        self.__commandes = list(map(self.build_commandes, self.index))
-        logger.debug(f'\t{self.__commandes=}')
 
 
 class Formulaire(BaseTableau):
@@ -523,7 +515,6 @@ class Formulaire(BaseTableau):
         """
         logger.debug(f'{self!r} .effacer')
         self.update_grid()
-        # TODO: rentrer la date automatiquement
 
     def soumettre(self):
         """
@@ -729,7 +720,8 @@ def main():
     racine.mainloop()
 
     logger.info(
-        'On réouvre, pour montrer que les changements sont bien soumis à la base de données...')
+        'On réouvre, pour montrer que les changements sont bien soumis à la \
+base de données...')
     racine = tkinter.Tk()
     handler = polytechnique.outils.interface.tkinter.tkHandler(racine)
     tableau = Tableau(handler, base, 'demo')
@@ -744,7 +736,8 @@ def main():
     racine.mainloop()
 
     logger.info(
-        'On réouvre, pour montrer que les changements sont bien soumis à la base de données...')
+        'On réouvre, pour montrer que les changements sont bien soumis à la \
+base de données...')
     racine = tkinter.Tk()
     handler = polytechnique.outils.interface.tkinter.tkHandler(racine)
     tableau = Tableau(handler, base, 'demo')

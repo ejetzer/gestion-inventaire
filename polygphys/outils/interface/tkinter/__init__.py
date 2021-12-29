@@ -24,61 +24,60 @@ from ..interface import InterfaceHandler
 logger = logging.getLogger(__name__)
 
 
-def demander(question: str = '', dtype: type = str):
-    """Demander une entrée."""
-    if dtype == str:
-        return askstring('?', question)
-    elif dtype == int:
-        return askinteger('?', question)
-    elif dtype == float:
-        return askfloat('?', question)
-
-
 def tkHandler(master: tk.Tk) -> InterfaceHandler:
     """Retourne une instance InterfaceHandler pour tk."""
-    logger.debug(f'{__name__} .tkHandler {master=}')
+    logger.debug('master = %r', master)
+
+    def demander(question: str = '', dtype: type = str):
+        """Demander une entrée."""
+        if dtype == str:
+            return askstring('?', question)
+        elif dtype == int:
+            return askinteger('?', question)
+        elif dtype == float:
+            return askfloat('?', question)
 
     def entrée(value: pd.DataFrame,
                commande: Callable,
                dtype: str = 'object') -> tk.Entry:
-        logger.debug(f'{__name__} .tkHandler {value=} {commande=} {dtype=}')
+        logger.debug('value = %r\tcommande = %r\tdtype = %r',
+                     value, commande, dtype)
 
         variable = get_type('pandas', dtype, 'tk')(master, value.iloc[0, 0])
-        logger.debug(f'{__name__} .tkHandler {variable=}')
+        logger.debug('variable = %r', variable)
         conversion = get_type('pandas', dtype, 'python')
+        logger.debug('conversion = %r', conversion)
 
         def F(x, i, m, v=variable):
-            logger.debug(f'{__name__} .tkHandler.F {v=}')
+            logger.debug('v = %r', v)
 
             res = v.get()
-            logger.debug(f'{__name__} .tkHandler.F {res=}')
+            logger.debug('res = %r', res)
 
             res = conversion(res)
-            logger.debug(f'{__name__} .tkHandler.F {res=}')
+            logger.debug('res = %r', res)
 
             arg = pd.DataFrame(res,
                                index=value.index,
                                columns=value.columns,
                                dtype=dtype)
-            logger.debug(f'{__name__} .tkHandler.F {arg=}')
+            logger.debug('arg = %r', arg)
 
             return commande(arg)
 
-        logger.debug(f'{__name__} .tkHandler {F=}')
+        logger.debug('F = %r', F)
 
         variable.trace_add('write', F)
 
-        logger.debug(f'{__name__} .tkHandler {dtype=}')
+        logger.debug('dtype = %r', dtype)
         if dtype == 'boolean':
             widget = ttk.Checkbutton(master,
-                                     variable=variable,
-                                     onvalue=1,
-                                     offvalue=0)
+                                     variable=variable)
         elif dtype in ('int64', 'float64'):
             widget = ttk.Spinbox(master, textvariable=variable)
         else:
             widget = ttk.Entry(master, textvariable=variable)
-        logger.debug(f'{__name__} .tkHandler {widget=}')
+        logger.debug('widget = %r', widget)
 
         return widget
 
