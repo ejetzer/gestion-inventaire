@@ -74,38 +74,24 @@ Modifier tous les fichiers pour:
 1. Changer le nom du module `polygphys.outils.interface.df` à `polygphys.outils.interface.tableau`
 2. Normaliser la journalisation des erreurs et messages avec le module `polygphys.outils.journal`
 
-- [x] __init__.py
-- [x] __main__.py
-- [x] heures
-    - [x] __init__.py
-    - [x] __main__.py
-    - [x] modeles.py
-- [x] inventaire
-    - [x] __init__.py
-    - [x] __main__.py
-    - [x] modeles.py
-- [x] journal_de_laboratoire
-    - [x] __init__.py
-    - [x] __main__.py
-    - [x] modeles.py
 - [ ] outils
     - [x] __init__.py
     - [x] __main__.py
     - [x] config.py
     - [x] journal.py
-    - [ ] database
-        - [ ] __init__.py
-        - [ ] __main__.py
-        - [ ] dtypes.py
-        - [ ] gestion.py
+    - [x] database
+        - [x] __init__.py
+        - [x] __main__.py
+        - [x] dtypes.py
+        - [x] gestion.py
     - [ ] interface
-        - [ ] __init__.py
-        - [ ] __main__.py
-        - [ ] tableau.py
-        - [ ] html.py
+        - [x] __init__.py
+        - [x] __main__.py
+        - [x] tableau.py
+        - [x] html.py
         - [ ] tkinter
-            - [ ] __init__.py
-            - [ ] __main__.py
+            - [x] __init__.py
+            - [x] __main__.py
             - [ ] onglets.py
 
 ### Branche `beta`

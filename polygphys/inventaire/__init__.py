@@ -19,7 +19,7 @@ from ..outils.config import FichierConfig, logger as logcfg
 from ..outils.database import BaseDeDonnées, logger as logdb
 from ..outils.database.dtypes import logger as logdt
 from ..outils.interface.tableau import logger as logdf
-from ..outils.interface.onglets import Onglets, logger as logong
+from ..outils.interface.tkinter.onglets import Onglets, logger as logong
 from ..outils.interface.tkinter import logger as logtk
 from ..outils.journal import Formats
 

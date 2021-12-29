@@ -47,9 +47,9 @@ def main():
     swap_db = config.geturl('bd', 'adresse')
     config.set('bd', 'adresse', f'sqlite:///{fichier_db!s}')
 
-    import polygphys.outils.interface.onglets
-    polygphys.outils.interface.onglets.logger.addHandler(ch)
-    polygphys.outils.interface.onglets.logger.setLevel(logging.DEBUG)
+    import polygphys.outils.interface.tkinter.onglets
+    polygphys.outils.interface.tkinter.onglets.logger.addHandler(ch)
+    polygphys.outils.interface.tkinter.onglets.logger.setLevel(logging.DEBUG)
     racine, onglets = polygphys.outils.interface.onglets.main(config, md)
 
     config.set('bd', 'adresse', swap_db)

@@ -327,10 +327,10 @@ class Tableau(BaseTableau):
             Itérateur de tous les widgets.
 
         """
-        return it.chain(self.__widgets.columns,
-                        self.__widgets.index,
-                        *self.__widgets.values,
-                        *self.__commandes)
+        return it.chain(self.widgets.columns,
+                        self.widgets.index,
+                        *self.widgets.values,
+                        *self.commandes)
 
     def destroy_children(self):
         """
@@ -376,17 +376,17 @@ class TableauFiltré(Tableau):
                  handler: InterfaceHandler,
                  db: BaseDeDonnées,
                  table: str):
-        self.__where = tuple()
+        self.where = tuple()
         super().__init__(handler, db, table)
 
     def filtre(self, where: tuple):
-        self.__where = where
+        self.where = where
 
     @property
     def df(self):
         """Le tableau comme pandas.DataFrame."""
         logger.debug(f'{self!r} .df')
-        return self.select(where=self.__where)
+        return self.select(where=self.where)
 
 
 class Filtre:
@@ -481,11 +481,11 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .__init__({handler=}, {db=}, {table=})')
+        logger.debug('handler = %r\tdb = %r\ttable = %r', handler, db, table)
         super().__init__(db, table)
-        self.__widgets = pd.DataFrame()
-        self.__commandes = []
-        self.__handler = handler
+        self.widgets = pd.DataFrame()
+        self.commandes = []
+        self.handler = handler
 
     def oublie_pas_la_màj(self, f: Callable, *args):
         """
@@ -493,14 +493,14 @@ class Formulaire(BaseTableau):
 
         À utiliser après un changement à la base de données.
         """
-        logger.debug(f'{self!r} .oublie_pas_la_màj({f=}, {args=})')
+        logger.debug('f = %r\targs = %r', f, args)
 
         def F():
-            logger.debug(f'** F() avec {f=} et {args=}.')
+            logger.debug('** F() avec %r et %r.', f, args)
             f(*args)
             self.update_grid()
 
-        logger.debug(f'\t{F=}')
+        logger.debug('F = %r', F)
 
         return F
 
@@ -513,7 +513,6 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .effacer')
         self.update_grid()
 
     def soumettre(self):
@@ -525,7 +524,6 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .soumettre')
 
         _ = {}
         for c, v in self.__widgets.loc[0, :].items():
@@ -535,7 +533,7 @@ class Formulaire(BaseTableau):
                 _[c.cget('text')] = v.instate(['selected'])
 
         _ = pd.Series(_)
-        logger.debug(f'\t{_=}')
+        logger.debug('_ = %r', _)
 
         self.append(_)
         self.effacer()
@@ -552,13 +550,11 @@ class Formulaire(BaseTableau):
             Boutons créés.
 
         """
-        logger.debug(f'{self!r} .build_commandes')
+        a = self.handler.bouton('Effacer', self.effacer)
+        logger.debug('a = %r', a)
 
-        a = self.__handler.bouton('Effacer', self.effacer)
-        logger.debug(f'\t{a=}')
-
-        b = self.__handler.bouton('Soumettre', self.soumettre)
-        logger.debug(f'\t{b=}')
+        b = self.handler.bouton('Soumettre', self.soumettre)
+        logger.debug('b = %r', b)
 
         return a, b
 
@@ -571,34 +567,33 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .build')
 
-        self.__widgets = pd.DataFrame(None, columns=self.columns, index=[0])
-        logger.debug(f'\t{self.__widgets=}')
+        self.widgets = pd.DataFrame(None, columns=self.columns, index=[0])
+        logger.debug('widgets = %r', self.widgets)
 
         colonnes = filter(lambda x: x != 'index', self.columns)
-        colonnes = list(map(self.__handler.texte, colonnes))
-        self.__widgets.columns = colonnes
-        logger.debug(f'\t{self.__widgets=}')
+        colonnes = list(map(self.handler.texte, colonnes))
+        self.widgets.columns = colonnes
+        logger.debug('widgets = %r', self.widgets)
 
-        logger.debug(f'\t{colonnes=}')
+        logger.debug('colonnes = %r', colonnes)
         for n, col in zip(self.columns, colonnes):
             dtype = self.dtype(n)
-            logger.debug(f'\t\t{dtype=}')
+            logger.debug('dtype = %r', dtype)
 
             df = pd.DataFrame(default(dtype),
                               columns=[col],
                               index=[max(self.index, default=0)+1])
-            logger.debug(f'\t\t{df=}')
+            logger.debug('df = %r', df)
 
-            _ = self.__handler.entrée(df, lambda x: None, dtype)
-            logger.debug(f'\t\t{_=}')
+            _ = self.handler.entrée(df, lambda x: None, dtype)
+            logger.debug('_ = %r', _)
 
-            self.__widgets.loc[0, col] = _
-        logger.debug(f'\t{self.__widgets=}')
+            self.widgets.loc[0, col] = _
+        logger.debug('widgets = %r', self.widgets)
 
-        logger.debug(f'\t{self.__commandes=}')
-        self.__commandes = self.build_commandes()
+        logger.debug('commandes = %r', self.commandes)
+        self.commandes = self.build_commandes()
 
     @ property
     def rowspan(self):
@@ -626,17 +621,17 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .grid({row=}, {column=})')
+        logger.debug('row = %r\tcolumn = %r', row, column)
         self.__grid_params = {'row': row, 'column': column}
 
         self.build()
 
-        for j, (c, v) in enumerate(zip(self.__widgets.columns,
-                                       self.__widgets.loc[0, :])):
+        for j, (c, v) in enumerate(zip(self.widgets.columns,
+                                       self.widgets.loc[0, :])):
             c.grid(row=row+j, column=column)
             v.grid(row=row+j, column=column+1)
 
-        for i, c in enumerate(self.__commandes):
+        for i, c in enumerate(self.commandes):
             c.grid(row=row+j+1, column=column+i)
 
     def pack(self, *args, **kargs):
@@ -653,10 +648,9 @@ class Formulaire(BaseTableau):
             Widgets.
 
         """
-        logger.debug(f'{self!r} .children')
-        return it.chain(self.__widgets.columns,
-                        *self.__widgets.values,
-                        self.__commandes)
+        return it.chain(self.widgets.columns,
+                        *self.widgets.values,
+                        self.commandes)
 
     def destroy_children(self):
         """
@@ -667,9 +661,8 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .destroy_children')
         for widget in self.children:
-            logger.debug(f'\t{widget=}')
+            logger.debug('widget = %r', widget)
             widget.destroy()
 
     def destroy(self):
@@ -681,7 +674,6 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .destroy')
         self.destroy_children()
         super().destroy()
 
@@ -694,7 +686,6 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug(f'{self!r} .update_grid')
         self.destroy_children()
         self.grid(**self.__grid_params)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Programme ou module pour ...
+Description et manipulation de types de données.
 
 Créé le Fri Nov 26 11:46:07 2021
 
@@ -75,23 +75,55 @@ TYPES: tuple[dict[str, Union[str, type]]] = ({'config': None,
 
 
 def get_type(de: str, t: Union[Any, type, str], à: str) -> Union[type, str]:
-    logger.debug(f'{__name__} .get_type({de=}, {t=}, {à=})')
+    """
+    Retourne un type ou description de type dans le bon format.
+
+    Parameters
+    ----------
+    de : str
+        Format de départ.
+    t : Union[Any, type, str]
+        Type ou description de type dans le format de départ.
+    à : str
+        Format final.
+
+    Returns
+    -------
+    Union[type, str]
+        Type ou description de type.
+
+    """
+    logger.debug('de = %r\tt = %r\tà = %r', de, t, à)
 
     def comp(x):
-        logger.debug(f'{__name__} .get_type.comp({x[de]=!r})')
-        logger.debug(f'\t{type(x[de])=}')
-        logger.debug(f'\t{t=!r}')
+        logger.debug('x[de] = %r', x[de])
+        logger.debug('type(x[de]) = %r', type(x[de]))
+        logger.debug('t = %r', t)
 
         return x[de] == t
 
     for s in filter(comp, TYPES):
-        logger.debug(f'\t{s[à]=}')
+        logger.debug('s[à] = %r', s[à])
         return s[à]
 
     return next(filter(lambda x: x['config'] is None, TYPES))[à]
 
 
-def default(dtype: str):
+def default(dtype: str) -> Any:
+    """
+    Retourne la valeur par défaut pour un type.
+
+    Parameters
+    ----------
+    dtype : str
+        Type de données Pandas.
+
+    Returns
+    -------
+    Any
+        Valeur par défaut du type.
+
+    """
     if 'period' in dtype:
         return datetime.timedelta(0)
     elif 'date' in dtype or 'time' in dtype:
@@ -100,7 +132,27 @@ def default(dtype: str):
         return get_type('pandas', dtype, 'python')()
 
 
-def column(name: str, dtype: type = str, *args, **kargs):
+def column(name: str, dtype: type = str, *args, **kargs) -> sqla.Column:
+    """
+    Retourne une description de colonne du bon type et nom.
+
+    Parameters
+    ----------
+    name : str
+        Nom de la colonne.
+    dtype : type, optional
+        Type de la colonne. The default is str.
+    *args : TYPE
+        Arguments supplémentaires transmis au constructeur de colonne.
+    **kargs : TYPE
+        Arguments supplémentaires transmis au constructeur de colonne.
+
+    Returns
+    -------
+    sqlalchemy.Column
+        Description de colonne.
+
+    """
     return sqla.Column(name,
                        get_type('python', dtype, 'sqlalchemy'),
                        *args,

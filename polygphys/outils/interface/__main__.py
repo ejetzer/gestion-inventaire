@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Programme ou module pour ...
+Exemple de programme d'interface.
 
 Créé le Thu Dec 16 13:38:11 2021
 

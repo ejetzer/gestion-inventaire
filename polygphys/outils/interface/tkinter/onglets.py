@@ -19,8 +19,8 @@ from pathlib import Path
 
 import sqlalchemy as sqla
 
-from .df import Tableau, Formulaire, Filtre
-from .tkinter import tkHandler
+from ..tableau import Tableau, Formulaire, Filtre
+from ..tkinter import tkHandler
 from ..database import BaseDeDonnées
 from ..config import FichierConfig
 
@@ -46,7 +46,7 @@ class OngletConfig(tk.Frame):
         None.
 
         """
-        logger.debug(f'{self!r} .__init__({master=}, {config=})')
+        logger.debug('master = %r\tconfig = %r', master, config)
         self.config = config
 
         super().__init__(master)
@@ -67,7 +67,6 @@ class OngletConfig(tk.Frame):
             Chemin vers le fichier de configuration.
 
         """
-        logger.debug(f'{self!r} .chemin')
         return self.config.chemin
 
     def build(self):
@@ -79,7 +78,6 @@ class OngletConfig(tk.Frame):
         None.
 
         """
-        logger.debug(f'{self!r} .build')
 
         self.titre_étiquettes = {}
         self.champs = {}

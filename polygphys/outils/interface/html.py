@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """
-Programme ou module pour ...
+Éléments d'interface HTML.
 
 Créé le Fri Nov 26 10:42:59 2021
 
@@ -21,7 +21,7 @@ from ..interface import InterfaceHandler
 
 class HTMLÉlémentInterface:
 
-    def __init__(self, master, tag: str, attrs: dict[str, str], contenu: list=None):
+    def __init__(self, master, tag: str, attrs: dict[str, str], contenu: list = None):
         self.master = master
         self.tag = tag
         self.attrs = attrs
@@ -40,6 +40,7 @@ class HTMLÉlémentInterface:
         elif isinstance(contenu, list):
             return f'<{self.tag} {attributs}>\n' + '\n'.join(str(e) for e in self.contenu) + f'</{self.tag}>'
 
+
 class HTMLTable(HTMLÉlémentInterface):
 
     def __init__(self, master=None):
@@ -48,7 +49,6 @@ class HTMLTable(HTMLÉlémentInterface):
 
     def grid(row: int, column: int):
         return str(self)
-
 
 
 class HTMLCellule(HTMLÉlémentInterface):
@@ -64,6 +64,7 @@ class HTMLCellule(HTMLÉlémentInterface):
         self.master.grille[row][column] = self
 
         return super().grid(row, column)
+
 
 class HTMLEntrée(HTMLCellule):
 
