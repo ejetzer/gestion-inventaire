@@ -18,8 +18,8 @@ from typing import Callable
 
 import pandas as pd
 
-from ..database.dtypes import get_type
-from ..interface import InterfaceHandler
+from ...database.dtypes import get_type
+from ...interface import InterfaceHandler
 
 logger = logging.getLogger(__name__)
 

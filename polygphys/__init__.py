@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 def main():
     """Exemple des fonctionnalités du module."""
     ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.INFO)
+    ch.setLevel(logging.DEBUG)
 
-    fmt = logging.Formatter(Formats().default)
+    fmt = logging.Formatter(Formats().détails)
     ch.setFormatter(fmt)
 
     logger.info('Démonstration du module polytechnique:')
@@ -41,7 +41,7 @@ def main():
     import polygphys.outils.config
     polygphys.outils.config.logger.addHandler(ch)
     polygphys.outils.config.logger.setLevel(logging.DEBUG)
-    fichier_cfg = fichier / 'base.cfg'
+    fichier_cfg = fichier.parent / 'base.cfg'
     config = polygphys.outils.config.main(fichier_cfg)
 
     swap_db = config.geturl('bd', 'adresse')
@@ -50,7 +50,8 @@ def main():
     import polygphys.outils.interface.tkinter.onglets
     polygphys.outils.interface.tkinter.onglets.logger.addHandler(ch)
     polygphys.outils.interface.tkinter.onglets.logger.setLevel(logging.DEBUG)
-    racine, onglets = polygphys.outils.interface.onglets.main(config, md)
+    racine, onglets = polygphys.outils.interface.tkinter.onglets.main(
+        config, md)
 
     config.set('bd', 'adresse', swap_db)
 

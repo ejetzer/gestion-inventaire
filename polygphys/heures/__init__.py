@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 def main(cfg='~/Documents/Polytechnique/Heures/heures.cfg'):
     """Exemple."""
     ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.INFO)
+    ch.setLevel(logging.DEBUG)
 
     fmt = logging.Formatter(Formats().default)
     ch.setFormatter(fmt)
@@ -37,7 +37,7 @@ def main(cfg='~/Documents/Polytechnique/Heures/heures.cfg'):
     logger.info('Chargement de la configuration...')
     logger.info('L\'adresse est %r.', cfg)
 
-    cfg = Path(cfg).expanduser()
+    cfg = Path(cfg).expanduser().resolve()
     config = FichierConfig(cfg)
 
     for sec in config.sections():
@@ -46,7 +46,7 @@ def main(cfg='~/Documents/Polytechnique/Heures/heures.cfg'):
             logger.info('%r: %r', c, v)
 
     logger.info('Chargement de la base de données...')
-    base = BaseDeDonnées(config.get('bd', 'adresse'), metadata)
+    base = BaseDeDonnées(config.geturl('bd', 'adresse'), metadata)
     base.initialiser()
 
     for n, t in base.tables.items():

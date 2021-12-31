@@ -71,28 +71,12 @@ La branche `alpha` est en développement constant, et ne devrait pas être utili
 
 Modifier tous les fichiers pour:
 
-1. Changer le nom du module `polygphys.outils.interface.df` à `polygphys.outils.interface.tableau`
-2. Normaliser la journalisation des erreurs et messages avec le module `polygphys.outils.journal`
-
-- [ ] outils
-    - [x] __init__.py
-    - [x] __main__.py
-    - [x] config.py
-    - [x] journal.py
-    - [x] database
-        - [x] __init__.py
-        - [x] __main__.py
-        - [x] dtypes.py
-        - [x] gestion.py
-    - [ ] interface
-        - [x] __init__.py
-        - [x] __main__.py
-        - [x] tableau.py
-        - [x] html.py
-        - [ ] tkinter
-            - [x] __init__.py
-            - [x] __main__.py
-            - [ ] onglets.py
+1. [x] Changer le nom du module `polygphys.outils.interface.df` à `polygphys.outils.interface.tableau`
+2. [x] Normaliser la journalisation des erreurs et messages avec le module `polygphys.outils.journal`
+3. [ ] Tests
+    - [x] polygphys-demo
+    - [x] polygphys-inventaire
+    - [ ] polygphys-heures
 
 ### Branche `beta`
 

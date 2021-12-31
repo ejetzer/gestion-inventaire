@@ -305,8 +305,8 @@ class Tableau(BaseTableau):
         logger.debug('widgets = %r', self.widgets)
         logger.debug('commandes = %r', self.commandes)
         for i, ((idx, rang),
-                (plus, moins)) in enumerate(zip(self.__widgets.iterrows(),
-                                                self.__commandes)):
+                (plus, moins)) in enumerate(zip(self.widgets.iterrows(),
+                                                self.commandes)):
             for k, w in enumerate((plus, moins, idx)):
                 w.grid(row=row+i+1, column=column+k)
 

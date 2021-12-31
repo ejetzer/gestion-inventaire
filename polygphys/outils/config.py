@@ -308,8 +308,13 @@ def main(fichier: str = None) -> FichierConfig:
     import pathlib
 
     if fichier is None:
-        fichier = pathlib.Path(
-            __file__).parent.absolute() / '../base.cfg'
+        fichier = pathlib.Path(__file__)
+        logger.debug('fichier = %r', fichier)
+        fichier = fichier.resolve().parent
+        logger.debug('fichier = %r', fichier)
+        fichier = fichier / '../base.cfg'
+    logger.debug('fichier = %r', fichier)
+    logger.debug('fichier.exists() = %r', fichier.exists())
 
     config = FichierConfig(fichier)
     logger.info('Configuration ouverte...')

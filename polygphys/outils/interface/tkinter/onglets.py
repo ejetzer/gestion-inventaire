@@ -21,8 +21,8 @@ import sqlalchemy as sqla
 
 from ..tableau import Tableau, Formulaire, Filtre
 from ..tkinter import tkHandler
-from ..database import BaseDeDonnées
-from ..config import FichierConfig
+from ...database import BaseDeDonnées
+from ...config import FichierConfig
 
 logger = logging.getLogger(__name__)
 
@@ -82,22 +82,22 @@ class OngletConfig(tk.Frame):
         self.titre_étiquettes = {}
         self.champs = {}
 
-        logger.debug(f'\t{self.config.sections()=}')
+        logger.debug('self.config.sections() = %r', self.config.sections())
         for titre in self.config.sections():
-            logger.debug(f'\t\t{titre=}')
+            logger.debug('titre = %r', titre)
 
             section = self.config[titre]
-            logger.debug(f'\t\t{section=}')
+            logger.debug('section = %r')
 
             titre_étiquette = tk.Label(self, text=titre)
             self.titre_étiquettes[titre] = titre_étiquette
             self.champs[titre] = {}
-            logger.debug(f'\t\t{self.titre_étiquettes=}')
-            logger.debug(f'\t\t{self.champs=}')
+            logger.debug('self.titre_étiquettes = %r', self.titre_étiquettes)
+            logger.debug('self.champs = %r', self.champs)
 
-            logger.debug(f'\t{section.items()=}')
+            logger.debug('section.items() = %r', section.items())
             for champ, valeur in section.items():
-                logger.debug(f'\t\t{champ=} {valeur=}')
+                logger.debug('champ = %r\tvaleur = %r', champ, valeur)
 
                 champ_étiquette = tk.Label(self, text=champ)
                 champ_variable = tk.StringVar(self, valeur)
@@ -107,7 +107,7 @@ class OngletConfig(tk.Frame):
                 champ_entrée = tk.Entry(self, textvariable=champ_variable)
 
                 self.champs[titre][champ] = (champ_étiquette, champ_entrée)
-                logger.debug(f'\t\t{self.champs=}')
+                logger.debug('self.champs = %r', self.champs)
 
     def update_config(self):
         """
@@ -118,14 +118,13 @@ class OngletConfig(tk.Frame):
         None.
 
         """
-        logger.debug(f'{self!r} .update_config')
 
-        logger.debug(f'\t{self.champs=}')
+        logger.debug('self.champs = %r', self.champs)
         for section in self.champs:
-            logger.debug(f'\t\t{section=}')
+            logger.debug('section = %r', section)
 
             for clé, valeur in self.champs[section]:
-                logger.debug(f'\t\t{clé=} {valeur=}')
+                logger.debug('clé = %r\tvaleur = %r', clé, valeur)
                 self.config[section][clé] = valeur
 
         self.config.write()
@@ -139,18 +138,16 @@ class OngletConfig(tk.Frame):
         None.
 
         """
-        logger.debug(f'{self!r} .subgrid')
-
-        logger.debug(f'\t{self.titre_étiquettes=}')
+        logger.debug('self.titre_étiquettes = %r', self.titre_étiquettes)
         colonne = 0
         for titre, étiquette in self.titre_étiquettes.items():
-            logger.debug(f'\t\t{titre=} {étiquette=}')
+            logger.debug('titre = %r\tétiquette = %r', titre, étiquette)
             étiquette.grid(row=0, column=colonne, columnspan=2)
             rangée = 1
 
-            logger.debug(f'\t\t{self.champs=}')
+            logger.debug('self.champs = %r', self.champs)
             for étiquette, entrée in self.champs[titre].values():
-                logger.debug(f'\t\t\t{étiquette=} {entrée=}')
+                logger.debug('étiquette = %r\tentrée = %r', étiquette, entrée)
                 étiquette.grid(row=rangée, column=colonne)
                 entrée.grid(row=rangée, column=colonne+1)
                 rangée += 1
@@ -173,7 +170,7 @@ class OngletConfig(tk.Frame):
         None.
 
         """
-        logger.debug(f'{self!r} .grid({args=}, {kargs=})')
+        logger.debug('args = %r\tkargs = %r', args, kargs)
         self.subgrid()
         super().grid(*args, **kargs)
 
@@ -211,8 +208,8 @@ class OngletBaseDeDonnées(tk.Frame):
         None.
 
         """
-        logger.debug(
-            f'{self!r} .__init__({master=}, {db=}, {table=}, {args=}, {config=}, {kargs=})')
+        logger.debug('master = %r\tdb = %r\ttable = %r\targs = %r\tconfig = %r\
+\tkargs = %r', master, db, table, args, config, kargs)
         self.config = config
         self.table = table
         self.db = db
@@ -227,9 +224,8 @@ class OngletBaseDeDonnées(tk.Frame):
     @property
     def adresse(self):
         """Adresse de la base de données."""
-        logger.debug(f'{self!r} .adresse')
         res = self.config.get('bd', 'adresse', fallback='test.db')
-        logger.debug(f'\t{res=}')
+        logger.debug('res = %r', res)
         return res
 
     def importer(self):
@@ -246,57 +242,53 @@ class OngletBaseDeDonnées(tk.Frame):
 
     def build(self):
         """Construit les widgets."""
-        logger.debug(f'{self!r} .build')
-
         self.canevas = tk.Canvas(self, width='50c', height='15c')
-        logger.debug(f'\t{self.canevas=}')
+        logger.debug('self.canevas = %r', self.canevas)
 
         défiler_horizontalement = tk.Scrollbar(
             self, orient='horizontal', command=self.canevas.xview)
-        logger.debug(f'\t{défiler_horizontalement=}')
+        logger.debug('défiler_horizontalement = %r', défiler_horizontalement)
 
         défiler_verticalement = tk.Scrollbar(
             self, orient='vertical', command=self.canevas.yview)
-        logger.debug(f'\t{défiler_verticalement=}')
+        logger.debug('défiler_verticalement = %r', défiler_verticalement)
 
         self.canevas.configure(xscrollcommand=défiler_horizontalement.set,
                                yscrollcommand=défiler_verticalement.set)
 
         self.contenant = tk.Frame(self.canevas)
-        logger.debug(f'\t{self.contenant=}')
+        logger.debug('self.contenant = %r', self.contenant)
 
         self.contenant.bind('<Configure>', lambda x: self.canevas.configure(
             scrollregion=self.canevas.bbox('all')))
 
         self.tableau = Tableau(tkHandler(self.contenant), self.db, self.table)
-        logger.debug(f'\t{self.tableau=}')
+        logger.debug('self.tableau = %r', self.tableau)
 
         màj = tk.Button(self, text='Màj',
                         command=lambda: self.tableau.update_grid())
-        logger.debug(f'\t{màj=}')
+        logger.debug('màj = %r', màj)
 
         importer = tk.Button(self, text='Importer',
                              command=self.importer)
-        logger.debug(f'{importer=}')
+        logger.debug('importer = %r', importer)
 
         exporter = tk.Button(self, text='Exporter',
                              command=self.exporter)
-        logger.debug(f'{exporter=}')
+        logger.debug('exporter = %r', exporter)
 
         modèle = tk.Button(self, text='Modèle',
                            command=self.exporter_modèle)
-        logger.debug(f'{modèle=}')
+        logger.debug('modèle = %r', modèle)
 
         self.défiler = [défiler_horizontalement, défiler_verticalement]
-        logger.debug(f'\t{self.défiler=}')
+        logger.debug('self.défiler = %r', self.défiler)
 
         self.boutons = [màj, importer, exporter, modèle]
-        logger.debug(f'\t{self.boutons=}')
+        logger.debug('self.boutons = %r', self.boutons)
 
     def subgrid(self):
         """Afficher les widgets."""
-        logger.debug(f'{self!r} .subgrid')
-
         self.défiler[0].grid(row=16, column=1, columnspan=1, sticky='we')
         self.défiler[1].grid(row=1, column=2, rowspan=15, sticky='ns')
         self.canevas.grid(row=1, column=1, rowspan=15, sticky='news')
@@ -308,7 +300,7 @@ class OngletBaseDeDonnées(tk.Frame):
 
     def grid(self, *args, **kargs):
         """Afficher le tableau."""
-        logger.debug(f'{self!r} .grid({args=}, {kargs=}')
+        logger.debug('args = %r\tkargs = %r', args, kargs)
 
         self.subgrid()
         super().grid(*args, **kargs)
@@ -318,24 +310,22 @@ class OngletBaseDeDonnéesFiltrée(OngletBaseDeDonnées):
 
     def build(self):
         """Construit les widgets."""
-        logger.debug(f'{self!r} .build')
-
         self.canevas = tk.Canvas(self, width='50c', height='15c')
-        logger.debug(f'\t{self.canevas=}')
+        logger.debug('self.canevas = %r', self.canevas)
 
         défiler_horizontalement = tk.Scrollbar(
             self, orient='horizontal', command=self.canevas.xview)
-        logger.debug(f'\t{défiler_horizontalement=}')
+        logger.debug('défiler_horizontalement = %r', défiler_horizontalement)
 
         défiler_verticalement = tk.Scrollbar(
             self, orient='vertical', command=self.canevas.yview)
-        logger.debug(f'\t{défiler_verticalement=}')
+        logger.debug('défiler_verticalement = %r', défiler_verticalement)
 
         self.canevas.configure(xscrollcommand=défiler_horizontalement.set,
                                yscrollcommand=défiler_verticalement.set)
 
         self.contenant = tk.Frame(self.canevas)
-        logger.debug(f'\t{self.contenant=}')
+        logger.debug('self.contenant = %r', self.contenant)
 
         self.contenant.bind('<Configure>', lambda x: self.canevas.configure(
             scrollregion=self.canevas.bbox('all')))
@@ -343,37 +333,35 @@ class OngletBaseDeDonnéesFiltrée(OngletBaseDeDonnées):
         h = tkHandler(self.contenant)
 
         self.tableau = Tableau(h, self.db, self.table)
-        logger.debug(f'\t{self.tableau=}')
+        logger.debug('self.tableau = %r', self.tableau)
 
         self.filtre = Filtre(h, self.tableau)
-        logger.debug(f'\t{self.filtre=}')
+        logger.debug('self.filtre = %r', self.filtre)
 
         màj = tk.Button(self, text='Màj',
                         command=lambda: self.tableau.update_grid())
-        logger.debug(f'\t{màj=}')
+        logger.debug('màj = %r', màj)
 
         importer = tk.Button(self, text='Importer',
                              command=self.importer)
-        logger.debug(f'{importer=}')
+        logger.debug('importer = %r', importer)
 
         exporter = tk.Button(self, text='Exporter',
                              command=self.exporter)
-        logger.debug(f'{exporter=}')
+        logger.debug('exporter = %r', exporter)
 
         modèle = tk.Button(self, text='Modèle',
                            command=self.exporter_modèle)
-        logger.debug(f'{modèle=}')
+        logger.debug('modèle = %r', modèle)
 
         self.défiler = [défiler_horizontalement, défiler_verticalement]
-        logger.debug(f'\t{self.défiler=}')
+        logger.debug('self.défiler = %r', self.défiler)
 
         self.boutons = [màj, importer, exporter, modèle]
-        logger.debug(f'\t{self.boutons=}')
+        logger.debug('self.boutons = %r', self.boutons)
 
     def subgrid(self):
         """Afficher les widgets."""
-        logger.debug(f'{self!r} .subgrid')
-
         self.défiler[0].grid(row=16, column=1, columnspan=1, sticky='we')
         self.défiler[1].grid(row=1, column=2, rowspan=15, sticky='ns')
         self.canevas.grid(row=1, column=1, rowspan=15, sticky='news')
@@ -418,8 +406,8 @@ class OngletFormulaire(tk.Frame):
         None.
 
         """
-        logger.debug(
-            f'{self!r} .__init__({master=}, {db=}, {table=}, {args=}, {config=}, {kargs=})')
+        logger.debug('master = %r\tdb = %r\ttable = %r\targs = %r\
+\tconfig = %r\tkargs = %r', master, db, table, args, config, kargs)
 
         self.config = config
         self.table = table
@@ -435,9 +423,8 @@ class OngletFormulaire(tk.Frame):
     @property
     def adresse(self):
         """Adresse de la base de données."""
-        logger.debug(f'{self!r} .adresse')
         res = self.config.get('bd', 'adresse', fallback='test.db')
-        logger.debug(f'\t{res=}')
+        logger.debug('res = %r', res)
         return res
 
     def build(self):
@@ -449,18 +436,16 @@ class OngletFormulaire(tk.Frame):
         None.
 
         """
-        logger.debug(f'{self!r} .build')
-
         self.canevas = tk.Canvas(self, width='50c', height='15c')
-        logger.debug(f'\t{self.canevas=}')
+        logger.debug('self.canevas = %r', self.canevas)
 
         défiler_horizontalement = tk.Scrollbar(
             self, orient='horizontal', command=self.canevas.xview)
-        logger.debug(f'\t{défiler_horizontalement=}')
+        logger.debug('défiler_horizontalement = %r', défiler_horizontalement)
 
         défiler_verticalement = tk.Scrollbar(
             self, orient='vertical', command=self.canevas.yview)
-        logger.debug(f'\t{défiler_verticalement=}')
+        logger.debug('défiler_verticalement = %r', défiler_verticalement)
 
         self.canevas.configure(xscrollcommand=défiler_horizontalement.set,
                                yscrollcommand=défiler_verticalement.set)
@@ -468,19 +453,17 @@ class OngletFormulaire(tk.Frame):
         self.contenant = tk.Frame(self.canevas)
         self.contenant.bind('<Configure>', lambda x: self.canevas.configure(
             scrollregion=self.canevas.bbox('all')))
-        logger.debug(f'\t{self.contenant=}')
+        logger.debug('self.contenant = %r', self.contenant)
 
         self.formulaire = Formulaire(
             tkHandler(self.contenant), self.db, self.table)
-        logger.debug(f'\t{self.formulaire=}')
+        logger.debug('self.formulaire = %r', self.formulaire)
 
         self.défiler = [défiler_horizontalement, défiler_verticalement]
-        logger.debug(f'\t{self.défiler=}')
+        logger.debug('self.défiler = %r', self.défiler)
 
     def subgrid(self):
         """Affiche les widgets."""
-        logger.debug(f'{self!r} .subgrid')
-
         self.défiler[0].grid(row=16, column=1, columnspan=1, sticky='we')
         self.défiler[1].grid(row=1, column=2, rowspan=15, sticky='ns')
         self.canevas.grid(row=1, column=1, rowspan=15, sticky='news')
@@ -489,7 +472,7 @@ class OngletFormulaire(tk.Frame):
 
     def grid(self, *args, **kargs):
         """Affiche le formulaire."""
-        logger.debug(f'{self!r} .grid({args=}, {kargs=})')
+        logger.debug('args = %r\tkargs = %r', args, kargs)
         self.subgrid()
         super().grid(*args, **kargs)
 
@@ -519,34 +502,35 @@ class Onglets(ttk.Notebook):
         None.
 
         """
-        logger.debug(f'{self!r} .__init__({master=}, {config=}, {schema=})')
+        logger.debug('master = %r\tconfig = %r\tschema = %r\t',
+                     master, config, schema)
 
         super().__init__(master)
         self.onglets = []
 
         onglet = OngletConfig(self, config)
-        logger.debug(f'\t{onglet=}')
+        logger.debug('onglet = %r', onglet)
         self.add(onglet, text=onglet.chemin)
 
         db = BaseDeDonnées(config.geturl(
             'bd', 'adresse', dialect=dialect), schema)
-        logger.debug(f'\t{db=}')
+        logger.debug('db = %r', db)
 
         tables = config.getlist('bd', 'tables')
-        logger.debug(f'\t{tables=}')
+        logger.debug('tables = %r', tables)
         for nom_table in tables:
-            logger.debug(f'\t\t{nom_table=}')
-            onglet = OngletBaseDeDonnéesFiltrée(
+            logger.debug('nom_table = %r', nom_table)
+            onglet = OngletBaseDeDonnées(
                 self, db, nom_table, config=config)
-            logger.debug(f'\t\t{onglet=}')
+            logger.debug('onglet = %r', onglet)
             self.add(onglet, text=nom_table)
 
         formulaires = config.getlist('bd', 'formulaires')
-        logger.debug(f'\t{formulaires=}')
+        logger.debug('formulaires = %r', formulaires)
         for nom_formulaire in formulaires:
-            logger.debug(f'\t\t{nom_formulaire=}')
+            logger.debug('nom_formulaire = %r', nom_formulaire)
             onglet = OngletFormulaire(self, db, nom_formulaire)
-            logger.debug(f'\t\t{onglet=}')
+            logger.debug('onglet = %r', onglet)
             self.add(onglet, text=f'[Formulaire] {nom_formulaire}')
 
     def __repr__(self):
@@ -571,7 +555,7 @@ class Onglets(ttk.Notebook):
         None.
 
         """
-        logger.debug(f'{self!r} .add({obj=}, {args=}, {kargs=})')
+        logger.debug('obj = %r\targs = %r\tkargs = %r', obj, args, kargs)
         self.onglets.append(obj)
         super().add(obj, *args, **kargs)
 
@@ -591,11 +575,11 @@ class Onglets(ttk.Notebook):
         None.
 
         """
-        logger.debug(f'{self!r} .grid({args=}, {kargs=})')
+        logger.debug('args = %r\tkargs = %r', args, kargs)
 
-        logger.debug(f'\t{self.children=}')
+        logger.debug('self.children = %r', self.children)
         for onglet in self.children.values():
-            logger.debug(f'\t\t{onglet=}')
+            logger.debug('onglet = %r', onglet)
             onglet.subgrid()
 
         super().grid(*args, **kargs)
@@ -620,26 +604,26 @@ def main(config: FichierConfig = None, md: sqla.MetaData = None):
         L'instance Onglets.
 
     """
-    logger.debug(f'{__name__} .main({config=}, {md=})')
+    logger.debug('config = %r\tmd = %r', config, md)
 
     if config is None:
         import polygphys.outils.config
         config = polygphys.outils.config.main()
-    logger.debug(f'\t{config=}')
+    logger.debug('config = %r', config)
 
     adresse = config.geturl('bd', 'adresse', dialect='sqlite')
     if md is None:
         import polygphys.outils.database
         base, md = polygphys.outils.database.main(adresse)
-    logger.debug(f'\t{md=}')
+    logger.debug('md = %r', md)
 
     logger.info('Création de l\'interface...')
     racine = tk.Tk()
-    logger.debug(f'{racine=}')
+    logger.debug('racine = %r', racine)
     racine.title(config.get('tkinter', 'title', fallback='Demo'))
 
     onglets = Onglets(racine, config, md)
-    logger.debug(f'{onglets=}')
+    logger.debug('onglets = %r', onglets)
     logger.info('Interface créée.')
 
     logger.info('Affichage...')
