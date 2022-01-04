@@ -48,7 +48,7 @@ def main(dossier=None):
     config = polygphys.outils.config.main(dossier)
 
     fichier_db = str(dossier / 'demo.db')
-    swap_db = config.geturl('bd', 'adresse')
+    swap_db = config.get('bd', 'adresse')
     config.set('bd', 'adresse', f'sqlite:///{fichier_db!s}')
 
     import polygphys.outils.interface.tkinter.onglets

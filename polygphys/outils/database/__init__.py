@@ -651,7 +651,7 @@ def main(dossier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
 
     fichier = dossier / next(dossier.glob('*.db'))
 
-    if 'sqlite' not in fichier:
+    if 'sqlite' not in str(fichier):
         adresse = f'sqlite:///{fichier!s}'
     else:
         adresse = fichier
