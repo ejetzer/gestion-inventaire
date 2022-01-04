@@ -11,6 +11,7 @@ Created on Mon Nov 22 14:22:36 2021
 """
 
 import logging
+import sys
 
 from pathlib import Path
 from configparser import ConfigParser
@@ -302,17 +303,18 @@ class FichierConfig(ConfigParser):
         return résultat
 
 
-def main(fichier: str = None) -> FichierConfig:
+def main(dossier: str = None) -> FichierConfig:
     """Exemple très simple d'utilisation du fichier de configuration."""
     logger.info('Ouvrir un fichier de configuration...')
-    import pathlib
 
-    if fichier is None:
-        fichier = pathlib.Path(__file__)
-        logger.debug('fichier = %r', fichier)
-        fichier = fichier.resolve().parent
-        logger.debug('fichier = %r', fichier)
-        fichier = fichier / '../base.cfg'
+    if dossier is None:
+        if len(sys.argv) > 1:
+            dossier = Path(sys.argv[1]).resolve()
+        else:
+            fichier = Path(__file__).expanduser().resolve()
+            dossier = fichier.parent.parent
+
+    fichier = dossier / next(dossier.glob('*.cfg'))
     logger.debug('fichier = %r', fichier)
     logger.debug('fichier.exists() = %r', fichier.exists())
 

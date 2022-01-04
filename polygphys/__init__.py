@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.9
+#!python
 # -*- coding: utf-8 -*-
 """
 Module utilitaire pour des tâches de laboratoire.
@@ -20,7 +20,7 @@ from .outils.journal import Formats
 logger = logging.getLogger(__name__)
 
 
-def main():
+def main(dossier=None):
     """Exemple des fonctionnalités du module."""
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
@@ -30,20 +30,24 @@ def main():
 
     logger.info('Démonstration du module polytechnique:')
 
-    fichier = pathlib.Path(__file__).expanduser().resolve()
+    if dossier is None:
+        if len(sys.argv) > 1:
+            dossier = pathlib.Path(sys.argv[1]).resolve()
+        else:
+            fichier = pathlib.Path(__file__).expanduser().resolve()
+            dossier = fichier.parent
 
     import polygphys.outils.database
     polygphys.outils.database.logger.addHandler(ch)
     polygphys.outils.database.logger.setLevel(logging.DEBUG)
-    fichier_db = str(fichier.parent / 'demo.db')
-    base, md = polygphys.outils.database.main(fichier_db)
+    base, md = polygphys.outils.database.main(dossier)
 
     import polygphys.outils.config
     polygphys.outils.config.logger.addHandler(ch)
     polygphys.outils.config.logger.setLevel(logging.DEBUG)
-    fichier_cfg = fichier.parent / 'base.cfg'
-    config = polygphys.outils.config.main(fichier_cfg)
+    config = polygphys.outils.config.main(dossier)
 
+    fichier_db = str(dossier / 'demo.db')
     swap_db = config.geturl('bd', 'adresse')
     config.set('bd', 'adresse', f'sqlite:///{fichier_db!s}')
 

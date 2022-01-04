@@ -10,6 +10,7 @@ Created on Fri Nov  5 14:55:41 2021
 
 import pathlib
 import logging
+import sys
 
 from typing import Union, Callable
 
@@ -611,7 +612,7 @@ class BaseDeDonnées:
         self.màj(table, df)
 
 
-def main(fichier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
+def main(dossier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
     """
     Démonstration du module de base de données.
 
@@ -641,8 +642,14 @@ def main(fichier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
 
     logger.info('Ouverture du fichier de base de données...')
 
-    if fichier is None:
-        fichier = pathlib.Path(__file__).parent.absolute() / '../../demo.db'
+    if dossier is None:
+        if len(sys.argv) > 1:
+            dossier = pathlib.Path(sys.argv[1]).resolve()
+        else:
+            fichier = pathlib.Path(__file__).expanduser().resolve()
+            dossier = fichier.parent.parent.parent
+
+    fichier = dossier / next(dossier.glob('*.db'))
 
     if 'sqlite' not in fichier:
         adresse = f'sqlite:///{fichier!s}'

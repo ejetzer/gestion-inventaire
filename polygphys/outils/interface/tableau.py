@@ -690,10 +690,18 @@ class Formulaire(BaseTableau):
         self.grid(**self.__grid_params)
 
 
-def main():
+def main(dossier=None):
     """Exemple d'affichage de base de données."""
     import polytechnique.outils.database
-    base, md = polytechnique.outils.database.main()
+
+    if dossier is None:
+        if len(sys.argv) > 1:
+            dossier = pathlib.Path(sys.argv[1]).resolve()
+        else:
+            fichier = pathlib.Path(__file__).expanduser().resolve()
+            dossier = fichier.parent.parent.parent
+
+    base, md = polytechnique.outils.database.main(dossier)
 
     import polytechnique.outils.interface.tkinter
     import tkinter

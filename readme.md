@@ -31,6 +31,10 @@ La branche `alpha` est en développement constant, et ne devrait pas être utili
 4. [ ] Permettre d'ajouter des champs de configuration
 5. [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
 
+#### 0. Exécutables
+
+Rendre les programmes exécutables avec un argument en ligne de commande.
+
 #### 1. Filtre
 
 - [ ] __init__.py

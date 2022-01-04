@@ -10,6 +10,7 @@ Created on Tue Nov  9 15:37:45 2021
 
 import pathlib
 import logging
+import sys
 
 import tkinter as tk
 
@@ -585,7 +586,7 @@ class Onglets(ttk.Notebook):
         super().grid(*args, **kargs)
 
 
-def main(config: FichierConfig = None, md: sqla.MetaData = None):
+def main(config: FichierConfig = None, md: sqla.MetaData = None, dossier=None):
     """
     Exemple simple d'afficahge d'onglets.
 
@@ -606,15 +607,21 @@ def main(config: FichierConfig = None, md: sqla.MetaData = None):
     """
     logger.debug('config = %r\tmd = %r', config, md)
 
+    if dossier is None:
+        if len(sys.argv) > 1:
+            dossier = pathlib.Path(sys.argv[1]).resolve()
+        else:
+            fichier = pathlib.Path(__file__).expanduser().resolve()
+            dossier = fichier.parent.parent.parent.parent
+
     if config is None:
         import polygphys.outils.config
-        config = polygphys.outils.config.main()
+        config = polygphys.outils.config.main(dossier)
     logger.debug('config = %r', config)
 
-    adresse = config.geturl('bd', 'adresse', dialect='sqlite')
     if md is None:
         import polygphys.outils.database
-        base, md = polygphys.outils.database.main(adresse)
+        base, md = polygphys.outils.database.main(dossier)
     logger.debug('md = %r', md)
 
     logger.info('Création de l\'interface...')

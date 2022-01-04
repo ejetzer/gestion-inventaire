@@ -28,7 +28,7 @@ from ..inventaire.modeles import metadata
 logger = logging.getLogger(__name__)
 
 
-def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
+def main(dossier=None):
     """Programme de gestion d'inventaire."""
     h = logging.StreamHandler(sys.stdout)
     f = logging.Formatter(Formats().default)
@@ -51,11 +51,18 @@ def main(cfg='~/Documents/Polytechnique/Inventaire/inventaire.cfg'):
     logong.setLevel(logging.WARNING)
     logtk.setLevel(logging.WARNING)
 
-    logger.debug('cfg = %r', cfg)
+    logger.debug('dossier = %r', dossier)
 
     logger.info('Chargement de la configuration...')
 
-    cfg = Path(cfg).expanduser()
+    if dossier is None:
+        if len(sys.argv) > 1:
+            dossier = Path(sys.argv[1]).resolve()
+        else:
+            fichier = Path(__file__).expanduser().resolve()
+            dossier = fichier.parent
+
+    cfg = dossier / next(dossier.glob('*.cfg'))
     logger.debug('cfg = %r', cfg)
 
     config = FichierConfig(cfg)

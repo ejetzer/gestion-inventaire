@@ -26,7 +26,7 @@ from ..heures.modeles import metadata
 logger = logging.getLogger(__name__)
 
 
-def main(cfg='~/Documents/Polytechnique/Heures/heures.cfg'):
+def main(dossier=None):
     """Exemple."""
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
@@ -35,9 +35,16 @@ def main(cfg='~/Documents/Polytechnique/Heures/heures.cfg'):
     ch.setFormatter(fmt)
 
     logger.info('Chargement de la configuration...')
-    logger.info('L\'adresse est %r.', cfg)
+    logger.info('L\'adresse est %r.', dossier)
 
-    cfg = Path(cfg).expanduser().resolve()
+    if dossier is None:
+        if len(sys.argv) > 1:
+            dossier = Path(sys.argv[1]).resolve()
+        else:
+            fichier = Path(__file__).expanduser().resolve()
+            dossier = fichier.parent
+
+    cfg = dossier / next(dossier.glob('*.cfg'))
     config = FichierConfig(cfg)
 
     for sec in config.sections():
