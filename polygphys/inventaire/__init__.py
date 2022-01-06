@@ -26,30 +26,22 @@ from ..outils.journal import Formats
 from ..inventaire.modeles import metadata
 
 logger = logging.getLogger(__name__)
+loggers = [logcfg, logdb, logdt, logdf, logong, logtk]
+log_format = Formats().détails
+niveau = logging.DEBUG
 
 
 def main(dossier=None):
     """Programme de gestion d'inventaire."""
     h = logging.StreamHandler(sys.stdout)
-    f = logging.Formatter(Formats().default)
+    f = logging.Formatter(log_format)
     h.setFormatter(f)
 
     logger.addHandler(h)
-    logcfg.addHandler(h)
-    logdf.addHandler(h)
-    logdt.addHandler(h)
-    logdb.addHandler(h)
-    logong.addHandler(h)
-    logtk.addHandler(h)
-
-    h.setLevel(logging.DEBUG)
-    logger.setLevel(logging.DEBUG)
-    logcfg.setLevel(logging.DEBUG)
-    logdf.setLevel(logging.WARNING)
-    logdt.setLevel(logging.DEBUG)
-    logdb.setLevel(logging.DEBUG)
-    logong.setLevel(logging.WARNING)
-    logtk.setLevel(logging.WARNING)
+    logger.setLevel(niveau)
+    for journal in loggers:
+        journal.addHandler(h)
+        journal.setLevel(niveau)
 
     logger.debug('dossier = %r', dossier)
 
@@ -62,7 +54,7 @@ def main(dossier=None):
             fichier = Path(__file__).expanduser().resolve()
             dossier = fichier.parent
 
-    cfg = dossier / next(dossier.glob('*.cfg'))
+    cfg = dossier / next(x.name for x in dossier.glob('*.cfg'))
     logger.debug('cfg = %r', cfg)
 
     config = FichierConfig(cfg)

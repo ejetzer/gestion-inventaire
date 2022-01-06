@@ -239,20 +239,13 @@ class FichierConfig(ConfigParser):
         logger.debug('d["netloc"] = %r', d['netloc'])
         if d['netloc'] in ('localhost', '127.0.0.1', ''):
             logger.debug('d["path"] = %r', d['path'])
-            d['path'] = str(Path(d['path'].strip('/')).expanduser())
+            d['path'] = str(Path(d['path']).expanduser())
             logger.debug('d["path"] = %r', d['path'])
 
         if d['nom']:
             d['netloc'] = '@' + d['netloc']
 
-        if not d['netloc'].endswith('/'):
-            d['netloc'] = d['netloc'] + '/'
-        if Path(d['path']).is_absolute():
-            d['netloc'] = d['netloc'] + '//'
-        else:
-            d['netloc'] = d['netloc'] + '/'
-
-        return '{dialect}{driver}://{nom}{mdp}{netloc}{port}\
+        return '{dialect}{driver}://{nom}{mdp}{netloc}{port}/\
 {path}{params}{query}{fragment}'.format(**d)
 
     def getpath(self,
@@ -282,7 +275,7 @@ class FichierConfig(ConfigParser):
         if champ is None:
             return fallback
 
-        return Path(champ).expanduser().absolute()
+        return Path(champ).expanduser().resolve()
 
     def __str__(self) -> str:
         """
