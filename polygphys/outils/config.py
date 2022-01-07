@@ -239,6 +239,9 @@ class FichierConfig(ConfigParser):
         logger.debug('d["netloc"] = %r', d['netloc'])
         if d['netloc'] in ('localhost', '127.0.0.1', ''):
             logger.debug('d["path"] = %r', d['path'])
+            # Correction du chemin sur Windows
+            # Ne fais rien sur MacOS.
+            d['path'] = d['path'].lstrip('\\')
             d['path'] = str(Path(d['path']).expanduser())
             logger.debug('d["path"] = %r', d['path'])
 
