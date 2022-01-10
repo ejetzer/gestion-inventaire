@@ -471,8 +471,8 @@ class BaseDeDonnées:
         """
         logger.debug('table = %r', table)
 
-        requête = sqla.select(self.table(
-            table).columns['index']).select_from(self.table(table))
+        requête = sqla.select([self.table(
+            table).columns['index']]).select_from(self.table(table))
         logger.debug('requête = %s', requête)
 
         with self.begin() as con:

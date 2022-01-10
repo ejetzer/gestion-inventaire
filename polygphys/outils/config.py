@@ -12,6 +12,7 @@ Created on Mon Nov 22 14:22:36 2021
 
 import logging
 import sys
+import platform
 
 from pathlib import Path
 from configparser import ConfigParser
@@ -239,10 +240,11 @@ class FichierConfig(ConfigParser):
         logger.debug('d["netloc"] = %r', d['netloc'])
         if d['netloc'] in ('localhost', '127.0.0.1', ''):
             logger.debug('d["path"] = %r', d['path'])
+            d['path'] = str(Path(d['path']).expanduser())
             # Correction du chemin sur Windows
             # Ne fais rien sur MacOS.
-            d['path'] = d['path'].lstrip('\\')
-            d['path'] = str(Path(d['path']).expanduser())
+            if platform.system() == 'Windows':
+                d['path'] = d['path'].lstrip('\\')
             logger.debug('d["path"] = %r', d['path'])
 
         if d['nom']:
