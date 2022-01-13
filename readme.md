@@ -1,6 +1,7 @@
-# Gestion d'inventaire
+# Outils & programmes du département de génie physique de Polytechnique
 
-Programme de gestion d'inventaire minimal, avec une base de données.
+1. Interface de base de données, avec différents exemples d'application.
+2. Interfaces avec divers appareils via PyVISA.
 
 ## Prérequis & conseils
 
@@ -17,6 +18,17 @@ Ce programme est en développement actif, et ne devrait être utilisé que
 [Git]: https://git-scm.com/
 [emile.jetzer@polymtl.ca]: mailto:emile.jetzer@polymtl.ca?subject=[gestion-inventaire]
 
+## Installation
+
+Le bon fonctionnement du sous-module `polygphys.outils.appareils` pourrait demander l'installation de logiciel supplémentaire, selon l'utilisation:
+
+1. L'installation des drivers VISA officiels de National Instrument
+2. L'installation de drivers supplémentaires USB pour pyUSB.
+
+Voir la [page de référence de pyVISA] pour résoudre les problèmes causés par des drivers manquants.
+
+[page de référence de pyVISA]: https://pyvisa.readthedocs.io/projects/pyvisa-py/en/latest/installation.html
+
 ### Tag `v1`
 
 La version `v1` est stable et peut-être utilisée telle quelle.
@@ -32,7 +44,7 @@ La branche `alpha` est en développement constant, et ne devrait pas être utili
 3. [ ] Permettre d'ajouter des sections de configuration
 4. [ ] Permettre d'ajouter des champs de configuration
 5. [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
-6. [ ] Rendre le logging plus compatible avec sqlalchemy.
+6. [ ] Rendre le logging plus compatible avec sqlalchemy.
     Retirer les logs sql, utiliser ceux de sqlalchemy à la place.
 
 #### 0. Exécutables
@@ -43,53 +55,53 @@ Rendre les programmes exécutables avec un argument en ligne de commande. **Et c
 
 0. [ ] Valeurs par défaut avec `server_default`
     Utiliser les `modifier` et `listen`.
-1. [ ] Une base de données de personnes et leurs rôles
+1. [ ] Une base de données de personnes et leurs rôles
     Le but est de pouvoir référer aux gens dans d'autres bases de données. Le matricule devrait servir d'id si présent.
     - Techniciens
     - Professeurs
     - Étudiants
-2. [ ] Une base de données des locaux, les associants à des responsables. Chaque local devrait avoir une désignation unique, mais pouvoir être associé à plusieurs portes.
+2. [ ] Une base de données des locaux, les associants à des responsables. Chaque local devrait avoir une désignation unique, mais pouvoir être associé à plusieurs portes.
 3. [ ] Une base de données d'inventaire
 
 #### 1. Filtre
 
 0. [ ] Permettre de charger une base de données par «réflection», en chargeant le schéma automatiquement.
-    https://docs.sqlalchemy.org/en/14/core/reflection.html#reflecting-all-tables-at-once 
-1. [ ] Classe de vue de base de données (sans édition)
-2. [ ] Formulaire de recherche dans la base de données générant une vue comme résultat
-3. [ ] Permettre l'export de vues
-4. [ ] Permettre l'import de vues modifiées?
+    https://docs.sqlalchemy.org/en/14/core/reflection.html#reflecting-all-tables-at-once
+1. [ ] Classe de vue de base de données (sans édition)
+2. [ ] Formulaire de recherche dans la base de données générant une vue comme résultat
+3. [ ] Permettre l'export de vues
+4. [ ] Permettre l'import de vues modifiées?
 
-- [ ] __init__.py
-- [ ] __main__.py
-- [ ] heures
+- [ ] __init__.py
+- [ ] __main__.py
+- [ ] heures
     - [ ] __init__.py
-    - [ ] __main__.py
+    - [ ] __main__.py
     - [ ] modeles.py
 - [ ] inventaire
     - [ ] __init__.py
-    - [ ] __main__.py
-    - [ ] modeles.py
+    - [ ] __main__.py
+    - [ ] modeles.py
 - [ ] journal_de_laboratoire
     - [ ] __init__.py
-    - [ ] __main__.py
-    - [ ] modeles.py
-- [ ] outils
-    - [ ] __init__.py
-    - [ ] __main__.py
-    - [ ] config.py
-    - [ ] journal.py
+    - [ ] __main__.py
+    - [ ] modeles.py
+- [ ] outils
+    - [ ] __init__.py
+    - [ ] __main__.py
+    - [ ] config.py
+    - [ ] journal.py
     - [ ] database
-        - [ ] __init__.py
-        - [ ] __main__.py
-        - [ ] dtypes.py
-        - [ ] gestion.py
+        - [ ] __init__.py
+        - [ ] __main__.py
+        - [ ] dtypes.py
+        - [ ] gestion.py
     - [ ] interface
-        - [ ] __init__.py
-        - [ ] __main__.py
+        - [ ] __init__.py
+        - [ ] __main__.py
         - [ ] tableau.py
-        - [ ] html.py
-        - [ ] tkinter
+        - [ ] html.py
+        - [ ] tkinter
             - [ ] __init__.py
             - [ ] __main__.py
             - [ ] onglets.py
@@ -100,10 +112,10 @@ Modifier tous les fichiers pour:
 
 1. [x] Changer le nom du module `polygphys.outils.interface.df` à `polygphys.outils.interface.tableau`
 2. [x] Normaliser la journalisation des erreurs et messages avec le module `polygphys.outils.journal`
-3. [x] Tests
+3. [x] Tests
     - [x] polygphys-demo
     - [x] polygphys-inventaire
-    - [x] polygphys-heures
+    - [x] polygphys-heures
 
 ### Branche `beta`
 
