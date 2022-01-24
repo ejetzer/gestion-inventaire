@@ -690,9 +690,15 @@ class Formulaire(BaseTableau):
         self.grid(**self.__grid_params)
 
 
+class Graphe(Tableau):
+    pass
+
+
 def main(dossier=None):
     """Exemple d'affichage de base de données."""
     import polytechnique.outils.database
+    import sys
+    import pathlib
 
     if dossier is None:
         if len(sys.argv) > 1:
