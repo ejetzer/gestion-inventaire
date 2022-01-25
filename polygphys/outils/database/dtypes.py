@@ -153,7 +153,10 @@ def column(name: str, dtype: type = str, *args, **kargs) -> sqla.Column:
         Description de colonne.
 
     """
-    return sqla.Column(name,
-                       get_type('python', dtype, 'sqlalchemy'),
-                       *args,
-                       **kargs)
+    def_val = default(get_type('python', dtype, 'pandas'))
+    dtype = get_type('python', dtype, 'sqlalchemy')
+
+    if 'default' not in kargs:
+        kargs['default'] = def_val
+
+    return sqla.Column(name, dtype, *args, **kargs)

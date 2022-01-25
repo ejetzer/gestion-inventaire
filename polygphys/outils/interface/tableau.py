@@ -526,7 +526,7 @@ class Formulaire(BaseTableau):
         """
 
         _ = {}
-        for c, v in self.__widgets.loc[0, :].items():
+        for c, v in self.widgets.loc[0, :].items():
             if hasattr(v, 'get'):
                 _[c.cget('text')] = v.get()
             elif isinstance(v, tk.Checkbutton):

@@ -15,18 +15,16 @@ import tkinter as tk
 
 from pathlib import Path
 
-from ..outils.config import FichierConfig, logger as logcfg
-from ..outils.database import BaseDeDonnées, logger as logdb
-from ..outils.database.dtypes import logger as logdt
-from ..outils.interface.tableau import logger as logdf
-from ..outils.interface.tkinter.onglets import Onglets, logger as logong
-from ..outils.interface.tkinter import logger as logtk
+from sqlalchemy import MetaData
+
+from ..outils.config import FichierConfig
+from ..outils.database import BaseDeDonnées
+from ..outils.interface.tkinter.onglets import Onglets
 from ..outils.journal import Formats
 
-from ..inventaire.modeles import metadata
+from ..inventaire.modeles import créer_dbs
 
 logger = logging.getLogger(__name__)
-loggers = [logcfg, logdb, logdt, logdf, logong, logtk]
 log_format = Formats().détails
 niveau = logging.DEBUG
 
@@ -37,11 +35,7 @@ def main(dossier=None):
     f = logging.Formatter(log_format)
     h.setFormatter(f)
 
-    logger.addHandler(h)
-    logger.setLevel(niveau)
-    for journal in loggers:
-        journal.addHandler(h)
-        journal.setLevel(niveau)
+    logging.basicConfig(handlers=[h], level=niveau)
 
     logger.debug('dossier = %r', dossier)
 
@@ -70,6 +64,7 @@ def main(dossier=None):
     adresse = config.geturl('bd', 'adresse')
     logger.debug('adresse = %r', adresse)
 
+    metadata = créer_dbs(MetaData())
     base = BaseDeDonnées(adresse, metadata)
     logger.debug('base = %r', base)
 
@@ -81,7 +76,7 @@ def main(dossier=None):
             logger.info('%r', c)
 
     logger.info(base.select('boites'))
-    logger.info(base.select('inventaire'))
+    logger.info(base.select('appareils'))
 
     logger.info('Préparation de l\'interface...')
     racine = tk.Tk()
