@@ -79,4 +79,9 @@ class Appareil:
 
 
 class Expérience:
-    pass
+
+    def __init__(self, titre: str, root: tkinter.Tk = None):
+        pass
+
+    def run(self):
+        pass
