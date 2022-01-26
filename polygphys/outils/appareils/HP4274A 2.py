@@ -10,7 +10,6 @@ Créé le Thu Jan 13 09:45:19 2022
 
 from collections import namedtuple
 from decimal import Decimal
-from pathlib import Path
 
 import numpy as np
 import pandas as pd

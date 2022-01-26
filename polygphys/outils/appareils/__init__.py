@@ -9,9 +9,12 @@ Créé le Thu Jan 13 09:45:19 2022
 
 import tkinter
 
+from pathlib import Path
+
 import pyvisa as visa
 
 from ..interface.tableau import Tableau
+from ..config import FichierConfig
 
 
 class Gestionnaire:
@@ -80,8 +83,8 @@ class Appareil:
 
 class Expérience:
 
-    def __init__(self, titre: str, root: tkinter.Tk = None):
-        pass
+    def __init__(self, fichier_config: Path):
+        self.config = FichierConfig(fichier_config)
 
     def run(self):
         pass
