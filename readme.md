@@ -38,13 +38,13 @@ La version `v1` est stable et peut-être utilisée telle quelle.
 La branche `alpha` est en développement constant, et ne devrait pas être utilisée pour développer un programme plus complexe.
 
 0. [x] Rendre les programmes exécutables avec un argument en ligne de commande & comme application
-1. [ ] Définir plus adéquatement les bases de données et leurs relations
+1. [x] Définir plus adéquatement les bases de données et leurs relations
 1. [ ] Filtrer par valeur dans des colonnes
 2. [ ] Permettre l'ajout de colonnes de l'intérieur de l'application
 3. [ ] Permettre d'ajouter des sections de configuration
 4. [ ] Permettre d'ajouter des champs de configuration
 5. [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
-6. [ ] Rendre le logging plus compatible avec sqlalchemy.
+6. [x] Rendre le logging plus compatible avec sqlalchemy.
     Retirer les logs sql, utiliser ceux de sqlalchemy à la place.
 
 #### 0. Exécutables
@@ -53,15 +53,15 @@ Rendre les programmes exécutables avec un argument en ligne de commande. **Et c
 
 #### 1. Définitions de bases de données
 
-0. [ ] Valeurs par défaut avec `server_default`
+0. [x] Valeurs par défaut avec `server_default`
     Utiliser les `modifier` et `listen`.
-1. [ ] Une base de données de personnes et leurs rôles
+1. [x] Une base de données de personnes et leurs rôles
     Le but est de pouvoir référer aux gens dans d'autres bases de données. Le matricule devrait servir d'id si présent.
     - Techniciens
     - Professeurs
     - Étudiants
-2. [ ] Une base de données des locaux, les associants à des responsables. Chaque local devrait avoir une désignation unique, mais pouvoir être associé à plusieurs portes.
-3. [ ] Une base de données d'inventaire
+2. [x] Une base de données des locaux, les associants à des responsables. Chaque local devrait avoir une désignation unique, mais pouvoir être associé à plusieurs portes.
+3. [x] Une base de données d'inventaire
 
 #### 1. Filtre
 
