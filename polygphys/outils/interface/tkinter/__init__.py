@@ -24,7 +24,7 @@ from ...interface import InterfaceHandler
 logger = logging.getLogger(__name__)
 
 
-def tkHandler(master: tk.Tk) -> InterfaceHandler:
+def tkHandler(master: tk.Tk, editable: bool = True) -> InterfaceHandler:
     """Retourne une instance InterfaceHandler pour tk."""
     logger.debug('master = %r', master)
 
@@ -39,7 +39,8 @@ def tkHandler(master: tk.Tk) -> InterfaceHandler:
 
     def entrée(value: pd.DataFrame,
                commande: Callable,
-               dtype: str = 'object') -> tk.Entry:
+               dtype: str = 'object',
+               editable: bool = editable) -> tk.Entry:
         logger.debug('value = %r\tcommande = %r\tdtype = %r',
                      value, commande, dtype)
 
@@ -70,7 +71,9 @@ def tkHandler(master: tk.Tk) -> InterfaceHandler:
         variable.trace_add('write', F)
 
         logger.debug('dtype = %r', dtype)
-        if dtype == 'boolean':
+        if not editable:
+            widget = ttk.Label(master, textvariable=variable)
+        elif dtype == 'boolean':
             widget = ttk.Checkbutton(master,
                                      variable=variable)
         elif dtype in ('int64', 'float64'):
@@ -84,4 +87,11 @@ def tkHandler(master: tk.Tk) -> InterfaceHandler:
     def texte(s): return tk.Label(master, text=s)
     def bouton(s, c): return tk.Button(master, text=s, command=c)
 
-    return InterfaceHandler(entrée, texte, bouton, demander)
+    def fenetre(): return tk.Toplevel(master)
+
+    return InterfaceHandler(entrée,
+                            texte,
+                            bouton,
+                            demander,
+                            fenetre,
+                            tkHandler)

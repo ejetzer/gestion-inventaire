@@ -22,6 +22,7 @@ import pandas as pd
 from ..database import BaseDeDonnées
 from ..database.dtypes import default
 from ..interface import InterfaceHandler
+from .tkinter import tkHandler
 
 logger = logging.getLogger(__name__)
 
@@ -376,85 +377,14 @@ class TableauFiltré(Tableau):
                  handler: InterfaceHandler,
                  db: BaseDeDonnées,
                  table: str):
-        self.where = tuple()
+        self.filtres = []
         super().__init__(handler, db, table)
-
-    def filtre(self, where: tuple):
-        self.where = where
 
     @property
     def df(self):
         """Le tableau comme pandas.DataFrame."""
         logger.debug(f'{self!r} .df')
-        return self.select(where=self.where)
-
-
-class Filtre:
-    """Filtre pour TableauFiltré."""
-
-    def __init__(self,
-                 handler: InterfaceHandler,
-                 tableau: TableauFiltré):
-        """
-        Filtre pour TableauFiltré.
-
-        Parameters
-        ----------
-        handler : InterfaceHandler
-            Gestionnaire d'interface.
-        tableau : TableauFiltré
-            Tableau à filtrer.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.handler: InterfaceHandler = handler
-        self.tableau: TableauFiltré = tableau
-        self.build()
-
-    def build(self):
-        self.children = []
-
-        for col in it.chain([self.tableau.index], self.tableau.columns):
-            variable = tk.StringVar()
-
-            def F():
-                pass
-
-            variable.trace_add('write', F)
-
-            nouvelle = self.handler.entrée(...)
-            self.children.append(nouvelle)
-
-    @property
-    def columnspan(self):
-        return len(self.tableau.columns) + 1
-
-    @property
-    def rowspan(self):
-        return 1
-
-    def grid(self, row: int, column: int):
-        for i, w in enumerate(self.children):
-            w.grid(row=row, column=column+i)
-
-    def destroy(self):
-        self.destroy_children()
-
-    def destroy_children(self):
-        for c in self.children:
-            c.destroy()
-        self.children = []
-
-    def update_row(self):
-        self.destroy_children()
-        self.build()
-        self.grid()
-
-    def update_tableau(self):
-        self.tableau.update_grid()
+        return self.db.select(self.table, where=self.filtres)
 
 
 class Formulaire(BaseTableau):
@@ -690,15 +620,156 @@ class Formulaire(BaseTableau):
         self.grid(**self.__grid_params)
 
 
+class Filtre(Formulaire):
+
+    def __init__(self,
+                 handler: InterfaceHandler,
+                 tableau: TableauFiltré):
+        self.tableau = tableau
+        super().__init__(handler, tableau.db, tableau.table)
+
+    def build(self):
+        """
+        Construire tous les widgets.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.fenetre = self.handler.fenetre()
+        self.handler2 = self.handler.handler(self.fenetre)
+
+        self.widgets = pd.DataFrame(
+            None, columns=self.columns, index=[0, 1, 2])
+        logger.debug('widgets = %r', self.widgets)
+
+        colonnes = filter(lambda x: x != 'index', self.columns)
+        colonnes = list(map(self.handler2.texte, colonnes))
+        self.widgets.columns = colonnes
+        logger.debug('widgets = %r', self.widgets)
+
+        logger.debug('colonnes = %r', colonnes)
+        for n, col in zip(self.columns, colonnes):
+            dtype = self.dtype(n)
+            logger.debug('dtype = %r', dtype)
+
+            df = pd.DataFrame(default(dtype),
+                              columns=[col],
+                              index=[max(self.index, default=0)+1])
+            logger.debug('df = %r', df)
+
+            _ = self.handler2.entrée(df, lambda x: None, dtype)
+            logger.debug('_ = %r', _)
+
+            self.widgets.loc[0, col] = _
+        logger.debug('widgets = %r', self.widgets)
+
+        logger.debug('commandes = %r', self.commandes)
+        self.commandes = self.build_commandes()
+
+    def build_commandes(self) -> tuple:
+        """
+        Construit les widgets de commandes.
+
+        Eg: boutons.
+
+        Returns
+        -------
+        tuple
+            Boutons créés.
+
+        """
+        a = self.handler2.bouton('Effacer', self.effacer)
+        logger.debug('a = %r', a)
+
+        b = self.handler2.bouton('Filtrer', self.filtrer)
+        logger.debug('b = %r', b)
+
+        return a, b
+
+    def build_button(self):
+        self.bouton = self.handler.bouton('Filtre', self.afficher_filtre)
+
+    def grid(self, row: int, column: int):
+        """
+        Affiche le formulaire.
+
+        Parameters
+        ----------
+        row : int
+            Rangée initiale.
+        column : int
+            Colonne initiale.
+
+        Returns
+        -------
+        None.
+
+        """
+        logger.debug('row = %r\tcolumn = %r', row, column)
+        self.__grid_params = {'row': row, 'column': column}
+
+        self.build_button()
+
+        self.bouton.grid(**self.__grid_params)
+
+    def afficher_filtre(self):
+        self.build()
+
+        for j, (c, v) in enumerate(zip(self.widgets.columns,
+                                       self.widgets.loc[0, :])):
+            c.grid(row=j, column=0)
+            v.grid(row=j, column=1)
+
+        for i, c in enumerate(self.commandes):
+            c.grid(row=j+1, column=i)
+
+    def destroy_children(self):
+        super().destroy_children()
+        self.bouton.destroy()
+
+    def filtrer(self):
+        clauses = []
+
+        for c, w in zip(self.columns, self.widgets.loc[0, :]):
+            col = self.tables[self.table].columns[c]
+            val = w.get()
+
+            logger.debug('col = %r, widget = %r', col, val)
+
+            if val:
+                clause = col == w.get()
+                logger.debug('clause: %r', clause)
+                clauses.append(clause)
+
+        self.tableau.filtres = clauses
+        self.tableau.update_grid()
+
+
 class Graphe(Tableau):
-    pass
+
+    def build(self):
+        pass
+
+    def grid(self):
+        pass
+
+    def pack(self):
+        pass
+
+    def update_grid(self):
+        pass
 
 
 def main(dossier=None):
     """Exemple d'affichage de base de données."""
-    import polytechnique.outils.database
+    import polygphys.outils.database
     import sys
     import pathlib
+    import logging
+
+    logging.basicConfig(level=logging.DEBUG)
 
     if dossier is None:
         if len(sys.argv) > 1:
@@ -707,46 +778,59 @@ def main(dossier=None):
             fichier = pathlib.Path(__file__).expanduser().resolve()
             dossier = fichier.parent.parent.parent
 
-    base, md = polytechnique.outils.database.main(dossier)
+    logger.debug('__file__ = %r', __file__)
+    logger.debug('fichier = %r', fichier)
+    logger.debug('dossier = %r', dossier)
 
-    import polytechnique.outils.interface.tkinter
+    base, md = polygphys.outils.database.main(dossier)
+
+    import polygphys.outils.interface.tkinter
     import tkinter
 
-    logger.info('Test d\'interface...')
+    # logger.info('Test d\'interface...')
+    # racine = tkinter.Tk()
+    # handler = polygphys.outils.interface.tkinter.tkHandler(racine)
+
+    # logger.info('Tableau...')
+    # tableau = Tableau(handler, base, 'demo')
+    # logger.info(f'{tableau.index=}')
+
+    # tableau.grid(0, 0)
+
+    # racine.mainloop()
+
+#     logger.info(
+#         'On réouvre, pour montrer que les changements sont bien soumis à la \
+# base de données...')
+#     racine = tkinter.Tk()
+#     handler = polygphys.outils.interface.tkinter.tkHandler(racine)
+#     tableau = Tableau(handler, base, 'demo')
+#     tableau.grid(0, 0)
+#     racine.mainloop()
+
+#     logger.info('On teste le formulaire...')
+#     racine = tkinter.Tk()
+#     handler = polygphys.outils.interface.tkinter.tkHandler(racine)
+#     formulaire = Formulaire(handler, base, 'demo')
+#     formulaire.grid(0, 0)
+#     racine.mainloop()
+
+#     logger.info(
+#         'On réouvre, pour montrer que les changements sont bien soumis à la \
+# base de données...')
+#     racine = tkinter.Tk()
+#     handler = polygphys.outils.interface.tkinter.tkHandler(racine)
+#     tableau = Tableau(handler, base, 'demo')
+#     tableau.grid(0, 0)
+#     racine.mainloop()
+
+    logger.info('On essaie le filtre!')
     racine = tkinter.Tk()
-    handler = polytechnique.outils.interface.tkinter.tkHandler(racine)
-
-    logger.info('Tableau...')
-    tableau = Tableau(handler, base, 'demo')
-    logger.info(f'{tableau.index=}')
-
-    tableau.grid(0, 0)
-
-    racine.mainloop()
-
-    logger.info(
-        'On réouvre, pour montrer que les changements sont bien soumis à la \
-base de données...')
-    racine = tkinter.Tk()
-    handler = polytechnique.outils.interface.tkinter.tkHandler(racine)
-    tableau = Tableau(handler, base, 'demo')
-    tableau.grid(0, 0)
-    racine.mainloop()
-
-    logger.info('On teste le formulaire...')
-    racine = tkinter.Tk()
-    handler = polytechnique.outils.interface.tkinter.tkHandler(racine)
-    formulaire = Formulaire(handler, base, 'demo')
-    formulaire.grid(0, 0)
-    racine.mainloop()
-
-    logger.info(
-        'On réouvre, pour montrer que les changements sont bien soumis à la \
-base de données...')
-    racine = tkinter.Tk()
-    handler = polytechnique.outils.interface.tkinter.tkHandler(racine)
-    tableau = Tableau(handler, base, 'demo')
-    tableau.grid(0, 0)
+    handler = polygphys.outils.interface.tkinter.tkHandler(racine)
+    tableau = TableauFiltré(handler, base, 'demo')
+    filtre = Filtre(handler, tableau)
+    filtre.grid(0, 0)
+    tableau.grid(1, 1)
     racine.mainloop()
 
 

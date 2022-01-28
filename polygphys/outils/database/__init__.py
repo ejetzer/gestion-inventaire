@@ -635,7 +635,7 @@ def main(dossier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
     md = sqla.MetaData()
     table = sqla.Table('demo', md,
                        sqla.Column('index', get_type('python', int,
-                                   'sqlalchemy'), primary_key=False),
+                                                     'sqlalchemy'), primary_key=False),
                        sqla.Column('desc',
                                    get_type('python', str, 'sqlalchemy')))
     logger.info('%r %r', md, table)
@@ -648,6 +648,14 @@ def main(dossier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
         else:
             fichier = pathlib.Path(__file__).expanduser().resolve()
             dossier = fichier.parent.parent.parent
+            logger.info('fichier = %r', fichier)
+
+    logger.info('dossier = %r', dossier)
+
+    if not len(list(dossier.glob('*.db'))):
+        (dossier / 'test.db').touch()
+
+    logger.debug('*.db: %s', list(dossier.glob('*.db')))
 
     fichier = dossier / next(dossier.glob('*.db'))
     logger.info('fichier = %r', fichier)

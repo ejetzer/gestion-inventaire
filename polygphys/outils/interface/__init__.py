@@ -44,3 +44,5 @@ class InterfaceHandler:
     texte: Callable[[str], Any]
     bouton: Callable[[str, Callable], Any]
     demander: Callable[[str, type], Any]
+    fenetre: Callable[None, Any]
+    handler: Callable[Any, Any]
