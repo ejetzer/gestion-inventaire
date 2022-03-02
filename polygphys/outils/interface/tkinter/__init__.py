@@ -13,6 +13,7 @@ import logging
 import tkinter as tk
 
 from tkinter import ttk
+from tkinter import scrolledtext as st
 from tkinter.simpledialog import askstring, askinteger, askfloat
 from typing import Callable
 
@@ -78,14 +79,16 @@ def tkHandler(master: tk.Tk, editable: bool = True) -> InterfaceHandler:
                                      variable=variable)
         elif dtype in ('int64', 'float64'):
             widget = ttk.Spinbox(master, textvariable=variable)
+        elif any(i in variable.get() for i in ('\n', '\r', '\t', '  ')):
+            widget = st.ScrolledText(master, textvariable=variable)
         else:
             widget = ttk.Entry(master, textvariable=variable)
         logger.debug('widget = %r', widget)
 
         return widget
 
-    def texte(s): return tk.Label(master, text=s)
-    def bouton(s, c): return tk.Button(master, text=s, command=c)
+    def texte(s): return ttk.Label(master, text=s)
+    def bouton(s, c): return ttk.Button(master, text=s, command=c)
 
     def fenetre(): return tk.Toplevel(master)
 

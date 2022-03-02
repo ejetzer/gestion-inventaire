@@ -26,7 +26,7 @@ class FichierConfig(ConfigParser):
     """Garde ConfigParser synchronisé avec un fichier."""
 
     def __init__(self,
-                 chemin: Union[Iterable[Path], Path],
+                 chemin: Path,
                  inline_comment_prefixes=('#', ';'),
                  **kargs):
         """
@@ -53,9 +53,21 @@ class FichierConfig(ConfigParser):
                      inline_comment_prefixes,
                      kargs)
         self.chemin = chemin
+        
+        if not self.chemin.exists():
+            self.chemin.touch()
+            with self.chemin.open('w') as f:
+                f.write(self.default)
+        
         super().__init__(inline_comment_prefixes=inline_comment_prefixes,
                          **kargs)
         self.read()
+    
+    def default(self):
+        return f'''[default]
+    auto: True
+    class: {type(self)}
+'''
 
     def read(self):
         """

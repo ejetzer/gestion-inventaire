@@ -69,6 +69,49 @@ class OngletConfig(tk.Frame):
 
         """
         return self.config.chemin
+    
+    def build_champ(self, champ, valeur):
+        champ_var = tk.StringVar(self, value=champ)
+        valeur_var = tk.StringVar(self, value=valeur)
+        
+        champ_var.trace_add(
+            'write',
+            lambda x, i, m, v=champ_var: self.update_config())
+        valeur_var.trace_add(
+            'write',
+            lambda x, i, m, v=valeur_var: self.update_config())
+        
+        champ_entrée = ttk.Entry(self, textvariable=champ_var)
+        valeur_entrée = ttk.Entry(self, textvariable=valeur_var)
+        
+        boutons = (ttk.Button(self, text='+', command=lambda: 1),
+                   ttk.Button(self, text='-', command=lambda: 1))
+        
+        return champ_entrée, valeur_entrée, boutons
+    
+    def build_section(self, sec=None):
+        logger.debug('titre = %r', sec)
+        
+        section = self.config[sec]
+        logger.debug('section = %r', section)
+        
+        titre_var = tk.StringVar(self)
+        titre_var.trace_add(
+            'write',
+            lambda x, i, m, v=titre_var: self.update_config())
+        titre = ttk.Entry(self, textvariable=titre_var)
+        
+        bouton = ttk.Button(self, text='-', command=lambda: 1)
+        
+        champs, valeurs, boutons = {}, {}, {}
+        for champ, valeur in section.items():
+            c, v, b = self.build_champ(champ, valeur)
+            champs[champ] = c
+            valeurs[champ] = v
+            boutons[champ] = b
+        
+        return titre, champs, valeurs, boutons, bouton
+            
 
     def build(self):
         """
@@ -79,36 +122,15 @@ class OngletConfig(tk.Frame):
         None.
 
         """
-
-        self.titre_étiquettes = {}
-        self.champs = {}
+        self.titres, self.champs, self.valeurs, self.boutons = {}, {}, {}, {}
 
         logger.debug('self.config.sections() = %r', self.config.sections())
-        for titre in self.config.sections():
-            logger.debug('titre = %r', titre)
-
-            section = self.config[titre]
-            logger.debug('section = %r')
-
-            titre_étiquette = tk.Label(self, text=titre)
-            self.titre_étiquettes[titre] = titre_étiquette
-            self.champs[titre] = {}
-            logger.debug('self.titre_étiquettes = %r', self.titre_étiquettes)
-            logger.debug('self.champs = %r', self.champs)
-
-            logger.debug('section.items() = %r', section.items())
-            for champ, valeur in section.items():
-                logger.debug('champ = %r\tvaleur = %r', champ, valeur)
-
-                champ_étiquette = tk.Label(self, text=champ)
-                champ_variable = tk.StringVar(self, valeur)
-                champ_variable.trace_add(
-                    'write',
-                    lambda x, i, m, v=champ_variable: self.update_config())
-                champ_entrée = tk.Entry(self, textvariable=champ_variable)
-
-                self.champs[titre][champ] = (champ_étiquette, champ_entrée)
-                logger.debug('self.champs = %r', self.champs)
+        for sec in self.config.sections():
+            t, cs, vs, bs, b = self.build_section(sec)
+            self.titres[sec] = t
+            self.champs[sec] = cs
+            self.champs[sec] = vs
+            self.boutons[sec] = [b, bs]
 
     def update_config(self):
         """
@@ -119,8 +141,25 @@ class OngletConfig(tk.Frame):
         None.
 
         """
-
         logger.debug('self.champs = %r', self.champs)
+        
+        # Effacer les sections non présentes
+        for sec in self.config.sections():
+            if sec not in map(lambda x: x.get(), self.titres.values()):
+                self.config.remove_section(sec)
+
+        # Vérifier que les sections présentes existent
+        for sec in map(lambda x: x.get(), self.titres.values()):
+            if sec not in self.config.sections():
+                self.config.add_section(sec)
+        
+        # Pour chaque section présente
+        for sec in map(lambda x: x.get(), self.titres.values()):
+            # effacer les champs non-existants
+            for champ in map(lambda x: x.get(), self.champs[sec].values()):
+                if champ not in self.config.options(sec):
+                    self.config.add_option(sec, champ)
+            # vérifier les valeurs des champs
         for section in self.champs:
             logger.debug('section = %r', section)
 
