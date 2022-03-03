@@ -30,3 +30,5 @@ unoconv
 paramiko
 databases
 ics
+matplotlib
+plistop>=0.2
