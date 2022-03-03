@@ -76,6 +76,6 @@ def vieux():
     from .vieux.interface import Formulaire as VF
     racine = tk.Tk()
     racine.title('Entrée des heures')
-    chemin = Path(__file__).parent / 'vieux' / 'Configuration.txt'
+    chemin = Path('~').expanduser() / 'heures.cfg'
     fenêtre = VF(str(chemin), master=racine)
     fenêtre.mainloop()
