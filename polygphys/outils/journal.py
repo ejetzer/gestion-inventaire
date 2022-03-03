@@ -24,8 +24,6 @@ from dataclasses import dataclass
 
 from .interface.tableau import BaseTableau
 
-logger = logging.getLogger(__name__)
-
 
 @dataclass
 class Formats:
@@ -71,7 +69,7 @@ class Journal(Handler):
         """
         self.repo: Repo = Repo(dossier)
         self.tableau: BaseTableau = tableau
-        logger.debug('repo = %r\ttableau = %r', self.repo, self.tableau)
+        logging.debug('repo = %r\ttableau = %r', self.repo, self.tableau)
 
         super().__init__(level)
 
@@ -110,7 +108,7 @@ class Journal(Handler):
 
         """
         diff = self.repo.diff(None)
-        logger.debug('diff = %r', diff)
+        logging.debug('diff = %r', diff)
 
         for d in diff:
             if d.new_file:
@@ -122,7 +120,7 @@ class Journal(Handler):
                 self.repo.index.remove([d.a_blob])
 
         msg = record.getMessage()
-        logger.debug('msg = %r', msg)
+        logging.debug('msg = %r', msg)
 
         self.repo.index.commit(msg)
 
@@ -131,7 +129,7 @@ class Journal(Handler):
                                 'logger': [record.name],
                                 'msg': [msg],
                                 'head': [self.repo.head.commit.hexsha]})
-        logger.debug('message = %r', message)
+        logging.debug('message = %r', message)
 
         self.tableau.append(message)
-        logger.debug('tableau = %r', self.tableau)
+        logging.debug('tableau = %r', self.tableau)

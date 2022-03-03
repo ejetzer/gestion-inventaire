@@ -16,7 +16,7 @@ import platform
 
 from pathlib import Path
 from configparser import ConfigParser
-from typing import Union, Iterable
+from typing import Union, Iterable, Any
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -48,21 +48,21 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        logger.debug('chemin = %r\tinline_comment_prefixes = %r\tkargs = %r',
-                     chemin,
-                     inline_comment_prefixes,
-                     kargs)
+        logging.debug('chemin = %r\tinline_comment_prefixes = %r\tkargs = %r',
+                      chemin,
+                      inline_comment_prefixes,
+                      kargs)
         self.chemin = chemin
-        
+
         if not self.chemin.exists():
             self.chemin.touch()
             with self.chemin.open('w') as f:
                 f.write(self.default)
-        
+
         super().__init__(inline_comment_prefixes=inline_comment_prefixes,
                          **kargs)
         self.read()
-    
+
     def default(self):
         return f'''[default]
     auto: True
@@ -78,7 +78,7 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        logger.debug('chemin = %r', self.chemin)
+        logging.debug('chemin = %r', self.chemin)
         super().read(self.chemin, encoding='utf-8')
 
     def write(self):
@@ -90,14 +90,14 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        logger.debug('chemin = %r', self.chemin)
+        logging.debug('chemin = %r', self.chemin)
         chemins = (self.chemin,) if isinstance(
             self.chemin, (Path, str)) else self.chemin
-        logger.debug('chemins = %r', chemins)
+        logging.debug('chemins = %r', chemins)
 
         for chemin in chemins:
             with open(chemin, 'w', encoding='utf-8') as f:
-                logger.debug('f = %r', f)
+                logging.debug('f = %r', f)
                 super().write(f)
 
     def set(self, section: str, option: str, value: str):
@@ -118,10 +118,10 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        logger.debug('section = %r\toption = %r\tvalue = %r',
-                     section,
-                     option,
-                     value)
+        logging.debug('section = %r\toption = %r\tvalue = %r',
+                      section,
+                      option,
+                      value)
         super().set(section, option, value)
         self.write()
 
@@ -147,21 +147,21 @@ class FichierConfig(ConfigParser):
             DESCRIPTION.
 
         """
-        logger.debug('sec = %r\tclé = %r\tfallback = %r',
-                     sec,
-                     clé,
-                     fallback)
+        logging.debug('sec = %r\tclé = %r\tfallback = %r',
+                      sec,
+                      clé,
+                      fallback)
         val = self.get(sec, clé, fallback=None)
-        logger.debug('val = %r', val)
+        logging.debug('val = %r', val)
 
-        logger.debug('val is not None = %r', val is not None)
+        logging.debug('val is not None = %r', val is not None)
 
         if val is not None:
             val = list(map(str.strip, val.strip().split('\n')))
         else:
             val = fallback
 
-        logger.debug('val = %r', val)
+        logging.debug('val = %r', val)
 
         return val
 
@@ -249,15 +249,11 @@ class FichierConfig(ConfigParser):
             if d[clé]:
                 d[clé] = préfixe + d[clé]
 
-        logger.debug('d["netloc"] = %r', d['netloc'])
+        logging.debug('d["netloc"] = %r', d['netloc'])
         if d['netloc'] in ('localhost', '127.0.0.1', ''):
-            logger.debug('d["path"] = %r', d['path'])
-            d['path'] = str(Path(d['path']).expanduser())
-            # Correction du chemin sur Windows
-            # Ne fais rien sur MacOS.
-            if platform.system() == 'Windows':
-                d['path'] = d['path'].lstrip('\\')
-            logger.debug('d["path"] = %r', d['path'])
+            logging.debug('d["path"] = %r', d['path'])
+            d['path'] = d['path'].lstrip('\\')
+            logging.debug('d["path"] = %r', d['path'])
 
         if d['nom']:
             d['netloc'] = '@' + d['netloc']
@@ -315,7 +311,8 @@ class FichierConfig(ConfigParser):
 
 def main(dossier: str = None) -> FichierConfig:
     """Exemple très simple d'utilisation du fichier de configuration."""
-    logger.info('Ouvrir un fichier de configuration...')
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info('Ouvrir un fichier de configuration...')
 
     if dossier is None:
         if len(sys.argv) > 1:
@@ -325,15 +322,15 @@ def main(dossier: str = None) -> FichierConfig:
             dossier = fichier.parent.parent
 
     fichier = dossier / next(dossier.glob('*.cfg'))
-    logger.debug('fichier = %r', fichier)
-    logger.debug('fichier.exists() = %r', fichier.exists())
+    logging.debug('fichier = %r', fichier)
+    logging.debug('fichier.exists() = %r', fichier.exists())
 
     config = FichierConfig(fichier)
-    logger.info('Configuration ouverte...')
-    logger.info('config = %r', config)
+    logging.info('Configuration ouverte...')
+    logging.info('config = %r', config)
 
-    logger.info('Assurer la bonne forme de l\'adresse de base de donnée:')
-    logger.info(config.geturl('bd', 'adresse', dialect='sqlite'))
+    logging.info('Assurer la bonne forme de l\'adresse de base de donnée:')
+    logging.info(config.geturl('bd', 'adresse', dialect='sqlite'))
 
     return config
 

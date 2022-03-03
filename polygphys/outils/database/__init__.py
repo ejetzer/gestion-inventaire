@@ -49,7 +49,7 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('adresse = %r\tmetadata = %r', adresse, metadata)
+        logging.debug('adresse = %r\tmetadata = %r', adresse, metadata)
         self.adresse = adresse
         self.metadata = metadata
 
@@ -59,25 +59,25 @@ class BaseDeDonnées:
     def tables(self) -> dict[str, sqla.Table]:
         """Liste des tables contenues dans la base de données."""
         res = self.metadata.tables
-        logger.debug('res = %r', res)
+        logging.debug('res = %r', res)
         return res
 
     def table(self, table: str) -> sqla.Table:
         """Retourne une table de la base de données"""
-        logger.debug('table = %r', table)
+        logging.debug('table = %r', table)
         res = self.tables[table]
-        logger.debug('res = %r', res)
+        logging.debug('res = %r', res)
         return res
 
     def execute(self, requête, *args, **kargs):
         """Exécute la requête SQL donnée et retourne le résultat."""
-        logger.debug('requête = %r\targs = %r\tkargs = %r',
-                     requête, args, kargs)
+        logging.debug('requête = %r\targs = %r\tkargs = %r',
+                      requête, args, kargs)
         with self.begin() as con:
-            logger.debug('con = %r', con)
-            logger.info('requête = %s', requête)
+            logging.debug('con = %r', con)
+            logging.info('requête = %s', requête)
             res = con.execute(requête, *args, **kargs)
-            logger.debug('res = %r', res)
+            logging.debug('res = %r', res)
             return res
 
     def select(self,
@@ -109,37 +109,37 @@ class BaseDeDonnées:
             sélectionnées.
 
         """
-        logger.debug('table = %r\tcolumns = %r\twhere = %r\terrors = %r',
-                     table, columns, where, errors)
+        logging.debug('table = %r\tcolumns = %r\twhere = %r\terrors = %r',
+                      table, columns, where, errors)
 
         # Si aucune colonne n'est spécifiée, on les prends toutes.
-        logger.debug('not len(columns) = %r', not len(columns))
+        logging.debug('not len(columns) = %r', not len(columns))
         if not len(columns):
             columns = self.columns(table)
-        logger.debug('columns = %r', columns)
+        logging.debug('columns = %r', columns)
 
         # Si une liste de colonnes est fournie, on vérifie qu'elles sont
         # toutes présentes dans le tableau.
         # On utilise aussi les objets Column du tableau
         columns = [self.table(table).columns['index']] + list(
             filter(lambda x: x.name in columns, self.table(table).columns))
-        logger.debug('columns = %r', columns)
+        logging.debug('columns = %r', columns)
 
         requête = sqla.select(columns).select_from(self.table(table))
-        logger.debug('requête = %s', requête)
+        logging.debug('requête = %s', requête)
 
-        logger.debug('where = %r', where)
+        logging.debug('where = %r', where)
         for clause in where:
-            logger.debug('clause = %r', clause)
+            logging.debug('clause = %r', clause)
             requête = requête.where(clause)
-            logger.debug('requête = %r', requête)
-        logger.debug('requête = %r', requête)
+            logging.debug('requête = %r', requête)
+        logging.debug('requête = %r', requête)
 
         with self.begin() as con:
-            logger.debug('con = %r', con)
-            logger.info('requête = %s', requête)
+            logging.debug('con = %r', con)
+            logging.info('requête = %s', requête)
             df = pd.read_sql(requête, con, index_col='index')
-            logger.debug('df = %r', df)
+            logging.debug('df = %r', df)
 
         return df
 
@@ -160,20 +160,20 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('table = %r\tvalues = %r', table, values)
+        logging.debug('table = %r\tvalues = %r', table, values)
 
         requête = self.table(table).update()
-        logger.debug('requête = %r', requête)
+        logging.debug('requête = %r', requête)
 
         index = values.index.name
         it = values.iterrows()
-        logger.debug('index = %r\tit = %r', index, it)
+        logging.debug('index = %r\tit = %r', index, it)
         for i, rangée in it:
-            logger.debug('i = %r\trangée = %r', i, rangée)
+            logging.debug('i = %r\trangée = %r', i, rangée)
             clause = self.table(table).columns[index] == i
-            logger.debug('clause = %r', clause)
+            logging.debug('clause = %r', clause)
             r = requête.where(clause).values(**rangée)
-            logger.debug('r = %r', r)
+            logging.debug('r = %r', r)
             self.execute(r)
 
     def insert(self, table: str, values: pd.DataFrame):
@@ -192,13 +192,13 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('table = %r\tvalues = %r', table, values)
+        logging.debug('table = %r\tvalues = %r', table, values)
 
         params = [({'index': i} | {c: v for c, v in r.items()})
                   for i, r in values.iterrows()]
-        logger.debug('params = %r', params)
+        logging.debug('params = %r', params)
         requête = self.table(table).insert(params)
-        logger.debug('requête = %s', requête)
+        logging.debug('requête = %s', requête)
         self.execute(requête)
 
     def append(self, table: str, values: pd.DataFrame):
@@ -217,7 +217,7 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('table = %r\tvalues = %r', table, values)
+        logging.debug('table = %r\tvalues = %r', table, values)
 
         # Réassigner les indices:
         # On veut s'assurer qu'ils sont tous plus hauts
@@ -225,13 +225,13 @@ class BaseDeDonnées:
         indice_min = max(self.index(table), default=-1) + 1
         nouvel_index = pd.Index(range(len(values.index)),
                                 name='index') + indice_min
-        logger.debug('indice_min = %r\tnouvel_index = %r',
-                     indice_min, nouvel_index)
+        logging.debug('indice_min = %r\tnouvel_index = %r',
+                      indice_min, nouvel_index)
 
         # Faire une copie des valeurs avec le bon index.
         values = values.copy()
         values.index = nouvel_index
-        logger.debug('values = %r', values)
+        logging.debug('values = %r', values)
 
         self.insert(table, values)
 
@@ -253,7 +253,7 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('table = %r\tvalues = %r', table, values)
+        logging.debug('table = %r\tvalues = %r', table, values)
 
         requête = self.table(table).delete()
 
@@ -265,13 +265,13 @@ class BaseDeDonnées:
             index = 'index'
             idx = pd.Index([values], name='index')
 
-        logger.debug('requête = %s\tindex = %r\tidx = %r',
-                     requête, index, idx)
+        logging.debug('requête = %s\tindex = %r\tidx = %r',
+                      requête, index, idx)
         for i in idx:
             clause = self.table(table).columns[index] == 1
             r = requête.where(clause)
-            logger.debug('i = %r\tclause = %r\tr = %s',
-                         i, clause, r)
+            logging.debug('i = %r\tclause = %r\tr = %s',
+                          i, clause, r)
             self.execute(r)
 
     def màj(self, table: str, values: pd.DataFrame):
@@ -293,17 +293,17 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('table = %r\tvalues = %r', table, values)
+        logging.debug('table = %r\tvalues = %r', table, values)
 
         index = self.index(table)
         existe = values.index.isin(index)
-        logger.debug('index = %r\texiste = %r', index, existe)
+        logging.debug('index = %r\texiste = %r', index, existe)
 
-        logger.debug('existe.any() = %r', existe.any())
+        logging.debug('existe.any() = %r', existe.any())
         if existe.any():
             self.update(table, values.loc[existe, :])
 
-        logger.debug('not existe.all() = %r', not existe.all())
+        logging.debug('not existe.all() = %r', not existe.all())
         if not existe.all():
             self.insert(table, values.loc[~existe, :])
 
@@ -317,7 +317,7 @@ class BaseDeDonnées:
             Moteur de base de données.
 
         """
-        logger.debug('adresse = %r', self.adresse)
+        logging.debug('adresse = %r', self.adresse)
         return sqla.create_engine(str(self.adresse))
 
     def begin(self):
@@ -351,9 +351,9 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('checkfirst = %r', checkfirst)
+        logging.debug('checkfirst = %r', checkfirst)
         with self.begin() as con:
-            logger.debug('con = %r', con)
+            logging.debug('con = %r', con)
             self.metadata.create_all(con, checkfirst=checkfirst)
 
     def réinitialiser(self, checkfirst: bool = True):
@@ -371,9 +371,9 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('checkfirst = %r', checkfirst)
+        logging.debug('checkfirst = %r', checkfirst)
         with self.begin() as con:
-            logger.debug('con = %r', con)
+            logging.debug('con = %r', con)
             self.metadata.drop_all(con, checkfirst=checkfirst)
             self.metadata.create_all(con)
 
@@ -396,11 +396,11 @@ class BaseDeDonnées:
             dtype selon pandas.
 
         """
-        logger.debug('table = %r\tchamp = %r', table, champ)
+        logging.debug('table = %r\tchamp = %r', table, champ)
         type_champ = self.table(table).columns[champ].type
-        logger.debug('type_champ = %r', type_champ)
+        logging.debug('type_champ = %r', type_champ)
         type_champ: str = get_type('sqlalchemy', type_champ, 'pandas')
-        logger.debug('type_champ = %r', type_champ)
+        logging.debug('type_champ = %r', type_champ)
         return type_champ
 
     def dtypes(self, table: str) -> pd.Series:
@@ -418,16 +418,16 @@ class BaseDeDonnées:
             Series avec les colonnes comme index, les types comme valeurs.
 
         """
-        logger.debug('table = %r', table)
+        logging.debug('table = %r', table)
 
         cols = self.columns(table)
-        logger.debug('cols = %r', cols)
+        logging.debug('cols = %r', cols)
 
         dtypes = map(lambda x: self.dtype(table, x), self.columns(table))
-        logger.debug('dtypes = %r', dtypes)
+        logging.debug('dtypes = %r', dtypes)
 
         dtypes = pd.Series(dtypes, index=cols)
-        logger.debug('dtypes = %r', dtypes)
+        logging.debug('dtypes = %r', dtypes)
 
         return dtypes
 
@@ -446,11 +446,11 @@ class BaseDeDonnées:
             Index des colonnes du tableau..
 
         """
-        logger.debug('table = %r', table)
+        logging.debug('table = %r', table)
 
         res = pd.Index(c.name for c in self.table(
             table).columns if c.name != 'index')
-        logger.debug('res = %r', res)
+        logging.debug('res = %r', res)
 
         return res
 
@@ -469,18 +469,18 @@ class BaseDeDonnées:
             Index du tableau.
 
         """
-        logger.debug('table = %r', table)
+        logging.debug('table = %r', table)
 
         requête = sqla.select([self.table(
             table).columns['index']]).select_from(self.table(table))
-        logger.debug('requête = %s', requête)
+        logging.debug('requête = %s', requête)
 
         with self.begin() as con:
-            logger.debug('con = %r', con)
+            logging.debug('con = %r', con)
             résultat = con.execute(requête)
-            logger.debug('résultat = %r', résultat)
+            logging.debug('résultat = %r', résultat)
             res = pd.Index(r['index'] for r in résultat)
-            logger.debug('res = %r', res)
+            logging.debug('res = %r', res)
             return res
 
     def loc(self,
@@ -508,14 +508,14 @@ class BaseDeDonnées:
             Objet de sélection.
 
         """
-        logger.debug('table = %r\tcolumns = %r\twhere = %r\terrors = %r',
-                     table, columns, where, errors)
+        logging.debug('table = %r\tcolumns = %r\twhere = %r\terrors = %r',
+                      table, columns, where, errors)
         if columns is None:
             columns = self.columns(table)
-        logger.debug('columns = %r', columns)
+        logging.debug('columns = %r', columns)
 
         res = self.select(table, columns, where, errors).loc
-        logger.debug('res = %r', res)
+        logging.debug('res = %r', res)
 
         return res
 
@@ -544,14 +544,14 @@ class BaseDeDonnées:
             Objet de sélection numérique.
 
         """
-        logger.debug('table = %r\tcolumns = %r\twhere = %r\terrors = %r',
-                     table, columns, where, errors)
+        logging.debug('table = %r\tcolumns = %r\twhere = %r\terrors = %r',
+                      table, columns, where, errors)
         if columns is None:
             columns = self.columns(table)
-        logger.debug('columns = %r', columns)
+        logging.debug('columns = %r', columns)
 
         res = self.select(table, columns, where, errors).iloc
-        logger.debug('res = %r', res)
+        logging.debug('res = %r', res)
 
         return res
 
@@ -572,7 +572,7 @@ class BaseDeDonnées:
             Fonction du module pandas pour importer un fichier.
 
         """
-        logger.debug('chemin = %r', chemin)
+        logging.debug('chemin = %r', chemin)
         return TYPES_FICHIERS[chemin.suffix]
 
     def read_file(self,
@@ -597,17 +597,17 @@ class BaseDeDonnées:
         None.
 
         """
-        logger.debug('table = %r\tchemin = %r\ttype_fichier = %r',
-                     table, chemin, type_fichier)
+        logging.debug('table = %r\tchemin = %r\ttype_fichier = %r',
+                      table, chemin, type_fichier)
 
         if type_fichier is None:
             type_fichier = self.deviner_type_fichier(chemin)
         elif isinstance(type_fichier, str):
             type_fichier = TYPES_FICHIERS[type_fichier]
-        logger.debug('type_fichier = %r', type_fichier)
+        logging.debug('type_fichier = %r', type_fichier)
 
         df = type_fichier(chemin, index_col='index')
-        logger.debug('df = %r', df)
+        logging.debug('df = %r', df)
 
         self.màj(table, df)
 
@@ -629,18 +629,19 @@ def main(dossier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
         Structure de base de données.
 
     """
-    logger.info('%s main()', __file__)
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info('%s main()', __file__)
 
-    logger.info('Définition d\'une base de données...')
+    logging.info('Définition d\'une base de données...')
     md = sqla.MetaData()
     table = sqla.Table('demo', md,
                        sqla.Column('index', get_type('python', int,
                                                      'sqlalchemy'), primary_key=False),
                        sqla.Column('desc',
                                    get_type('python', str, 'sqlalchemy')))
-    logger.info('%r %r', md, table)
+    logging.info('%r %r', md, table)
 
-    logger.info('Ouverture du fichier de base de données...')
+    logging.info('Ouverture du fichier de base de données...')
 
     if dossier is None:
         if len(sys.argv) > 1:
@@ -648,41 +649,41 @@ def main(dossier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
         else:
             fichier = pathlib.Path(__file__).expanduser().resolve()
             dossier = fichier.parent.parent.parent
-            logger.info('fichier = %r', fichier)
+            logging.info('fichier = %r', fichier)
 
-    logger.info('dossier = %r', dossier)
+    logging.info('dossier = %r', dossier)
 
     if not len(list(dossier.glob('*.db'))):
         (dossier / 'test.db').touch()
 
-    logger.debug('*.db: %s', list(dossier.glob('*.db')))
+    logging.debug('*.db: %s', list(dossier.glob('*.db')))
 
     fichier = dossier / next(dossier.glob('*.db'))
-    logger.info('fichier = %r', fichier)
+    logging.info('fichier = %r', fichier)
 
     adresse = f'sqlite:////{fichier!s}'
 
-    logger.info('adresse = %r', adresse)
+    logging.info('adresse = %r', adresse)
     base = BaseDeDonnées(adresse, md)
-    logger.info('base = %r', base)
+    logging.info('base = %r', base)
 
-    logger.info('Réinitialiser la base de données...')
+    logging.info('Réinitialiser la base de données...')
     base.réinitialiser()
 
-    logger.info('Base de données définie:')
+    logging.info('Base de données définie:')
     for t, T in base.tables.items():
-        logger.info('%r: %r', t, T.columns)
+        logging.info('%r: %r', t, T.columns)
 
     logger.info('Ajout de rangées:')
     df = base.select('demo')
-    logger.info('Départ:\n%s', df)
+    logging.info('Départ:\n%s', df)
 
     idx = pd.Index([0, 1, 2], name='index')
     df = pd.DataFrame({'desc': ['test 1', 'test 2', 'encore (3)']}, index=idx)
-    logger.info('Données à ajouter:\n%s', df)
+    logging.info('Données à ajouter:\n%s', df)
 
     base.append('demo', df)
     df = base.select('demo')
-    logger.info('Données ajoutées:\n%s', df)
+    logging.info('Données ajoutées:\n%s', df)
 
     return base, md
