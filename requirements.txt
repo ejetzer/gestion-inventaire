@@ -27,3 +27,6 @@ simplejson
 wincertstore
 python-pptx
 unoconv
+paramiko
+databases
+ics

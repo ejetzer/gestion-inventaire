@@ -71,3 +71,11 @@ def main(dossier=None):
 
     formulaire.grid(0, 0)
     racine.mainloop()
+
+def vieux():
+    from .vieux.interface import Formulaire as VF
+    racine = tk.Tk()
+    racine.title('Entrée des heures')
+    chemin = Path(__file__).parent / 'vieux' / 'Configuration.txt'
+    fenêtre = VF(str(chemin), master=racine)
+    fenêtre.mainloop()

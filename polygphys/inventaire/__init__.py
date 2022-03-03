@@ -10,6 +10,7 @@ Créé le Fri Nov 26 15:15:36 2021
 
 import logging
 import sys
+import platform
 
 import tkinter as tk
 
@@ -87,3 +88,46 @@ def main(dossier=None):
 
     onglets.grid(sticky='nsew')
     racine.mainloop()
+
+def script():
+    CHEMINS = {'Darwin': Path('/Volumes/GeniePhysique/Techniciens/'),
+           'Windows': Path(r'Z:'),
+           None: Path('~/.inventaire').expanduser().resolve()}
+    SOUS_CHEMIN = Path('Emile_Jetzer/Inventaire/')
+    
+    dossier = CHEMINS.get(platform.system(), CHEMINS[None]) / SOUS_CHEMIN
+
+    if not dossier.exists():
+        dossier.mkdir()
+        cfg = dossier / 'default.cfg'
+        db = dossier / 'inventaire.sqlite'
+
+        with cfg.open('w') as f:
+            f.write(f'''[bd]
+    adresse = sqlite:///{db}
+tables =
+    personnes
+	locaux
+	portes
+	etageres
+	appareils
+	boites
+	emprunts
+	utilisation_boites
+formulaires = 
+	personnes
+	locaux
+	portes
+	etageres
+	appareils
+	boites
+	emprunts
+	utilisation_boites
+
+[tkinter]
+title: Inventaire du département de génie physique à Polytechnique Montréal
+''')
+
+        db.touch()
+        
+    main(dossier)

@@ -19,8 +19,8 @@ import pandas
 
 from pandas import Series, DataFrame
 
-from mise_a_jour import FeuilleDeTemps
-from calendrier import Calendrier
+from .mise_a_jour import FeuilleDeTemps
+from .calendrier import Calendrier
 
 
 class AvertissementAdministratif(UserWarning):

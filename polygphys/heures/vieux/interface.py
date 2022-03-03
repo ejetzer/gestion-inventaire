@@ -16,12 +16,12 @@ import traceback
 
 from pathlib import Path
 
-import disque_reseau
+import polygphys.heures.vieux.disque_reseau as disque_reseau
 
-from calendrier import Calendrier
-from mise_a_jour import FeuilleDeTemps
-from git import Repository
-from verifications import avertissements, vérifications
+from .calendrier import Calendrier
+from .mise_a_jour import FeuilleDeTemps
+from .git import Repository
+from .verifications import avertissements, vérifications
 
 
 class Formulaire(tkinter.Frame):
@@ -187,5 +187,6 @@ class Formulaire(tkinter.Frame):
 if __name__ == '__main__':
     racine = tkinter.Tk()
     racine.title('Entrée des heures')
-    fenêtre = Formulaire('Configuration.txt', master=racine)
+    chemin = Path('~/heures.cfg').expanduser()
+    fenêtre = Formulaire(str(chemin), master=racine)
     fenêtre.mainloop()

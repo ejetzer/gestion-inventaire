@@ -198,3 +198,16 @@ class Fenetre(tk.Frame):
             conf.write(fichier)
         
         self.master.destroy()
+
+def main():
+    """
+    Script principal: créer et faire rouler l'interface.
+
+    Retourne
+    -------
+    None.
+
+    """
+    _ = tk.Tk()
+    app = Fenetre(parent=_)
+    app.mainloop()

@@ -24,5 +24,5 @@
 [Volumes]
     chemin: ~/Volumes/GeniePhysique
     adresse: phsfiles.phs.polymtl.ca/GeniePhysique
-    nom: p111806
-    mdp: 94T8iXPEqJFPWDT
+    nom: 
+    mdp: 

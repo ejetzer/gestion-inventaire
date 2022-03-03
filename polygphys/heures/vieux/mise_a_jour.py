@@ -25,7 +25,7 @@ import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
 from pandas import DataFrame
 
-from calendrier import Calendrier
+from .calendrier import Calendrier
 
 
 def assainir_nom(nom):
