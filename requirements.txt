@@ -1,0 +1,9 @@
+pandas
+sqlalchemy
+openpyxl
+xlwt
+gitpython
+pyserial
+pyusb
+pyvisa-py
+pyvisa
