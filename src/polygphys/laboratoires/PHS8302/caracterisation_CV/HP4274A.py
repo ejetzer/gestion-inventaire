@@ -38,7 +38,7 @@ class HP4274AOverflowException(HP4274AException):
 class HP4274AUnderflowException(HP4274AException):
     pass
 
-class HP4274AOverflowException(HP4274AException):
+class HP4274AWrongMeasuringFunctionException(HP4274AException):
     pass
 
 # État de la machine
@@ -267,9 +267,6 @@ def exe1(root,
     sauvegarde: Path = Path(f'{nom}/{comp}')
     nom_ressource: str = ressource_var.get()
 
-    max_vb: float = float(max_vb_var.get())
-    min_vb: float = float(min_vb_var.get())
-    nbr: int = int(nbr_var.get())
     vb: float = float(biais_var.get())  # En potentiel de biais
 
     # Vérifier l'existence du répertoire de sauvegarde

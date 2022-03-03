@@ -27,17 +27,17 @@ class HTMLÉlémentInterface:
         self.attrs = attrs
         self.contenu = contenu
 
-    def grid(row: int, column: int):
+    def grid(self, row: int, column: int):
         return str(self)
 
     def __repr__(self):
-        return f'<Élément {tag}>'
+        return f'<Élément {self.tag}>'
 
     def __str__(self):
         attributs = ' '.join(f'{a}="{b}"' for a, b in self.attrs.items())
-        if contenu is None:
+        if self.contenu is None:
             return f'<{self.tag} {attributs} />'
-        elif isinstance(contenu, list):
+        elif isinstance(self.contenu, list):
             return f'<{self.tag} {attributs}>\n' + '\n'.join(str(e) for e in self.contenu) + f'</{self.tag}>'
 
 
@@ -47,7 +47,7 @@ class HTMLTable(HTMLÉlémentInterface):
         super().__init__(master, 'table')
         self.grille = [[]]
 
-    def grid(row: int, column: int):
+    def grid(self, row: int, column: int):
         return str(self)
 
 
@@ -56,7 +56,7 @@ class HTMLCellule(HTMLÉlémentInterface):
     def __init__(self, master: HTMLTable = None):
         super().__init__(master, 'td')
 
-    def grid(row: int, column: int):
+    def grid(self, row: int, column: int):
         while row >= len(self.master.grille):
             self.master.grille.append([])
         while column >= len(self.master.grille[row]):
