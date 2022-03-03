@@ -47,24 +47,14 @@ polygphys.journal_de_laboratoire
 polygphys.laboratoires
 ####################################
 
-.. automodule:: polygphys.laboratoires
-    :members:
-    :undoc-members:
-    :special-members:
-
 ************************************
 polygphys.laboratoires.PHS8302
 ************************************
 
-.. automodule:: polygphys.laboratoires.PHS8302
-    :members:
-    :undoc-members:
-    :special-members:
-
 caracterisation_CV
 ====================================
 
-.. automodule:: polygphys.laboratoires.PHS8302.caracterisation_CV
+.. automodule:: polygphys.laboratoires.PHS8302.caracterisation_CV.HP4274A
     :members:
     :undoc-members:
     :special-members:
@@ -72,18 +62,8 @@ caracterisation_CV
 caracterisation_IV
 ====================================
 
-.. automodule:: polygphys.laboratoires.PHS8302.caracterisation_IV
-    :members:
-    :undoc-members:
-    :special-members:
-
 cellule_solaire
 ====================================
-
-.. automodule:: polygphys.laboratoires.PHS8302.cellule_solaire
-    :members:
-    :undoc-members:
-    :special-members:
 
 ####################################
 polygphys.outils
@@ -116,18 +96,8 @@ polygphys.outils.journal
 polygphys.outils.appareils
 ************************************
 
-.. automodule:: polygphys.outils.appareils
-    :members:
-    :undoc-members:
-    :special-members:
-
 polygphys.outils.appareils.HP
 ===================================
-
-.. automodule:: polygphys.outils.appareils.HP
-    :members:
-    :undoc-members:
-    :special-members:
 
 ...HP.HP4274A_dev.py
 -----------------------------------
@@ -141,19 +111,6 @@ polygphys.outils.appareils.HP
 -----------------------------------
 
 .. automodule:: polygphys.outils.appareils.HP.HP4274A_lab
-    :members:
-    :undoc-members:
-    :special-members:
-
-polygphys.outils.appareils.Thorlabs
-===================================
-
-.. automodule:: polygphys.outils.appareils.Thorlabs
-    :members:
-    :undoc-members:
-    :special-members:
-
-.. automodule:: polygphys.outils.appareils.Thorlabs.lab
     :members:
     :undoc-members:
     :special-members:

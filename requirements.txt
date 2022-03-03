@@ -32,4 +32,4 @@ databases
 ics
 matplotlib
 plistop>=0.2
-usbtmc
+python-usbtmc
