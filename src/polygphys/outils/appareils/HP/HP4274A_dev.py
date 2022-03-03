@@ -17,7 +17,7 @@ import pandas as pd
 
 from matplotlib import pyplot as plt
 
-from ..appareils import Appareil, Expérience
+from ...appareils import Appareil, Expérience
 
 
 class HP4274A(Appareil):
