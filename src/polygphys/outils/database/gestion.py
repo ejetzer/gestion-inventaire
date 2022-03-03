@@ -3,7 +3,7 @@
 
 from sqlalchemy import MetaData
 
-from ..outils.database import BaseDeDonnées
+from ..database import BaseDeDonnées
 
 
 def reset(adresse: str, schema: MetaData):

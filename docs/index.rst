@@ -99,16 +99,10 @@ polygphys.outils.appareils
 polygphys.outils.appareils.HP
 ===================================
 
-...HP.HP4274A_dev.py
------------------------------------
-
 .. automodule:: polygphys.outils.appareils.HP.HP4274A_dev
     :members:
     :undoc-members:
     :special-members:
-
-...HP.HP4274A_lab.py
------------------------------------
 
 .. automodule:: polygphys.outils.appareils.HP.HP4274A_lab
     :members:
@@ -125,7 +119,7 @@ polygphys.outils.database
     :undoc-members:
     :special-members:
 
-...database.dtypes
+dtypes
 ====================================
 
 .. automodule:: polygphys.outils.database.dtypes
@@ -133,7 +127,7 @@ polygphys.outils.database
     :undoc-members:
     :special-members:
 
-...database.gestion
+gestion
 ====================================
 
 .. automodule:: polygphys.outils.database.gestion
