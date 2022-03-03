@@ -8,7 +8,17 @@ Créé le Thu Dec 16 13:37:07 2021
 @author: ejetzer
 """
 
-from . import main
+import tkinter
+
+from pathlib import Path
+
+# from . import main
+
+from .vieux.interface import Formulaire
 
 if __name__ == '__main__':
-    main()
+    racine = tkinter.Tk()
+    racine.title('Entrée des heures')
+    chemin = Path(__file__).parent / 'vieux' / 'Configuration.txt'
+    fenêtre = Formulaire(str(chemin), master=racine)
+    fenêtre.mainloop()

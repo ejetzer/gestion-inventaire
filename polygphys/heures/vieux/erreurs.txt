@@ -1,0 +1,13 @@
+            Heures                   Avertissement
+2022-02-09     6.0   Peu d'heures dans une journée
+2022-02-10     5.3   Peu d'heures dans une journée
+2022-02-11     1.5   Peu d'heures dans une journée
+2022-02-16     2.5   Peu d'heures dans une journée
+2022-02-18     1.0   Peu d'heures dans une journée
+2022-02-21     4.5   Peu d'heures dans une journée
+2022-02-22     3.0   Peu d'heures dans une journée
+2022-02-15    10.5  Trop d'heures dans une journée
+5             27.5   Peu d'heures dans une semaine
+6             12.8   Peu d'heures dans une semaine
+7             22.5   Peu d'heures dans une semaine
+8              7.5   Peu d'heures dans une semaine
