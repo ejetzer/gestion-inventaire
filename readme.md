@@ -1,7 +1,13 @@
-# Outils & programmes du département de génie physique de Polytechnique
+# Outils & programmes du département de génie physique de Polytechnique [![Python application](https://github.com/ejetzer/polygphys/actions/workflows/python-app.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/python-app.yml) [![CodeQL](https://github.com/ejetzer/polygphys/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/codeql-analysis.yml) [![Upload Python Package](https://github.com/ejetzer/polygphys/actions/workflows/python-publish.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/python-publish.yml)
 
-1. Interface de base de données, avec différents exemples d'application.
-2. Interfaces avec divers appareils via PyVISA.
+- Installation via PyPI: https://pypi.org/project/polygphys/
+    '''python
+    pip install polygphys
+    '''
+- Documentation sur Read The Docs: https://polygphys.readthedocs.io/en/latest/
+- Contributions via Github: https://github.com/ejetzer/polygphys 
+
+
 
 ## Prérequis & conseils
 
@@ -20,142 +26,55 @@ Ce programme est en développement actif, et ne devrait être utilisé que
 
 ## Installation
 
+L'installation de la version stable se fait via `pip`:
+
+'''
+pip install polygphys
+'''
+
 Le bon fonctionnement du sous-module `polygphys.outils.appareils` pourrait demander l'installation de logiciel supplémentaire, selon l'utilisation:
 
 1. L'installation des drivers VISA officiels de National Instrument
 2. L'installation de drivers supplémentaires USB pour pyUSB.
+3. L'installation séparée de pylablib (selon le système d'exploitation)
+4. L'installation de drivers Keysight ou Agilent pour cetains adapteurs GPIB sur Windows.
 
 Voir la [page de référence de pyVISA] pour résoudre les problèmes causés par des drivers manquants.
 
 [page de référence de pyVISA]: https://pyvisa.readthedocs.io/projects/pyvisa-py/en/latest/installation.html
 
-### Tag `v1`
 
-La version `v1` est stable et peut-être utilisée telle quelle.
+## Développement
 
-### Branche `alpha`
+Le développement se fait sur les branches `alpha` et `beta` en général, parfois sur des branches spécifiques à certaines fonctionnalités. Pour s'en servir et les installer, il faut utiliser `git`:
 
-La branche `alpha` est en développement constant, et ne devrait pas être utilisée pour développer un programme plus complexe.
+'''
+git clone https://github.com/ejeetzer/polygphys.git
+cd polygphys
+git checkout alpha
+pip install -e .
+'''
 
-0. [x] Rendre les programmes exécutables avec un argument en ligne de commande & comme application
+## À faire
+
+Dans le sous module `polygphys.outils.database`:
+
+0. [ ] Rendre les programmes exécutables avec un argument en ligne de commande & comme application
 1. [x] Définir plus adéquatement les bases de données et leurs relations
 1. [ ] Filtrer par valeur dans des colonnes
 2. [ ] Permettre l'ajout de colonnes de l'intérieur de l'application
 3. [ ] Permettre d'ajouter des sections de configuration
-4. [ ] Permettre d'ajouter des champs de configuration
+4. [x] Permettre d'ajouter des champs de configuration
 5. [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
 6. [x] Rendre le logging plus compatible avec sqlalchemy.
-    Retirer les logs sql, utiliser ceux de sqlalchemy à la place.
+7. [ ] Retirer les logs sql, utiliser ceux de sqlalchemy à la place.
 
-#### 0. Exécutables
+Dans les sous modules `polygphys.laboratoires`, `polygphys.outils.appareils` et `polygphys.sst`:
 
-Rendre les programmes exécutables avec un argument en ligne de commande. **Et comme application.**
+8. [ ] Intégrer les applications externes
+    - Certificats laser
+    - PHS8302
 
-#### 1. Définitions de bases de données
+En général:
 
-0. [x] Valeurs par défaut avec `server_default`
-    Utiliser les `modifier` et `listen`.
-1. [x] Une base de données de personnes et leurs rôles
-    Le but est de pouvoir référer aux gens dans d'autres bases de données. Le matricule devrait servir d'id si présent.
-    - Techniciens
-    - Professeurs
-    - Étudiants
-2. [x] Une base de données des locaux, les associants à des responsables. Chaque local devrait avoir une désignation unique, mais pouvoir être associé à plusieurs portes.
-3. [x] Une base de données d'inventaire
-
-#### 1. Filtre
-
-0. [ ] Permettre de charger une base de données par «réflection», en chargeant le schéma automatiquement.
-    https://docs.sqlalchemy.org/en/14/core/reflection.html#reflecting-all-tables-at-once
-1. [ ] Classe de vue de base de données (sans édition)
-2. [ ] Formulaire de recherche dans la base de données générant une vue comme résultat
-3. [ ] Permettre l'export de vues
-4. [ ] Permettre l'import de vues modifiées?
-
-- [ ] __init__.py
-- [ ] __main__.py
-- [ ] heures
-    - [ ] __init__.py
-    - [ ] __main__.py
-    - [ ] modeles.py
-- [ ] inventaire
-    - [ ] __init__.py
-    - [ ] __main__.py
-    - [ ] modeles.py
-- [ ] journal_de_laboratoire
-    - [ ] __init__.py
-    - [ ] __main__.py
-    - [ ] modeles.py
-- [ ] outils
-    - [ ] __init__.py
-    - [ ] __main__.py
-    - [ ] config.py
-    - [ ] journal.py
-    - [ ] database
-        - [ ] __init__.py
-        - [ ] __main__.py
-        - [ ] dtypes.py
-        - [ ] gestion.py
-    - [ ] interface
-        - [ ] __init__.py
-        - [ ] __main__.py
-        - [ ] tableau.py
-        - [ ] html.py
-        - [ ] tkinter
-            - [ ] __init__.py
-            - [ ] __main__.py
-            - [ ] onglets.py
-
-#### 5. Journalisation
-
-Modifier tous les fichiers pour:
-
-1. [x] Changer le nom du module `polygphys.outils.interface.df` à `polygphys.outils.interface.tableau`
-2. [x] Normaliser la journalisation des erreurs et messages avec le module `polygphys.outils.journal`
-3. [x] Tests
-    - [x] polygphys-demo
-    - [x] polygphys-inventaire
-    - [x] polygphys-heures
-
-### Branche `beta`
-
-La branche `beta` est toujours fonctionnelle, mais peut changer d'un `commit` à l'autre dans les interfaces de classe, fonctionnalités, etc.
-
-- [x] Permettre d'effacer des rangées
-- [x] Faciliter l'importation de documents Excel & d'autres bases de données
-
-
-## Modules
-
-1. `outils` comprend différents modules utilitaires.
-    1. `config.py` contient une interface facilitant la manipulation de fichiers de configuration.
-    2. `database` comprend des outils de manipulation de base de données.
-        `__init__.py` comprend la classe `BaseDeDonnées` incluant le gros des fonctionnalités, y compris une interface entre SQLAlchemy et Pandas.
-        2. `dtypes.py` comprend des fonctions de correspondance des types de données entre SQLAlchemy, Pandas, tkinter et Python.
-        3. `gestion.py` contiendra des fonctions de migration de base de données.
-    3. `interface` comprend des modules d'affichage.
-        1.  `df.py` facilite l'affichage de bases de données comme tableurs ou formulaires.
-        2. `onglets.py` facilite l'affichage de plusieurs bases de données et fichiers de configuration.
-        3. `tkinter.py` facilite l'utilisation des classes tkinter.
-        4. `html.py` facilitera bientôt l'affichage en html.
-2. `heures` contient une ébauche de programme de gestion des heures.
-3. `inventaire` contient une ébauche de programme d'inventaire.
-4. `demo.py` est un script d'exemple des fonctionnalités du programme.
-
-## Configuration
-
-Le fichier de configuration `base.cfg` comporte différentes sections:
-
-1. `bd` contient les informations sur la base de données et les tables de données à utiliser.
-2. `tkinter` liste des paramètres de configuration de l'affichage.
-3. Les autres sections décrivent différentes tables de données.
-
-### `bd`
-
-1. `adresse` indique la position du fichier de base de données, et le protocole SQLAlchemy à utiliser. En ce moment n'utilisez que `sqlite`, qui stocke la base de données dans un fichier localement.
-2. `tables` est une énumération ligne par ligne des tableaux de base de données à afficher.
-3. `formulaires` est une énumération ligne par ligne des tableaux pour lesquels afficher des formulaires.
-
-### `tkinter`
-
-1. `title` donne le titre de la fenêtre principale.
+1. [ ] Compléter la suite de tests
