@@ -49,7 +49,7 @@ Voir la [page de référence de pyVISA] pour résoudre les problèmes causés pa
 Le développement se fait sur les branches `alpha` et `beta` en général, parfois sur des branches spécifiques à certaines fonctionnalités. Pour s'en servir et les installer, il faut utiliser `git`:
 
 ```
-git clone https://github.com/ejeetzer/polygphys.git
+git clone https://github.com/ejetzer/polygphys.git
 cd polygphys
 git checkout alpha
 pip install -e .

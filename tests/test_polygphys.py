@@ -6,5 +6,7 @@ Created on Thu Mar  3 17:02:49 2022
 @author: emilejetzer
 """
 
+
 def test_polygphys():
-    assert True
+    import polygphys
+    polygphys.main

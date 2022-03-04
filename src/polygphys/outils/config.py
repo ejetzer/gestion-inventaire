@@ -17,8 +17,6 @@ from pathlib import Path
 from configparser import ConfigParser
 from urllib.parse import urlparse
 
-logger = logging.getLogger(__name__)
-
 
 class FichierConfig(ConfigParser):
     """Garde ConfigParser synchronisé avec un fichier."""
@@ -55,7 +53,7 @@ class FichierConfig(ConfigParser):
         if not self.chemin.exists():
             self.chemin.touch()
             with self.chemin.open('w') as f:
-                f.write(self.default)
+                f.write(self.default())
 
         super().__init__(inline_comment_prefixes=inline_comment_prefixes,
                          **kargs)
@@ -70,7 +68,7 @@ class FichierConfig(ConfigParser):
         None.
 
         """
-        return f'''[default]
+        return f'''[FichierConfig]
     auto: True
     class: {type(self)}
 '''
@@ -130,6 +128,7 @@ class FichierConfig(ConfigParser):
                       value)
         super().set(section, option, value)
         self.write()
+        self.read()
 
     def getlist(self,
                 sec: str,

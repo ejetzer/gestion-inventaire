@@ -17,8 +17,6 @@ from typing import Union, Any
 import sqlalchemy as sqla
 import tkinter as tk
 
-logger = logging.getLogger(__name__)
-
 
 TYPES: tuple[dict[str, Union[str, type]]] = ({'config': None,
                                               'python': str,
@@ -93,17 +91,17 @@ def get_type(de: str, t: Union[Any, type, str], à: str) -> Union[type, str]:
         Type ou description de type.
 
     """
-    logger.debug('de = %r\tt = %r\tà = %r', de, t, à)
+    logging.debug('de = %r\tt = %r\tà = %r', de, t, à)
 
     def comp(x):
-        logger.debug('x[de] = %r', x[de])
-        logger.debug('type(x[de]) = %r', type(x[de]))
-        logger.debug('t = %r', t)
+        logging.debug('x[de] = %r', x[de])
+        logging.debug('type(x[de]) = %r', type(x[de]))
+        logging.debug('t = %r', t)
 
         return x[de] == t
 
     for s in filter(comp, TYPES):
-        logger.debug('s[à] = %r', s[à])
+        logging.debug('s[à] = %r', s[à])
         return s[à]
 
     return next(filter(lambda x: x['config'] is None, TYPES))[à]
