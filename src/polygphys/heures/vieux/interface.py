@@ -25,8 +25,26 @@ from .verifications import avertissements, vérifications
 
 
 class Formulaire(tkinter.Frame):
+    """Formulaire d'entrée des heures."""
 
     def __init__(self, configuration, *args, **kargs):
+        """
+        Formulaire d'entrée des heures.
+
+        Parameters
+        ----------
+        configuration : TYPE
+            DESCRIPTION.
+        *args : TYPE
+            DESCRIPTION.
+        **kargs : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         super().__init__(*args, **kargs)
         self.charger_configuration(configuration)
 
@@ -50,6 +68,14 @@ class Formulaire(tkinter.Frame):
         self.màj()
 
     def màj(self):
+        """
+        Mise à jour des documents à remettre.
+
+        Returns
+        -------
+        None.
+
+        """
         self.bouton_maj.configure(fg='red', text='Mise à jour en cours...')
         disque_reseau.connecter(**self.config['Volumes'])
 
@@ -61,7 +87,8 @@ class Formulaire(tkinter.Frame):
             racine = Path(cal_cfg['ics']).expanduser()
             calendrier = Calendrier(cal_cfg['compte'], cal_cfg['cal'], racine)
 
-            with FeuilleDeTemps(calendrier, **self.config['Polytechnique']) as feuille:
+            with FeuilleDeTemps(calendrier,
+                                **self.config['Polytechnique']) as feuille:
                 self.bouton_maj.configure(
                     fg='red', text='[1/4] Extraction en cours...')
                 self.bouton_maj.configure(
@@ -109,10 +136,19 @@ class Formulaire(tkinter.Frame):
         disque_reseau.déconnecter(**self.config['Volumes'])
 
     def créer_champs(self):
+        """
+        Créer les champs de formulaire.
+
+        Returns
+        -------
+        None.
+
+        """
         self.variables, self.entrées, self.étiquettes = {}, {}, {}
 
         i = 0
-        for i, col in enumerate(eval(self.config['Polytechnique']['Colonnes'])):
+        for i, col in\
+                enumerate(eval(self.config['Polytechnique']['Colonnes'])):
             self.variables[col] = tkinter.StringVar()
             self.entrées[col] = tkinter.Entry(textvariable=self.variables[col])
             self.étiquettes[col] = tkinter.Label(text=col)
@@ -122,20 +158,22 @@ class Formulaire(tkinter.Frame):
 
             if col == 'Date':
                 self.variables[col].set(datetime.datetime.now().isoformat())
-            elif col in eval(self.config['Polytechnique']['Colonnes']) and col in self.config['Polytechnique']:
+            elif col in eval(self.config['Polytechnique']['Colonnes']) and\
+                    col in self.config['Polytechnique']:
                 self.variables[col].set(self.config['Polytechnique'][col])
 
         def effacer():
             for col, var in self.variables.items():
                 if col == 'Date':
                     var.set(datetime.datetime.now().isoformat())
-                elif col in eval(self.config['Polytechnique']['Colonnes']) and col in self.config['Polytechnique']:
+                elif col in eval(self.config['Polytechnique']['Colonnes']) and\
+                        col in self.config['Polytechnique']:
                     var.set(self.config['Polytechnique'][col])
                 else:
                     var.set('')
 
         self.bouton_effacer = tkinter.Button(text='Effacer', command=effacer)
-        self.bouton_effacer.grid(row=i+1, column=0, sticky='EW')
+        self.bouton_effacer.grid(row=i + 1, column=0, sticky='EW')
 
         def soumettre():
             self.ajouter_entrée(**{c: v.get()
@@ -144,34 +182,69 @@ class Formulaire(tkinter.Frame):
 
         self.bouton_soumettre = tkinter.Button(
             text='Soumettre', command=soumettre)
-        self.bouton_soumettre.grid(row=i+1, column=1, sticky='EW')
+        self.bouton_soumettre.grid(row=i + 1, column=1, sticky='EW')
 
         self.bouton_maj = tkinter.Button(
             text='Mettre à jour', command=lambda: self.màj())
-        self.bouton_maj.grid(row=i+2, column=0, columnspan=2, sticky='EW')
+        self.bouton_maj.grid(row=i + 2, column=0, columnspan=2, sticky='EW')
         self.bouton_maj.configure(fg='green')
 
         self.dernière_maj = tkinter.Label(text=f'{datetime.datetime.now()}')
-        self.dernière_maj.grid(row=i+3, column=0, columnspan=2, sticky='EW')
+        self.dernière_maj.grid(row=i + 3, column=0, columnspan=2, sticky='EW')
 
         self.after(1000 * 60 * 60 * 8, lambda: self.màj())
 
     def ajouter_entrée(self, **kargs):
+        """
+        Ajouter une nouvelle entrée.
+
+        Parameters
+        ----------
+        **kargs : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         maintenant = datetime.datetime.now(
             datetime.timezone(datetime.timedelta(hours=-4)))
         nouveau_fichier = pathlib.Path(os.path.expanduser(
-            self.config['Polytechnique']['Boîte de dépôt'])) / f'{maintenant:%Y-%m-%dT%H_%M_%S%z} Tâche complétée.txt'
+            self.config['Polytechnique']['Boîte de dépôt'])) /\
+            f'{maintenant:%Y-%m-%dT%H_%M_%S%z} Tâche complétée.txt'
 
         texte = ''.join(f'{c}: {v}\n' for c, v in kargs.items())
         with nouveau_fichier.open('w') as doc:
             doc.write(texte)
 
     def charger_configuration(self, fichier):
+        """
+        Charger le fichier de configuration.
+
+        Parameters
+        ----------
+        fichier : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         self.config = configparser.ConfigParser()
         self.config.optionxform = str
         self.config.read(fichier)
 
     def destroy(self):
+        """
+        Détruire l'objet d'affichage.
+
+        Returns
+        -------
+        None.
+
+        """
         self.bouton_maj.configure(fg='red')
         self.màj()
 

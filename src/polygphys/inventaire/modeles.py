@@ -18,6 +18,20 @@ from ..outils.database.modeles import col_index
 
 
 def appareils(metadata: MetaData) -> Table:
+    """
+    Lister des appareils.
+
+    Parameters
+    ----------
+    metadata : MetaData
+        DESCRIPTION.
+
+    Returns
+    -------
+    Table
+        DESCRIPTION.
+
+    """
     matricule = metadata.tables['personnes'].columns['matricule']
     designation = metadata.tables['etageres'].columns['designation']
     cols = [col_index(),
@@ -37,6 +51,20 @@ def appareils(metadata: MetaData) -> Table:
 
 
 def boites(metadata: MetaData) -> Table:
+    """
+    Lister des boîtes de transport.
+
+    Parameters
+    ----------
+    metadata : MetaData
+        DESCRIPTION.
+
+    Returns
+    -------
+    Table
+        DESCRIPTION.
+
+    """
     matricule = metadata.tables['personnes'].columns['matricule']
     designation = metadata.tables['etageres'].columns['designation']
     cols = [col_index(),
@@ -50,6 +78,20 @@ def boites(metadata: MetaData) -> Table:
 
 
 def emprunts(metadata: MetaData) -> Table:
+    """
+    Lister des emprunts.
+
+    Parameters
+    ----------
+    metadata : MetaData
+        DESCRIPTION.
+
+    Returns
+    -------
+    Table
+        DESCRIPTION.
+
+    """
     appareil = metadata.tables['appareils'].columns['index']
     personnes = metadata.tables['personnes'].columns['matricule']
     cols = [col_index(),
@@ -66,6 +108,20 @@ def emprunts(metadata: MetaData) -> Table:
 
 
 def utilisation_boites(metadata: MetaData) -> Table:
+    """
+    Lister des boîtes utilisées.
+
+    Parameters
+    ----------
+    metadata : MetaData
+        DESCRIPTION.
+
+    Returns
+    -------
+    Table
+        DESCRIPTION.
+
+    """
     boite = metadata.tables['appareils'].columns['index']
     personnes = metadata.tables['personnes'].columns['matricule']
     cols = [col_index(),
@@ -82,6 +138,20 @@ def utilisation_boites(metadata: MetaData) -> Table:
 
 
 def créer_dbs(metadata: MetaData):
+    """
+    Créer les bases de données.
+
+    Parameters
+    ----------
+    metadata : MetaData
+        DESCRIPTION.
+
+    Returns
+    -------
+    metadata : TYPE
+        DESCRIPTION.
+
+    """
     modeles.créer_dbs(metadata)
 
     appareils(metadata)

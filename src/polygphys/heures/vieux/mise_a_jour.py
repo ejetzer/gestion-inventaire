@@ -9,13 +9,10 @@ Created on Mon Jul 26 10:29:13 2021
 """
 
 import configparser
-import pathlib
 import datetime
 import re
 import itertools
 import shutil
-
-import os.path
 
 from pathlib import Path
 
@@ -29,11 +26,25 @@ from .calendrier import Calendrier
 
 
 def assainir_nom(nom):
-    'Assainit un nom de fichier (sans l\'extension)'
+    """Assainit un nom de fichier (sans l'extension)."""
     return ''.join([('_' if x in '_:/' else x) for x in nom])
 
 
 def importations_heures(x):
+    """
+    Fonction d'importation des heures, assainissement.
+
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
     if isinstance(x, str):
         x = x.strip()
 
@@ -49,16 +60,105 @@ def importations_heures(x):
     return float(x)
 
 
-fonctions_importation = {'Atelier': lambda x: bool(int('0' + str(x).strip())),
+def importation_payeur(x):
+    """
+    Fonction d'assainissement de l'entrée du payeur.
+
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    return ', '.join(x.strip().split(' ')[::-1])
+
+
+def importation_atelier(x):
+    """
+    Assainissement de si le travail s'est fait à l'atelier.
+
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    return bool(int('0' + str(x).strip()))
+
+
+def importation_description(x):
+    """
+    Assainissement de la description.
+
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    return x.strip('"')
+
+
+def importation_date(x):
+    """
+    Assainissement de la date.
+
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    return datetime.datetime.fromisoformat(x).date()
+
+
+desc_titre = 'Description des travaux effectués'
+fonctions_importation = {'Atelier': importation_atelier,
                          'Heures': importations_heures,
-                         'Payeur': lambda x: ', '.join(x.strip().split(' ')[::-1]),
-                         'Description des travaux effectués': lambda x: x.strip('"'),
-                         'Date': lambda x: datetime.datetime.fromisoformat(x).date()}
+                         'Payeur': importation_payeur,
+                         desc_titre: importation_description,
+                         'Date': importation_date}
 
 
 class FeuilleDeTemps:
+    """Feuille de temps."""
 
     def __init__(self, calendrier: Calendrier, **config):
+        """
+        Feuille de temps.
+
+        Parameters
+        ----------
+        calendrier : Calendrier
+            DESCRIPTION.
+        **config : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         self.config: dict[str, str] = config
         self.destination: Path = Path(self.config['Destination']).expanduser()
         self.fichier_temps: Path = self.destination / \
@@ -76,18 +176,61 @@ class FeuilleDeTemps:
 
     @property
     def fichiers_texte(self) -> iter:
+        """
+        Obtenir les fichiers texte.
+
+        Yields
+        ------
+        iter
+            DESCRIPTION.
+
+        """
         yield from self.boîte_de_dépôt.glob('*.txt')
 
     @property
     def fichiers_photo(self) -> iter:
+        """
+        Obtenir les photos.
+
+        Yields
+        ------
+        iter
+            DESCRIPTION.
+
+        """
         yield from self.boîte_de_dépôt.glob('*.png')
         yield from self.boîte_de_dépôt.glob('*.jpeg')
 
     @property
     def fichiers_des_tâches_complétées(self) -> iter:
+        """
+        Obtenir les tâches complétées.
+
+        Yields
+        ------
+        iter
+            DESCRIPTION.
+
+        """
         yield from (f for f in self.fichiers_texte if 'compl' in f.stem)
 
     def extraire(self, fichiers: list[Path] = None, **défaut) -> DataFrame:
+        """
+        Extraire les informations des ficheirs de nouvelles tâches.
+
+        Parameters
+        ----------
+        fichiers : list[Path], optional
+            DESCRIPTION. The default is None.
+        **défaut : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        DataFrame
+            DESCRIPTION.
+
+        """
         if fichiers is None:
             fichiers = self.fichiers_des_tâches_complétées
         if défaut is None or défaut == {}:
@@ -117,18 +260,33 @@ class FeuilleDeTemps:
             # données.loc[:, 'Heures'] = données.loc[:, "Nbr d'heures"]
             données.loc[données.Atelier,
                         'Atelier'] = données.loc[données.Atelier, 'Heures']
-            données.loc[données.Atelier == False, 'Atelier'] = 0
+            données.loc[~(données.Atelier.map(bool)), 'Atelier'] = 0
             données = données.loc[:, eval(défaut['Colonnes'])]
 
         self.données = données
         return données
 
     def répartition(self, données: DataFrame = None) -> DataFrame:
+        """
+        Répartir les heures dans le temps et par groupe.
+
+        Parameters
+        ----------
+        données : DataFrame, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        DataFrame
+            DESCRIPTION.
+
+        """
         if données is None:
             données = self.données
 
-        def semaines_et_groupes(x): return données.loc[x, 'Date'].isocalendar()[
-            1], données.loc[x, 'Payeur']
+        def semaines_et_groupes(x):
+            return données.loc[x, 'Date'].isocalendar()[1],\
+                données.loc[x, 'Payeur']
 
         proportions = données.loc[:, ['Payeur', 'Date', 'Heures']].groupby(
             semaines_et_groupes).sum()
@@ -143,10 +301,25 @@ class FeuilleDeTemps:
         return proportions
 
     def compte(self, données: DataFrame = None) -> DataFrame:
+        """
+        Compter les heures.
+
+        Parameters
+        ----------
+        données : DataFrame, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        DataFrame
+            DESCRIPTION.
+
+        """
         if données is None:
             données = self.données
 
-        def dates(x): return données.loc[x, 'Date']
+        def dates(x):
+            return données.loc[x, 'Date']
 
         présences = données.loc[:, ['Date', 'Heures']].groupby(dates).sum()
         présences['Différences'] = présences['Heures'] - 7
@@ -168,6 +341,30 @@ class FeuilleDeTemps:
                 colonnes_excel: str = None,
                 rangée_min: int = None,
                 colonne_max: int = None) -> DataFrame:
+        """
+        Charger les données déjà entrées.
+
+        Parameters
+        ----------
+        données : DataFrame, optional
+            DESCRIPTION. The default is None.
+        fichier_temps : Path, optional
+            DESCRIPTION. The default is None.
+        nom_feuille : str, optional
+            DESCRIPTION. The default is None.
+        colonnes_excel : str, optional
+            DESCRIPTION. The default is None.
+        rangée_min : int, optional
+            DESCRIPTION. The default is None.
+        colonne_max : int, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        DataFrame
+            DESCRIPTION.
+
+        """
         if données is None:
             données = self.données
         if fichier_temps is None:
@@ -186,8 +383,10 @@ class FeuilleDeTemps:
 
         colonnes = [col.value for col in feuille[colonnes_excel][0]]
         valeurs = {c: [] for c in colonnes}
-        for ligne in feuille.iter_rows(min_row=rangée_min, max_col=colonne_max, values_only=True):
-            ligne = ligne + tuple('' for i in range(11-len(ligne)))
+        for ligne in feuille.iter_rows(min_row=rangée_min,
+                                       max_col=colonne_max,
+                                       values_only=True):
+            ligne = ligne + tuple('' for i in range(11 - len(ligne)))
             for colonne, cellule in zip(colonnes, ligne):
                 valeurs[colonne].append(cellule)
 
@@ -206,6 +405,30 @@ class FeuilleDeTemps:
             colonnes_excel: str = None,
             rangée_min: int = None,
             colonne_max: int = None) -> DataFrame:
+        """
+        Mettre toutes les données à jour.
+
+        Parameters
+        ----------
+        données : DataFrame, optional
+            DESCRIPTION. The default is None.
+        fichier_temps : Path, optional
+            DESCRIPTION. The default is None.
+        nom_feuille : str, optional
+            DESCRIPTION. The default is None.
+        colonnes_excel : str, optional
+            DESCRIPTION. The default is None.
+        rangée_min : int, optional
+            DESCRIPTION. The default is None.
+        colonne_max : int, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        DataFrame
+            DESCRIPTION.
+
+        """
         if données is None:
             données = self.données
         if fichier_temps is None:
@@ -244,6 +467,26 @@ class FeuilleDeTemps:
         return tableau
 
     def enregistrer(self, données: DataFrame = None, destination: Path = None):
+        """
+        Enregistrer les données mises à jour.
+
+        Parameters
+        ----------
+        données : DataFrame, optional
+            DESCRIPTION. The default is None.
+        destination : Path, optional
+            DESCRIPTION. The default is None.
+
+        Raises
+        ------
+        ValueError
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         if données is None:
             données = self.données
         if destination is None:
@@ -276,6 +519,21 @@ class FeuilleDeTemps:
                 f.write(str(nouveau))
 
     def archiver(self, *args, archive: Path = None):
+        """
+        Archive les fichiers lus.
+
+        Parameters
+        ----------
+        *args : TYPE
+            DESCRIPTION.
+        archive : Path, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         if archive is None:
             archive = self.archive
 
@@ -286,14 +544,53 @@ class FeuilleDeTemps:
             shutil.move(str(f), str(archive))
 
     def __enter__(self):
+        """
+        Extraire les données pour l'utilisation sécuritaire.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self.extraire()
         return self
 
     def __exit__(self, exception_type, value, traceback):
+        """
+        Ménage.
+
+        Parameters
+        ----------
+        exception_type : TYPE
+            DESCRIPTION.
+        value : TYPE
+            DESCRIPTION.
+        traceback : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         return None
 
 
 def main(config):
+    """
+    Extraire, mettre à jour et archiver les heures.
+
+    Parameters
+    ----------
+    config : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
     cal_cfg = config['Calendrier']
 
     racine = Path(cal_cfg['ics']).expanduser()

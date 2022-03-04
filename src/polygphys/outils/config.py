@@ -12,11 +12,9 @@ Created on Mon Nov 22 14:22:36 2021
 
 import logging
 import sys
-import platform
 
 from pathlib import Path
 from configparser import ConfigParser
-from typing import Union, Iterable, Any
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -64,6 +62,14 @@ class FichierConfig(ConfigParser):
         self.read()
 
     def default(self):
+        """
+        Retourne la configuration par défaut.
+
+        Returns
+        -------
+        None.
+
+        """
         return f'''[default]
     auto: True
     class: {type(self)}
@@ -130,7 +136,7 @@ class FichierConfig(ConfigParser):
                 clé: str,
                 fallback: list = tuple()) -> list[str]:
         """
-        Transforme une énumération en une liste Python.
+        Transformer une énumération en une liste Python.
 
         Parameters
         ----------

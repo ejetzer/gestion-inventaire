@@ -89,12 +89,21 @@ def main(dossier=None):
     onglets.grid(sticky='nsew')
     racine.mainloop()
 
+
 def script():
+    """
+    Script pour inventaire partagé.
+
+    Returns
+    -------
+    None.
+
+    """
     CHEMINS = {'Darwin': Path('/Volumes/GeniePhysique/Techniciens/'),
-           'Windows': Path(r'Z:'),
-           None: Path('~/.inventaire').expanduser().resolve()}
+               'Windows': Path(r'Z:'),
+               None: Path('~/.inventaire').expanduser().resolve()}
     SOUS_CHEMIN = Path('Emile_Jetzer/Inventaire/')
-    
+
     dossier = CHEMINS.get(platform.system(), CHEMINS[None]) / SOUS_CHEMIN
 
     if not dossier.exists():
@@ -103,31 +112,9 @@ def script():
         db = dossier / 'inventaire.sqlite'
 
         with cfg.open('w') as f:
-            f.write(f'''[bd]
-    adresse = sqlite:///{db}
-tables =
-    personnes
-	locaux
-	portes
-	etageres
-	appareils
-	boites
-	emprunts
-	utilisation_boites
-formulaires = 
-	personnes
-	locaux
-	portes
-	etageres
-	appareils
-	boites
-	emprunts
-	utilisation_boites
-
-[tkinter]
-title: Inventaire du département de génie physique à Polytechnique Montréal
-''')
+            with (Path(__file__).parent / 'default.cfg').open('r') as g:
+                f.write(g.read().format(db=db))
 
         db.touch()
-        
+
     main(dossier)

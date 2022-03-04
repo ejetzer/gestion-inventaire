@@ -10,10 +10,7 @@ Créé le Fri Nov 26 15:15:36 2021
 @author: ejetzer
 """
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 def main():
+    """Programme de journal."""
     pass

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Créer de nouveaux certificats de sureté laser.
+
 Created on Thu Mar  3 11:22:01 2022
 
 @author: emilejetzer
@@ -25,7 +27,11 @@ CHEMIN = Path(conf.get(sec, 'Chemin')).expanduser()
 FEUILLE = Path(conf.get(sec, 'Feuille')).expanduser()
 UNOCONV_PY = conf.get(sec, 'unoconv')
 MAJ = dt.fromisoformat(conf.get(sec, 'Dernière màj'))
-UNOCONV = str(run(['which', 'unoconv'], capture_output=True).stdout, encoding='utf-8').strip()
+UNOCONV = str(run(['which',
+                   'unoconv'],
+                  capture_output=True).stdout,
+              encoding='utf-8').strip()
+
 
 def nouveau_certificat(nom: str, matricule: str, modèle: Path = CHEMIN):
     """
@@ -59,12 +65,28 @@ def nouveau_certificat(nom: str, matricule: str, modèle: Path = CHEMIN):
     if not chemin.parent.exists():
         chemin.parent.mkdir()
     cert.save(chemin)
-    #run(['unoconv', '-f', 'pdf', f'"{nom}.pptx"'])
-    #temp.unlink()
+    # run(['unoconv', '-f', 'pdf', f'"{nom}.pptx"'])
+    # temp.unlink()
 
 
 def obtenir_certificats_à_faire(dernière_màj: dt = MAJ,
                                 feuille: Path = FEUILLE):
+    """
+    Obtenir les certificats à faire.
+
+    Parameters
+    ----------
+    dernière_màj : dt, optional
+        DESCRIPTION. The default is MAJ.
+    feuille : Path, optional
+        DESCRIPTION. The default is FEUILLE.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
     cadre = pd.read_excel(feuille,
                           usecols='C,D,E,G,AT,AU')
     cadre = cadre.rename({'Adresse de messagerie': 'courriel',
@@ -74,16 +96,19 @@ def obtenir_certificats_à_faire(dernière_màj: dt = MAJ,
                           'Matricule': 'matricule',
                           'Heure de fin': 'date'},
                          axis=1)\
-                 .astype({'matricule': int}, errors='ignore')
+        .astype({'matricule': int}, errors='ignore')
 
     courriels_manquants = cadre['courriel'] == 'anonymous'
-    cadre.loc[courriels_manquants, 'courriel'] = cadre.loc[courriels_manquants, 'courriel2']
-    cadre.courriel = cadre.courriel.fillna(cadre.courriel2).fillna('@polymtl.ca')
+    cadre.loc[courriels_manquants,
+              'courriel'] = cadre.loc[courriels_manquants, 'courriel2']
+    cadre.courriel = cadre.courriel.fillna(
+        cadre.courriel2).fillna('@polymtl.ca')
     cadre.nom = cadre.nom.fillna(cadre.nom2).fillna('anonyme')
     cadre.date = cadre.date.dt.date
     cadre.matricule = cadre.matricule.fillna(0)
-    
-    return cadre.loc[cadre.date >= dernière_màj.date(), ['date', 'matricule', 'courriel', 'nom']]
+
+    return cadre.loc[cadre.date >= dernière_màj.date(),
+                     ['date', 'matricule', 'courriel', 'nom']]
 
 
 class Fenetre(tk.Frame):
@@ -91,7 +116,10 @@ class Fenetre(tk.Frame):
 
     def __init__(self, parent=None):
         """
-        Créer une instance de Fenetre, pour entrer les informations d'un nouveau certificat.
+        Entrée d'informations.
+
+        Créer une instance de Fenetre, pour entrer les informations
+        d'un nouveau certificat.
 
         Paramètres
         ----------
@@ -130,29 +158,31 @@ class Fenetre(tk.Frame):
         self.champ_matricule = tk.Entry(self, textvariable=self.var_matricule)
         self.etiquette_matricule.pack()
         self.champ_matricule.pack()
-        
+
         # Date de dernière màj
         self.var_dernière_màj = tk.StringVar(self, value=str(MAJ))
         self.etiquette_dernière_màj = tk.Label(self, text='Dernière màj')
-        self.champ_dernière_màj = tk.Entry(self, textvariable=self.var_dernière_màj)
+        self.champ_dernière_màj = tk.Entry(
+            self, textvariable=self.var_dernière_màj)
         self.etiquette_dernière_màj.pack()
         self.champ_dernière_màj.pack()
 
         # Exécuter le programme
         self.aller = tk.Button(self, text='Aller!', command=self.aller_fct)
         self.aller.pack()
-        
+
         # Exécuter le programme automatique
-        self.aller_go = tk.Button(self, text='Automatique...', command=self.auto_fct)
+        self.aller_go = tk.Button(
+            self, text='Automatique...', command=self.auto_fct)
         self.aller_go.pack()
 
         # Fermeture de l'application
         self.quitter = tk.Button(self, text='Quitter.',
                                  command=self.quitter_fct)
         self.quitter.pack()
-        
+
         # Création automatique
-        self.master.after(10*60*1000, self.auto_fct2)
+        self.master.after(10 * 60 * 1000, self.auto_fct2)
 
     def aller_fct(self):
         """
@@ -170,8 +200,16 @@ class Fenetre(tk.Frame):
         self.var_matricule.set('')
         for chemin in Path('res').glob('*.pptx'):
             subprocess.Popen([UNOCONV_PY, UNOCONV, '-f', 'pdf', str(chemin)])
-    
+
     def auto_fct(self):
+        """
+        Mise à jour automatique.
+
+        Returns
+        -------
+        None.
+
+        """
         dernière_màj = dt.fromisoformat(self.var_dernière_màj.get())
         à_faire = obtenir_certificats_à_faire(dernière_màj)
         for index, ligne in à_faire.iterrows():
@@ -179,8 +217,21 @@ class Fenetre(tk.Frame):
         for chemin in Path('res').glob('*.pptx'):
             subprocess.Popen([UNOCONV_PY, UNOCONV, '-f', 'pdf', str(chemin)])
         self.var_dernière_màj.set(dt.now().isoformat())
-    
+
     def auto_fct2(self, feuille: Path = FEUILLE):
+        """
+        Meilleure mise à jour automatique.
+
+        Parameters
+        ----------
+        feuille : Path, optional
+            DESCRIPTION. The default is FEUILLE.
+
+        Returns
+        -------
+        None.
+
+        """
         dernière_màj = dt.fromisoformat(self.var_dernière_màj.get())
         dernière_màj_fichier = dt.fromtimestamp(feuille.stat().st_mtime)
         if dernière_màj_fichier >= dernière_màj:
@@ -190,14 +241,23 @@ class Fenetre(tk.Frame):
         self.var_dernière_màj.set(dt.now().isoformat())
         for chemin in Path('res').glob('*.pptx'):
             subprocess.Popen([UNOCONV_PY, UNOCONV, '-f', 'pdf', str(chemin)])
-        self.master.after(10*60*1000, self.auto_fct2)
-    
+        self.master.after(10 * 60 * 1000, self.auto_fct2)
+
     def quitter_fct(self):
+        """
+        Quitter l'application.
+
+        Returns
+        -------
+        None.
+
+        """
         conf.set(sec, 'Dernière màj', self.var_dernière_màj.get())
         with open('nouveau_certificat.config', 'w') as fichier:
             conf.write(fichier)
-        
+
         self.master.destroy()
+
 
 def main():
     """

@@ -22,7 +22,6 @@ import pandas as pd
 from ..database import BaseDeDonnées
 from ..database.dtypes import default
 from ..interface import InterfaceHandler
-from .tkinter import tkHandler
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +81,7 @@ class BaseTableau:
                      hasattr(BaseDeDonnées, attr))
         logger.debug('hasattr(pd.DataFrame, attr) = %r',
                      hasattr(pd.DataFrame, attr))
-        if hasattr(BaseDeDonnées,  attr):
+        if hasattr(BaseDeDonnées, attr):
             obj = getattr(self.db, attr)
             logger.debug('obj = %r', obj)
 
@@ -301,7 +300,7 @@ class Tableau(BaseTableau):
 
         logger.debug('widgets.columns = %r', self.widgets.columns)
         for i, c in enumerate(self.widgets.columns):
-            c.grid(row=row, column=column+i+3)
+            c.grid(row=row, column=column + i + 3)
 
         logger.debug('widgets = %r', self.widgets)
         logger.debug('commandes = %r', self.commandes)
@@ -309,10 +308,10 @@ class Tableau(BaseTableau):
                 (plus, moins)) in enumerate(zip(self.widgets.iterrows(),
                                                 self.commandes)):
             for k, w in enumerate((plus, moins, idx)):
-                w.grid(row=row+i+1, column=column+k)
+                w.grid(row=row + i + 1, column=column + k)
 
             for j, col in enumerate(rang):
-                col.grid(row=row+i+1, column=column+k+j+1)
+                col.grid(row=row + i + 1, column=column + k + j + 1)
 
     def pack(self, *args, **kargs):
         pass
@@ -513,7 +512,7 @@ class Formulaire(BaseTableau):
 
             df = pd.DataFrame(default(dtype),
                               columns=[col],
-                              index=[max(self.index, default=0)+1])
+                              index=[max(self.index, default=0) + 1])
             logger.debug('df = %r', df)
 
             _ = self.handler.entrée(df, lambda x: None, dtype)
@@ -558,11 +557,11 @@ class Formulaire(BaseTableau):
 
         for j, (c, v) in enumerate(zip(self.widgets.columns,
                                        self.widgets.loc[0, :])):
-            c.grid(row=row+j, column=column)
-            v.grid(row=row+j, column=column+1)
+            c.grid(row=row + j, column=column)
+            v.grid(row=row + j, column=column + 1)
 
         for i, c in enumerate(self.commandes):
-            c.grid(row=row+j+1, column=column+i)
+            c.grid(row=row + j + 1, column=column + i)
 
     def pack(self, *args, **kargs):
         pass
@@ -656,7 +655,7 @@ class Filtre(Formulaire):
 
             df = pd.DataFrame(default(dtype),
                               columns=[col],
-                              index=[max(self.index, default=0)+1])
+                              index=[max(self.index, default=0) + 1])
             logger.debug('df = %r', df)
 
             _ = self.handler2.entrée(df, lambda x: None, dtype)
@@ -723,7 +722,7 @@ class Filtre(Formulaire):
             v.grid(row=j, column=1)
 
         for i, c in enumerate(self.commandes):
-            c.grid(row=j+1, column=i)
+            c.grid(row=j + 1, column=i)
 
     def destroy_children(self):
         super().destroy_children()

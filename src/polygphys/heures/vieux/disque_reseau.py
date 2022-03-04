@@ -18,6 +18,25 @@ def connecter(adresse: str,
               chemin: Path,
               nom: str,
               mdp: str):
+    """
+    Se connecter à un disque réseau.
+
+    Parameters
+    ----------
+    adresse : str
+        DESCRIPTION.
+    chemin : Path
+        DESCRIPTION.
+    nom : str
+        DESCRIPTION.
+    mdp : str
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
     if not isinstance(chemin, Path):
         chemin = Path(chemin).expanduser().resolve()
 
@@ -30,6 +49,21 @@ def connecter(adresse: str,
 
 
 def déconnecter(chemin: Path, **kargs):
+    """
+    Se déconnecter d'un disque réseau.
+
+    Parameters
+    ----------
+    chemin : Path
+        DESCRIPTION.
+    **kargs : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
     if not isinstance(chemin, Path):
         chemin = Path(chemin).expanduser().resolve()
 

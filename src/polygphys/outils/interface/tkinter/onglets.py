@@ -70,6 +70,28 @@ class OngletConfig(tk.Frame):
         return self.config.chemin
 
     def build_champ(self, sec, champ, valeur):
+        """
+        Construire un champ.
+
+        Parameters
+        ----------
+        sec : TYPE
+            DESCRIPTION.
+        champ : TYPE
+            DESCRIPTION.
+        valeur : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        champ_entrée : TYPE
+            DESCRIPTION.
+        valeur_entrée : TYPE
+            DESCRIPTION.
+        boutons : TYPE
+            DESCRIPTION.
+
+        """
         champ_var = tk.StringVar(self, value=champ)
         valeur_var = tk.StringVar(self, value=valeur)
 
@@ -83,12 +105,29 @@ class OngletConfig(tk.Frame):
         champ_entrée = ttk.Entry(self, textvariable=champ_var)
         valeur_entrée = ttk.Entry(self, textvariable=valeur_var)
 
-        boutons = (ttk.Button(self, text='+', command=lambda: self.ajouter_champ(sec)),
-                   ttk.Button(self, text='-', command=lambda: self.retirer_champ(sec, champ)))
+        boutons = (ttk.Button(self, text='+',
+                              command=lambda: self.ajouter_champ(sec)),
+                   ttk.Button(self, text='-',
+                              command=lambda: self.retirer_champ(sec, champ)))
 
         return champ_entrée, valeur_entrée, boutons
 
     def retirer_champ(self, sec, champ):
+        """
+        Retirer un champ.
+
+        Parameters
+        ----------
+        sec : TYPE
+            DESCRIPTION.
+        champ : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         self.champs[sec][champ].destroy()
         self.valeurs[sec][champ].destroy()
         self.boutons[sec][1][champ][0].destroy()
@@ -100,6 +139,23 @@ class OngletConfig(tk.Frame):
         self.update_grid()
 
     def ajouter_champ(self, sec, champ='Nouveau champ', valeur=None):
+        """
+        Ajouter un champ.
+
+        Parameters
+        ----------
+        sec : TYPE
+            DESCRIPTION.
+        champ : TYPE, optional
+            DESCRIPTION. The default is 'Nouveau champ'.
+        valeur : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         c, v, b = self.build_champ(sec, champ, valeur)
         self.champs[sec][champ] = c
         self.valeurs[sec][champ] = v
@@ -108,6 +164,28 @@ class OngletConfig(tk.Frame):
         self.update_grid()
 
     def build_section(self, sec=None):
+        """
+        Construire une section.
+
+        Parameters
+        ----------
+        sec : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        titre : TYPE
+            DESCRIPTION.
+        champs : TYPE
+            DESCRIPTION.
+        valeurs : TYPE
+            DESCRIPTION.
+        boutons : TYPE
+            DESCRIPTION.
+        bouton : TYPE
+            DESCRIPTION.
+
+        """
         logging.debug('titre = %r', sec)
 
         section = self.config[sec]
@@ -131,6 +209,19 @@ class OngletConfig(tk.Frame):
         return titre, champs, valeurs, boutons, bouton
 
     def retirer_section(self, sec):
+        """
+        Retirer une section.
+
+        Parameters
+        ----------
+        sec : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         del self.titres[sec]
         del self.champs[sec]
         del self.valeurs[sec]
@@ -212,20 +303,20 @@ class OngletConfig(tk.Frame):
         for titre, étiquette in self.titres.items():
             logging.debug('titre = %r\tétiquette = %r', titre, étiquette)
             étiquette.grid(row=0, column=colonne,
-                           columnspan=3, sticky=tk.W+tk.E)
+                           columnspan=3, sticky=tk.W + tk.E)
             self.boutons[titre][0].grid(
-                row=0, column=colonne+3)
+                row=0, column=colonne + 3)
 
             rangée = 1
             logging.debug('self.champs = %r', self.champs)
             for étiquette, entrée in self.champs[titre].items():
                 entrée.grid(row=rangée, column=colonne)
                 self.valeurs[titre][étiquette].grid(
-                    row=rangée, column=colonne+1)
+                    row=rangée, column=colonne + 1)
                 self.boutons[titre][1][étiquette][0].grid(
-                    row=rangée, column=colonne+2)
+                    row=rangée, column=colonne + 2)
                 self.boutons[titre][1][étiquette][1].grid(
-                    row=rangée, column=colonne+3)
+                    row=rangée, column=colonne + 3)
                 rangée += 1
 
             colonne += 4
@@ -251,10 +342,26 @@ class OngletConfig(tk.Frame):
         super().grid(*args, **kargs)
 
     def update_grid(self):
+        """
+        Mettre l'affichage à jour.
+
+        Returns
+        -------
+        None.
+
+        """
         self.destroy_children()
         self.subgrid()
 
     def destroy_children(self):
+        """
+        Effacer l'affichage.
+
+        Returns
+        -------
+        None.
+
+        """
         del self.titres
         del self.champs
         del self.valeurs
@@ -294,8 +401,9 @@ class OngletBaseDeDonnées(tk.Frame):
         None.
 
         """
-        logging.debug('master = %r\tdb = %r\ttable = %r\targs = %r\tconfig = %r\
-\tkargs = %r', master, db, table, args, config, kargs)
+        logging.debug(
+            'master = %r\tdb = %r\ttable = %r\targs = %r\tconfig = %r\tkargs = %r',
+            master, db, table, args, config, kargs)
         self.config = config
         self.table = table
         self.db = db
@@ -315,14 +423,38 @@ class OngletBaseDeDonnées(tk.Frame):
         return res
 
     def importer(self):
+        """
+        Importer les données.
+
+        Returns
+        -------
+        None.
+
+        """
         chemin = Path(askopenfilename())
         self.tableau.read_file(chemin)
 
     def exporter(self):
+        """
+        Exporter les données.
+
+        Returns
+        -------
+        None.
+
+        """
         chemin = asksaveasfilename()
         self.tableau.to_excel(chemin, self.table)
 
     def exporter_modèle(self):
+        """
+        Exporter un modèle pour l'entrée de données.
+
+        Returns
+        -------
+        None.
+
+        """
         chemin = asksaveasfilename()
         self.tableau.loc()[[], :].to_excel(chemin, self.table)
 
@@ -393,6 +525,7 @@ class OngletBaseDeDonnées(tk.Frame):
 
 
 class OngletBaseDeDonnéesFiltrée(OngletBaseDeDonnées):
+    """Onglet de base de données avec filtre."""
 
     def build(self):
         """Construit les widgets."""

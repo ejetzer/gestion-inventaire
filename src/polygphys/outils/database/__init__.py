@@ -63,7 +63,7 @@ class BaseDeDonnées:
         return res
 
     def table(self, table: str) -> sqla.Table:
-        """Retourne une table de la base de données"""
+        """Retourne une table de la base de données."""
         logging.debug('table = %r', table)
         res = self.tables[table]
         logging.debug('res = %r', res)
@@ -580,7 +580,7 @@ class BaseDeDonnées:
                   chemin: pathlib.Path,
                   type_fichier: Union[str, Callable] = None):
         """
-        Importe un fichier dans la base de données.
+        Importer un fichier dans la base de données.
 
         Parameters
         ----------
@@ -635,8 +635,9 @@ def main(dossier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:
     logging.info('Définition d\'une base de données...')
     md = sqla.MetaData()
     table = sqla.Table('demo', md,
-                       sqla.Column('index', get_type('python', int,
-                                                     'sqlalchemy'), primary_key=False),
+                       sqla.Column('index',
+                                   get_type('python', int, 'sqlalchemy'),
+                                   primary_key=False),
                        sqla.Column('desc',
                                    get_type('python', str, 'sqlalchemy')))
     logging.info('%r %r', md, table)

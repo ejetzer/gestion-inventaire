@@ -15,20 +15,18 @@ import logging
 import sys
 import pathlib
 
-from .outils.journal import Formats
+import polygphys.outils.database
+import polygphys.outils.config
+import polygphys.outils.interface.tkinter.onglets
 
-logger = logging.getLogger(__name__)
+from .outils.journal import Formats
 
 
 def main(dossier=None):
     """Exemple des fonctionnalités du module."""
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.DEBUG)
+    logging.basicConfig(format=Formats().détails, level=logging.DEBUG)
 
-    fmt = logging.Formatter(Formats().détails)
-    ch.setFormatter(fmt)
-
-    logger.info('Démonstration du module polytechnique:')
+    logging.info('Démonstration du module polytechnique:')
 
     if dossier is None:
         if len(sys.argv) > 1:
@@ -37,26 +35,16 @@ def main(dossier=None):
             fichier = pathlib.Path(__file__).expanduser().resolve()
             dossier = fichier.parent
 
-    import polygphys.outils.database
-    polygphys.outils.database.logger.addHandler(ch)
-    polygphys.outils.database.logger.setLevel(logging.DEBUG)
     base, md = polygphys.outils.database.main(dossier)
-
-    import polygphys.outils.config
-    polygphys.outils.config.logger.addHandler(ch)
-    polygphys.outils.config.logger.setLevel(logging.DEBUG)
     config = polygphys.outils.config.main(dossier)
 
     fichier_db = str(dossier / 'demo.db')
     swap_db = config.get('bd', 'adresse')
     config.set('bd', 'adresse', f'sqlite:///{fichier_db!s}')
 
-    import polygphys.outils.interface.tkinter.onglets
-    polygphys.outils.interface.tkinter.onglets.logger.addHandler(ch)
-    polygphys.outils.interface.tkinter.onglets.logger.setLevel(logging.DEBUG)
     racine, onglets = polygphys.outils.interface.tkinter.onglets.main(
         config, md)
 
     config.set('bd', 'adresse', swap_db)
 
-    logger.info('Fin.')
+    logging.info('Fin.')

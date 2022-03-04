@@ -72,7 +72,16 @@ def main(dossier=None):
     formulaire.grid(0, 0)
     racine.mainloop()
 
+
 def vieux():
+    """
+    Programme fonctionnel, mais mal intégré aux fonctionnalités du paquet.
+
+    Returns
+    -------
+    None.
+
+    """
     from .vieux.interface import Formulaire as VF
     racine = tk.Tk()
     racine.title('Entrée des heures')

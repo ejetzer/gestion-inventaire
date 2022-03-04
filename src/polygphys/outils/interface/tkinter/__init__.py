@@ -87,10 +87,14 @@ def tkHandler(master: tk.Tk, editable: bool = True) -> InterfaceHandler:
 
         return widget
 
-    def texte(s): return ttk.Label(master, text=s)
-    def bouton(s, c): return ttk.Button(master, text=s, command=c)
+    def texte(s):
+        return ttk.Label(master, text=s)
 
-    def fenetre(): return tk.Toplevel(master)
+    def bouton(s, c):
+        return ttk.Button(master, text=s, command=c)
+
+    def fenetre():
+        return tk.Toplevel(master)
 
     return InterfaceHandler(entrée,
                             texte,

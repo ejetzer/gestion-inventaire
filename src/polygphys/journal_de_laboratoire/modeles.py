@@ -8,7 +8,7 @@ Créé le Fri Nov 26 15:36:57 2021
 @author: ejetzer
 """
 
-from sqlalchemy import MetaData, Table
+from sqlalchemy import MetaData
 
 from ..outils.database.dtypes import column
 
