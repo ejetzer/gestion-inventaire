@@ -1,17 +1,22 @@
 init:
-    pip install -r requirements.txt
+    pip install --upgrade -r requirements.txt
 
 install:
-    pip install .
+    pip install --upgrade .
 
 dev:
-    pip install . -e
+    pip install --upgrade -e .
 
 test:
+    pip install --upgrade flake8 pytest tox
+    flake8 .
     tox
+
+dist:
+    pip install --upgrade build twine
+    python -m build
+    python -m twine -r polygphys dist/*
     
 docs:
-    cd docs
-    pip install -r requirements.txt
-    sphinx -b html
-    sphinx -b pdf
+    pip install --upgrade sphinx
+    python setup.py build_sphinx
