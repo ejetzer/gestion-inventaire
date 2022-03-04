@@ -16,10 +16,11 @@ import logging
 
 from pathlib import Path
 from logging import Handler, LogRecord
+from subprocess import run
 
 import pandas as pd
 
-from git import Repo
+# from git import Repo
 from dataclasses import dataclass
 
 from .interface.tableau import BaseTableau
@@ -33,6 +34,163 @@ class Formats:
     labo: str = '[%(asctime)s]\t%(message)s'
     détails: str = '[%(asctime)s]\t%(levelname)s\t%(name)s\n\tFichier: \
 %(filename)s\n\tFonction: %(funcName)s\n\tLigne: %(lineno)s\n\n\t%(message)s'
+
+
+class Repository:
+    """Répertoire git."""
+
+    def __init__(self, path: Path):
+        """
+        Répertoire git.
+
+        Parameters
+        ----------
+        path : Path
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.path = path
+
+    def init(self):
+        """
+        Initialiser un répertoire.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'init'], cwd=self.path)
+
+    def clone(self, other: str):
+        """
+        Cloner un répertoire.
+
+        Parameters
+        ----------
+        other : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'clone', other], cwd=self.path)
+
+    def add(self, *args):
+        """
+        Ajouter un fichier à commettre.
+
+        Parameters
+        ----------
+        *args : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'add'] + list(args), cwd=self.path)
+
+    def rm(self, *args):
+        """
+        Retirer un fichier.
+
+        Parameters
+        ----------
+        *args : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'rm'] + list(args), cwd=self.path)
+
+    def commit(self, msg: str, *args):
+        """
+        Commettre les changements.
+
+        Parameters
+        ----------
+        msg : str
+            DESCRIPTION.
+        *args : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'commit', '-m', msg] + list(args), cwd=self.path)
+
+    def pull(self):
+        """
+        Télécharger les changements lointains.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'pull'], cwd=self.path)
+
+    def push(self):
+        """
+        Pousser les changements locaux.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'push'], cwd=self.path)
+
+    def status(self):
+        """
+        Évaluer l'état du répertoire.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'status'], cwd=self.path)
+
+    def log(self):
+        """
+        Afficher l'historique.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'log'], cwd=self.path)
+
+    def branch(self, b: str = ''):
+        """
+        Passer à une nouvelle branche.
+
+        Parameters
+        ----------
+        b : str, optional
+            DESCRIPTION. The default is ''.
+
+        Returns
+        -------
+        None.
+
+        """
+        run(['git', 'branch', b], cwd=self.path)
 
 
 class Journal(Handler):
@@ -67,7 +225,7 @@ class Journal(Handler):
         None.
 
         """
-        self.repo: Repo = Repo(dossier)
+        self.repo: Repository = Repository(dossier)
         self.tableau: BaseTableau = tableau
         logging.debug('repo = %r\ttableau = %r', self.repo, self.tableau)
 
@@ -107,22 +265,10 @@ class Journal(Handler):
         None.
 
         """
-        diff = self.repo.diff(None)
-        logging.debug('diff = %r', diff)
-
-        for d in diff:
-            if d.new_file:
-                self.repo.index.add([d.b_blob])
-            elif d.renamed_file:
-                self.repo.index.remove([d.a_blob])
-                self.repo.index.add([d.b_blob])
-            elif d.deleted_file:
-                self.repo.index.remove([d.a_blob])
-
         msg = record.getMessage()
         logging.debug('msg = %r', msg)
 
-        self.repo.index.commit(msg)
+        self.repo.commit(msg, '-a')
 
         message = pd.DataFrame({'créé': [record.created],
                                 'niveau': [record.levelno],

@@ -6,6 +6,7 @@ Facilite les connexions à des disques réseau ou à des VPNs.
 """
 
 import time
+import platform
 
 from subprocess import run
 from pathlib import Path
@@ -54,9 +55,20 @@ class DisqueRéseau:
         """Commande de démontage de disque."""
         return ['umount', str(chemin)]
 
+    @staticmethod
+    def net_use_cmd(nom: str, mdp: str, url: str, drive: str):
+        """Commande de montage Windows."""
+        return ['net', 'use', drive, url, f'/u:{nom}', mdp]
+
+    @staticmethod
+    def net_use_delete_cmd(drive: str, url: str):
+        """Commande de démontage Windows."""
+        return ['net', 'use', drive, url, '/delete']
+
     def __init__(self,
                  adresse: str,
                  chemin: Path,
+                 drive: str,
                  nom: str,
                  mdp: str,
                  mode: str = 'smbfs',
@@ -86,6 +98,7 @@ class DisqueRéseau:
         """
         self.adresse = adresse
         self.chemin = chemin if isinstance(chemin, Path) else Path(chemin)
+        self.drive = drive
         self.nom = nom
         self.mdp = mdp
         self.mode = mode
@@ -109,11 +122,17 @@ class DisqueRéseau:
         """
         if not self.exists():
             self.chemin.mkdir()
-            res = run(self.mount_cmd(self.nom,
-                                     self.mdp,
-                                     self.url,
-                                     self.mode,
-                                     self.chemin))
+            if platform.system() == 'Windows':
+                res = run(self.mount_cmd(self.nom,
+                                         self.mdp,
+                                         self.url,
+                                         self.drive))
+            else:
+                res = run(self.mount_cmd(self.nom,
+                                         self.mdp,
+                                         self.url,
+                                         self.mode,
+                                         self.chemin))
             for i in range(self.timeout * 1000):
                 if self.is_mount():
                     break
@@ -144,7 +163,11 @@ class DisqueRéseau:
         """
         if self.exists():
             if self.is_mount():
-                return run(self.umount_cmd(self.chemin))
+                if platform.system() == 'Windows':
+                    return run(self.net_use_delete_cmd(self.drive,
+                                                       self.url))
+                else:
+                    return run(self.umount_cmd(self.chemin))
             else:
                 raise LeVolumeNEstPasMonte(
                     f'{self.url!r} n\'est pas monté au point {self.chemin!r}.')
@@ -195,7 +218,10 @@ class DisqueRéseau:
             DESCRIPTION.
 
         """
-        return self.chemin.is_mount()
+        if platform.system() == 'Windows':
+            return Path(f'{self.drive}:').is_mount()
+        else:
+            return self.chemin.is_mount()
 
     def exists(self):
         """
@@ -207,7 +233,10 @@ class DisqueRéseau:
             DESCRIPTION.
 
         """
-        return self.chemin.exists()
+        if platform.system() == 'Windows':
+            return Path(f'{self.drive}:').exists()
+        else:
+            return self.chemin.exists()
 
     def __bool__(self):
         """
@@ -236,8 +265,30 @@ class DisqueRéseau:
             DESCRIPTION.
 
         """
-        return self.chemin / other
+        if platform.system() == 'Windows':
+            return Path(f'{self.drive}:') / other
+        else:
+            return self.chemin / other
 
     def __rtruediv__(self, other):
         """Rien."""
         return NotImplemented
+
+
+def main():
+    drive = 'J'
+    chemin = Path('~/Volumes/GeniePhysique').expanduser()
+    url = 'phsfiles.phs.polymtl.ca/GeniePhysique'
+    nom = input('nom>')
+    mdp = input('mdp>')
+
+    with DisqueRéseau(url, chemin, drive, nom, mdp) as disque_réseau:
+        chemin = disque_réseau / '.'
+
+        print(chemin, ':')
+        for i in chemin.iterdir():
+            print('\t', i)
+
+
+if __name__ == '__main__':
+    main()

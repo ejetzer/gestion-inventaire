@@ -9,7 +9,6 @@ Créé le Fri Nov 26 15:15:36 2021
 """
 
 import logging
-import sys
 
 import tkinter as tk
 
@@ -18,59 +17,83 @@ from pathlib import Path
 from ..outils.config import FichierConfig
 from ..outils.database import BaseDeDonnées
 from ..outils.interface.tableau import Formulaire
+from ..outils.interface import InterfaceHandler
 from ..outils.interface.tkinter import tkHandler
-from ..outils.journal import Formats
+from ..outils.journal import Formats, Journal
+from ..outils.reseau import DisqueRéseau
 
-from ..heures.modeles import metadata
+from .modeles import metadata as md
 
-logger = logging.getLogger(__name__)
+
+class FeuilleDeTemps:
+    """Feuille de temps."""
+
+    def __init__(self, config: FichierConfig, handler: InterfaceHandler):
+        self.config = config
+
+        db = BaseDeDonnées(self.adresse, md)
+        formulaire = Formulaire(handler, db, self.table)
+        self.journal = Journal(logging.INFO, self.dossier, formulaire)
+
+    @property
+    def adresse(self):
+        return self.config.geturl('FeuilleDeTemps', 'adresse')
+
+    @property
+    def table(self):
+        return self.config.get('FeuilleDeTemps', 'table')
+
+    @property
+    def dossier(self):
+        return self.config.getpath('FeuilleDeTemps', 'dossier')
+
+    @property
+    def formulaire(self):
+        return self.journal.tableau
+
+    @property
+    def répertoire(self):
+        return self.journal.repo
+
+    @property
+    def db(self):
+        return self.formulaire.db
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, value, traceback):
+        return None
+
+    # Méthodes de comptabilité
+
+    def répartition(self):
+        pass
+
+    def compte(self):
+        pass
+
+    def exporter(self):
+        pass
 
 
 def main(dossier=None):
     """Exemple."""
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, format=Formats().details)
 
-    fmt = logging.Formatter(Formats().default)
-    ch.setFormatter(fmt)
+    chemin = Path('~/heures.cfg').expanduser()
+    config = FichierConfig(chemin)
 
-    logger.info('Chargement de la configuration...')
-    logger.info('L\'adresse est %r.', dossier)
-
-    if dossier is None:
-        if len(sys.argv) > 1:
-            dossier = Path(sys.argv[1]).resolve()
-        else:
-            fichier = Path(__file__).expanduser().resolve()
-            dossier = fichier.parent
-
-    cfg = dossier / next(dossier.glob('*.cfg'))
-    config = FichierConfig(cfg)
-
-    for sec in config.sections():
-        logger.info('[%r]', sec)
-        for c, v in config[sec].items():
-            logger.info('%r: %r', c, v)
-
-    logger.info('Chargement de la base de données...')
-    base = BaseDeDonnées(config.geturl('bd', 'adresse'), metadata)
-    base.initialiser()
-
-    for n, t in base.tables.items():
-        logger.info('[%r]', n)
-        for c in t.columns:
-            logger.info('%r', c)
-    logger.info(base.select('heures'))
-
-    logger.info('Préparation de l\'interface...')
     racine = tk.Tk()
-    racine.title(config.get('tkinter', 'title', fallback='Heures'))
+
+    titre = config.get('tkinter', 'title', fallback='Heures')
+    racine.title(titre)
 
     handler = tkHandler(racine)
-    formulaire = Formulaire(handler, base, 'heures')
-
-    formulaire.grid(0, 0)
-    racine.mainloop()
+    with DisqueRéseau(**config['DisqueRéseau']):
+        with FeuilleDeTemps(config, handler) as feuille_de_temps:
+            feuille_de_temps.formulaire.grid(0, 0)
+            racine.mainloop()
 
 
 def vieux():
