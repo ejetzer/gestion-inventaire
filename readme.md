@@ -1,9 +1,9 @@
 # Outils & programmes du département de génie physique de Polytechnique [![Python application](https://github.com/ejetzer/polygphys/actions/workflows/python-app.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/python-app.yml) [![CodeQL](https://github.com/ejetzer/polygphys/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/codeql-analysis.yml) [![Upload Python Package](https://github.com/ejetzer/polygphys/actions/workflows/python-publish.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/python-publish.yml)
 
 - Installation via PyPI: https://pypi.org/project/polygphys/
-    '''python
+    ```
     pip install polygphys
-    '''
+    ```
 - Documentation sur Read The Docs: https://polygphys.readthedocs.io/en/latest/
 - Contributions via Github: https://github.com/ejetzer/polygphys 
 
@@ -28,9 +28,9 @@ Ce programme est en développement actif, et ne devrait être utilisé que
 
 L'installation de la version stable se fait via `pip`:
 
-'''
+```
 pip install polygphys
-'''
+```
 
 Le bon fonctionnement du sous-module `polygphys.outils.appareils` pourrait demander l'installation de logiciel supplémentaire, selon l'utilisation:
 
@@ -48,12 +48,12 @@ Voir la [page de référence de pyVISA] pour résoudre les problèmes causés pa
 
 Le développement se fait sur les branches `alpha` et `beta` en général, parfois sur des branches spécifiques à certaines fonctionnalités. Pour s'en servir et les installer, il faut utiliser `git`:
 
-'''
+```
 git clone https://github.com/ejeetzer/polygphys.git
 cd polygphys
 git checkout alpha
 pip install -e .
-'''
+```
 
 ## À faire
 
