@@ -51,7 +51,7 @@ class DisqueRéseau:
         return ['mount', '-t', mode, f'//{nom}:{mdp}@{url}', str(chemin)]
 
     @staticmethod
-    def unmount_cmd(chemin: Path):
+    def umount_cmd(chemin: Path):
         """Commande de démontage de disque."""
         return ['umount', str(chemin)]
 
@@ -72,7 +72,7 @@ class DisqueRéseau:
                  nom: str,
                  mdp: str,
                  mode: str = 'smbfs',
-                 timeout: int = 10):
+                 timeout: int = 1):
         """
         Disque réseau.
 
@@ -125,12 +125,12 @@ class DisqueRéseau:
             if platform.system() == 'Windows':
                 res = run(self.mount_cmd(self.nom,
                                          self.mdp,
-                                         self.url,
+                                         self.adresse,
                                          self.drive))
             else:
                 res = run(self.mount_cmd(self.nom,
                                          self.mdp,
-                                         self.url,
+                                         self.adresse,
                                          self.mode,
                                          self.chemin))
             for i in range(self.timeout * 1000):
@@ -165,9 +165,11 @@ class DisqueRéseau:
             if self.is_mount():
                 if platform.system() == 'Windows':
                     return run(self.net_use_delete_cmd(self.drive,
-                                                       self.url))
+                                                       self.adresse))
                 else:
-                    return run(self.umount_cmd(self.chemin))
+                    res = run(self.umount_cmd(self.chemin))
+                    self.chemin.rmdir()
+                    return res
             else:
                 raise LeVolumeNEstPasMonte(
                     f'{self.url!r} n\'est pas monté au point {self.chemin!r}.')
