@@ -8,7 +8,12 @@ Créé le Thu Dec 16 13:37:19 2021
 @author: ejetzer
 """
 
+import logging
+
 from . import script
 
+from polygphys.outils.journal import Formats
+
 if __name__ == '__main__':
+    logging.basicConfig(format=Formats().détails, level=logging.DEBUG)
     script()

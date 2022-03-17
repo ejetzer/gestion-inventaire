@@ -22,25 +22,16 @@ from ..outils.config import FichierConfig
 from ..outils.database import BaseDeDonnées
 from ..outils.interface.tkinter.onglets import Onglets
 from ..outils.journal import Formats
+from ..outils.reseau import DisqueRéseau
 
 from ..inventaire.modeles import créer_dbs
-
-logger = logging.getLogger(__name__)
-log_format = Formats().détails
-niveau = logging.DEBUG
 
 
 def main(dossier=None):
     """Programme de gestion d'inventaire."""
-    h = logging.StreamHandler(sys.stdout)
-    f = logging.Formatter(log_format)
-    h.setFormatter(f)
+    logging.debug('dossier = %r', dossier)
 
-    logging.basicConfig(handlers=[h], level=niveau)
-
-    logger.debug('dossier = %r', dossier)
-
-    logger.info('Chargement de la configuration...')
+    logging.info('Chargement de la configuration...')
 
     if dossier is None:
         if len(sys.argv) > 1:
@@ -50,40 +41,40 @@ def main(dossier=None):
             dossier = fichier.parent
 
     cfg = dossier / next(x.name for x in dossier.glob('*.cfg'))
-    logger.debug('cfg = %r', cfg)
+    logging.debug('cfg = %r', cfg)
 
     config = FichierConfig(cfg)
-    logger.debug('config = %r', config)
+    logging.debug('config = %r', config)
 
     for sec in config.sections():
-        logger.info('[%r]', sec)
+        logging.info('[%r]', sec)
         for c, v in config[sec].items():
-            logger.info('%r: %r', c, v)
+            logging.info('%r: %r', c, v)
 
-    logger.info('Chargement de la base de données...')
+    logging.info('Chargement de la base de données...')
 
     adresse = config.geturl('bd', 'adresse')
-    logger.debug('adresse = %r', adresse)
+    logging.debug('adresse = %r', adresse)
 
     metadata = créer_dbs(MetaData())
     base = BaseDeDonnées(adresse, metadata)
-    logger.debug('base = %r', base)
+    logging.debug('base = %r', base)
 
     base.initialiser()
 
     for n, t in base.tables.items():
-        logger.info('[%r]', n)
+        logging.info('[%r]', n)
         for c in t.columns:
-            logger.info('%r', c)
+            logging.info('%r', c)
 
-    logger.info(base.select('boites'))
-    logger.info(base.select('appareils'))
+    logging.info(base.select('boites'))
+    logging.info(base.select('appareils'))
 
-    logger.info('Préparation de l\'interface...')
+    logging.info('Préparation de l\'interface...')
     racine = tk.Tk()
     racine.title(config.get('tkinter', 'title', fallback='Inventaire'))
 
-    logger.info('Chargement de la base de données...')
+    logging.info('Chargement de la base de données...')
     onglets = Onglets(racine, config, metadata)
 
     onglets.grid(sticky='nsew')
@@ -99,22 +90,73 @@ def script():
     None.
 
     """
-    CHEMINS = {'Darwin': Path('/Volumes/GeniePhysique/Techniciens/'),
-               'Windows': Path(r'Z:'),
-               None: Path('~/.inventaire').expanduser().resolve()}
-    SOUS_CHEMIN = Path('Emile_Jetzer/Inventaire/')
+    # Informations du disque réseau
+    config_réseau = FichierConfig(Path('~/heures.cfg').expanduser())
+    chemin = config_réseau.getpath('Volumes', 'chemin')
+    adresse = config_réseau.get('Volumes', 'adresse')
+    nom = config_réseau.get('Volumes', 'nom')
+    mdp = config_réseau.get('Volumes', 'mdp')
 
-    dossier = CHEMINS.get(platform.system(), CHEMINS[None]) / SOUS_CHEMIN
+    disque = DisqueRéseau(adresse, chemin, 'Z:', nom, mdp)
+    print(disque / '.')
 
-    if not dossier.exists():
-        dossier.mkdir()
-        cfg = dossier / 'default.cfg'
-        db = dossier / 'inventaire.sqlite'
+    SOUS_CHEMIN = Path('Techniciens/Emile_Jetzer/Inventaire/')
 
-        with cfg.open('w') as f:
-            with (Path(__file__).parent / 'default.cfg').open('r') as g:
-                f.write(g.read().format(db=db))
+    with disque:
 
-        db.touch()
+        dossier = disque / SOUS_CHEMIN
+        for i in dossier.iterdir():
+            print(i)
 
-    main(dossier)
+        if not dossier.exists():
+            dossier.mkdir()
+            cfg = dossier / 'default.cfg'
+            db = dossier / 'inventaire.sqlite'
+
+            with cfg.open('w') as f:
+                with (Path(__file__).parent / 'default.cfg').open('r') as g:
+                    f.write(g.read().format(db=db))
+
+            db.touch()
+
+        cfg = dossier / next(x.name for x in dossier.glob('*.cfg'))
+        logging.debug('cfg = %r', cfg)
+
+        config = FichierConfig(cfg)
+        logging.debug('config = %r', config)
+
+        for sec in config.sections():
+            logging.info('[%r]', sec)
+            for c, v in config[sec].items():
+                logging.info('%r: %r', c, v)
+
+        logging.info('Chargement de la base de données...')
+
+        adresse = f"sqlite:////{dossier / config.get('bd', 'nom')}"
+        config.set('bd', 'adresse', adresse)
+        logging.debug('adresse = %r', adresse)
+        print(adresse)
+
+        metadata = créer_dbs(MetaData())
+        base = BaseDeDonnées(adresse, metadata)
+        logging.debug('base = %r', base)
+
+        base.initialiser()
+
+        for n, t in base.tables.items():
+            logging.info('[%r]', n)
+            for c in t.columns:
+                logging.info('%r', c)
+
+        logging.info(base.select('boites'))
+        logging.info(base.select('appareils'))
+
+        logging.info('Préparation de l\'interface...')
+        racine = tk.Tk()
+        racine.title(config.get('tkinter', 'title', fallback='Inventaire'))
+
+        logging.info('Chargement de la base de données...')
+        onglets = Onglets(racine, config, metadata)
+
+        onglets.grid(sticky='nsew')
+        racine.mainloop()

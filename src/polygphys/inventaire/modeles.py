@@ -50,6 +50,25 @@ def appareils(metadata: MetaData) -> Table:
     return Table('appareils', metadata, *cols)
 
 
+def consommables(metadata: MetaData) -> Table:
+    matricule = metadata.tables['personnes'].columns['matricule']
+    designation = metadata.tables['etageres'].columns['designation']
+    cols = [col_index(),
+            column('responsable', str, ForeignKey(matricule)),
+            column('place', str, ForeignKey(designation)),
+            column('numéro de fabricant', str),
+            column('numéro de fournisseur', str),
+            column('fournisseur', str),
+            column('fabricant', str),
+            column('commander', bool),
+            column('informations supplémentaires', str),
+            column('nom', str),
+            column('description', str)
+            ]
+
+    return Table('consommables', metadata, *cols)
+
+
 def boites(metadata: MetaData) -> Table:
     """
     Lister des boîtes de transport.
@@ -155,6 +174,7 @@ def créer_dbs(metadata: MetaData):
     modeles.créer_dbs(metadata)
 
     appareils(metadata)
+    consommables(metadata)
     boites(metadata)
     emprunts(metadata)
     utilisation_boites(metadata)
