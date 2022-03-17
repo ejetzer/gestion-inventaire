@@ -23,7 +23,8 @@ import pandas as pd
 conf = cp.ConfigParser()
 conf.read(Path(__file__).parent / 'nouveau_certificat.config')
 sec = 'Émile'  # À changer selon qui utilise le script
-CHEMIN = Path(conf.get(sec, 'Chemin')).expanduser()
+CHEMIN = Path(__file__).parent / 'Certificat Formation Laser.pptx'
+#CHEMIN = Path(conf.get(sec, 'Chemin')).expanduser()
 FEUILLE = Path(conf.get(sec, 'Feuille')).expanduser()
 UNOCONV_PY = conf.get(sec, 'unoconv')
 MAJ = dt.fromisoformat(conf.get(sec, 'Dernière màj'))
@@ -61,7 +62,9 @@ def nouveau_certificat(nom: str, matricule: str, modèle: Path = CHEMIN):
                     elif ligne.text.startswith('Date'):
                         date = dt.today()
                         ligne.text = f'Date: {date.year}-{date.month:02}'
-    chemin = Path('~/Desktop').expanduser() / Path(f'cert_laser/{nom}.pptx')
+    chemin = Path('~/Desktop').expanduser() / \
+        Path(f'cert_laser/ppt/{nom}.pptx')
+    print(chemin)
     if not chemin.parent.exists():
         chemin.parent.mkdir()
     cert.save(chemin)
@@ -198,8 +201,15 @@ class Fenetre(tk.Frame):
         nouveau_certificat(nom, matricule)
         self.var_nom.set('')
         self.var_matricule.set('')
-        for chemin in Path('res').glob('*.pptx'):
-            subprocess.Popen([UNOCONV_PY, UNOCONV, '-f', 'pdf', str(chemin)])
+        for chemin in Path('~/Desktop/cert_laser/ppt').glob('*.pptx'):
+            print(chemin)
+            subprocess.Popen([UNOCONV_PY,
+                              UNOCONV,
+                              '-f',
+                              'pdf',
+                              str(chemin),
+                              '-o',
+                              str(chemin.parent.parent / 'pdf')])
 
     def auto_fct(self):
         """
@@ -214,8 +224,15 @@ class Fenetre(tk.Frame):
         à_faire = obtenir_certificats_à_faire(dernière_màj)
         for index, ligne in à_faire.iterrows():
             nouveau_certificat(ligne.nom, ligne.matricule)
-        for chemin in Path('res').glob('*.pptx'):
-            subprocess.Popen([UNOCONV_PY, UNOCONV, '-f', 'pdf', str(chemin)])
+        for chemin in Path('~/Desktop/cert_laser/ppt').glob('*.pptx'):
+            print(chemin)
+            subprocess.Popen([UNOCONV_PY,
+                              UNOCONV,
+                              '-f',
+                              'pdf',
+                              str(chemin),
+                              '-o',
+                              str(chemin.parent.parent / 'pdf')])
         self.var_dernière_màj.set(dt.now().isoformat())
 
     def auto_fct2(self, feuille: Path = FEUILLE):
@@ -239,8 +256,15 @@ class Fenetre(tk.Frame):
             for index, ligne in à_faire.iterrows():
                 nouveau_certificat(ligne.nom, ligne.matricule)
         self.var_dernière_màj.set(dt.now().isoformat())
-        for chemin in Path('res').glob('*.pptx'):
-            subprocess.Popen([UNOCONV_PY, UNOCONV, '-f', 'pdf', str(chemin)])
+        for chemin in Path('~/Desktop/cert_laser/ppt').glob('*.pptx'):
+            print(chemin)
+            subprocess.Popen([UNOCONV_PY,
+                              UNOCONV,
+                              '-f',
+                              'pdf',
+                              str(chemin),
+                              '-o',
+                              str(chemin.parent.parent / 'pdf')])
         self.master.after(10 * 60 * 1000, self.auto_fct2)
 
     def quitter_fct(self):

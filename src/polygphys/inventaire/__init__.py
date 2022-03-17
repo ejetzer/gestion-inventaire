@@ -98,15 +98,12 @@ def script():
     mdp = config_réseau.get('Volumes', 'mdp')
 
     disque = DisqueRéseau(adresse, chemin, 'Z:', nom, mdp)
-    print(disque / '.')
 
     SOUS_CHEMIN = Path('Techniciens/Emile_Jetzer/Inventaire/')
 
     with disque:
 
         dossier = disque / SOUS_CHEMIN
-        for i in dossier.iterdir():
-            print(i)
 
         if not dossier.exists():
             dossier.mkdir()
@@ -135,7 +132,6 @@ def script():
         adresse = f"sqlite:////{dossier / config.get('bd', 'nom')}"
         config.set('bd', 'adresse', adresse)
         logging.debug('adresse = %r', adresse)
-        print(adresse)
 
         metadata = créer_dbs(MetaData())
         base = BaseDeDonnées(adresse, metadata)

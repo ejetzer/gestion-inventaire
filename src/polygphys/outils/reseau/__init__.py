@@ -6,6 +6,8 @@ Facilite les connexions à des disques réseau ou à des VPNs.
 """
 
 import time
+import datetime
+import os
 import platform
 
 from subprocess import run
@@ -187,7 +189,12 @@ class DisqueRéseau:
             DESCRIPTION.
 
         """
-        self.mount()
+        if not self:
+            self.mount()
+
+        with (self / f'.{os.getpid()}.lock').open('w') as lockfile:
+            lockfile.write(f'{datetime.datetime.now()}')
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -208,7 +215,11 @@ class DisqueRéseau:
         None.
 
         """
-        self.umount()
+        (self / f'.{os.getpid()}.lock').unlink()
+        loquets = list((self / '.').glob('.*.lock'))
+
+        if not len(loquets):
+            self.umount()
 
     def is_mount(self):
         """

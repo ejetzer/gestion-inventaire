@@ -80,7 +80,8 @@ def tkHandler(master: tk.Tk, editable: bool = True) -> InterfaceHandler:
         elif dtype in ('int64', 'float64'):
             widget = ttk.Spinbox(master, textvariable=variable)
         elif any(i in variable.get() for i in ('\n', '\r', '\t', '  ')):
-            widget = st.ScrolledText(master, textvariable=variable)
+            # Fix temporaire
+            widget = ttk.Entry(master, textvariable=variable)
         else:
             widget = ttk.Entry(master, textvariable=variable)
         logger.debug('widget = %r', widget)
