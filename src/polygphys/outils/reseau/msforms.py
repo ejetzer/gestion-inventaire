@@ -122,7 +122,9 @@ class MSForm:
             DESCRIPTION.
 
         """
-        return vieux_champs.rename(self.config.options('conversion'), axis=1)
+        champs = {champ: self.config.get('conversion', champ)
+                  for champ in self.config.options('conversion')}
+        return vieux_champs.rename(champs, axis=1)
 
     def nettoyer(self, cadre: pd.DataFrame) -> pd.DataFrame:
         """

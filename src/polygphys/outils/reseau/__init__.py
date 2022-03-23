@@ -12,6 +12,7 @@ import platform
 import io
 import urllib.request
 import requests
+import getpass
 
 from subprocess import run
 from pathlib import Path
@@ -303,11 +304,21 @@ class FichierLointain:
 
     def open(self, mode='rb'):
         req = requests.get(self.chemin_distant)
-        with self.chemin_local.open('wb') as g:
-            g.write(req.content)
 
-        self.fichier = self.chemin_local.open(mode)
-        return self.fichier
+        if req.status_code == 403:
+            nom = input('nom: ')
+            mdp = getpass.getpass('mdp: ')
+            req = requests.get(self.chemin_distant, auth=(nom, mdp))
+
+        if req.status_code == 200:
+            with self.chemin_local.open('wb') as g:
+                g.write(req.content)
+
+            self.fichier = self.chemin_local.open(mode)
+            return self.fichier
+        else:
+            raise Exception(
+                f'Fichier non disponible, code d\'état {req.status_code}')
 
     def close(self):
         self.fichier.close()

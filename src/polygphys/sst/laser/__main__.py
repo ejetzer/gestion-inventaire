@@ -6,7 +6,7 @@ Created on Thu Mar  3 11:22:11 2022.
 @author: emilejetzer
 """
 
-from ..laser import main
+from . import main
 
 if __name__ == '__main__':
     main()
