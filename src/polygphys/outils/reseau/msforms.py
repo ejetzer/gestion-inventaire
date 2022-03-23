@@ -14,13 +14,14 @@ Created on Wed Feb 23 15:15:44 2022
 # import tkinter as tk
 import configparser as cp
 
-# from pathlib import Path
+from pathlib import Path
 from datetime import datetime as dt
 # from subprocess import run
 
 import pandas as pd
 
 from ..config import FichierConfig
+from . import FichierLointain
 
 
 class MSFormConfig(FichierConfig):
@@ -41,17 +42,18 @@ class MSFormConfig(FichierConfig):
 
 [formulaire]
     chemin: ./form.xlsx
-    colonnes: date, nom
+    colonnes: date,
+              nom
 
 [màj]
-    dernière:
+    dernière: {dt.now().isoformat()}
 '''
 
 
 class MSForm:
     """Formulaire."""
 
-    def __init__(self, config: cp.ConfigParser):
+    def __init__(self, config: FichierConfig):
         """
         Formulaire.
 
@@ -91,7 +93,7 @@ class MSForm:
             DESCRIPTION.
 
         """
-        return self.config.get('formulaire', 'colonnes')
+        return self.config.getlist('formulaire', 'colonnes')
 
     @property
     def dernière_mise_à_jour(self):
@@ -103,7 +105,7 @@ class MSForm:
         None.
 
         """
-        self.config.get('màj', 'dernière')
+        return dt.fromisoformat(self.config.get('màj', 'dernière'))
 
     def convertir_champs(self, vieux_champs: pd.DataFrame) -> pd.DataFrame:
         """
@@ -149,9 +151,11 @@ class MSForm:
             DESCRIPTION.
 
         """
-        cadre = pd.read_excel(self.fichier, usecols=self.colonnes)
+        cadre = pd.read_excel(
+            self.fichier, usecols=self.colonnes, engine='openpyxl')
+
         cadre = self.nettoyer(cadre)
-        return cadre.loc[cadre.date >= self.dernière_mise_à_jour.date()]
+        return cadre.loc[cadre.date >= pd.to_datetime(self.dernière_mise_à_jour)]
 
     def action(self, cadre: pd.DataFrame):
         """
@@ -181,3 +185,24 @@ class MSForm:
         cadre = self.nouvelles_entrées()
         self.config.set('màj', 'dernière', dt.now().isoformat())
         self.action(cadre)
+
+
+def main(dossier='.'):
+    dossier = Path(dossier)
+    config = next(dossier.glob('*.cfg'))
+    config = MSFormConfig(config)
+    print(config)
+
+    fichier = FichierLointain(config.get('formulaire', 'url'),
+                              config.getpath('formulaire', 'chemin'))
+    fichier.update()
+
+    form = MSForm(config)
+    print(form.fichier)
+    print(form.colonnes)
+    print(form.dernière_mise_à_jour)
+    print(form.nouvelles_entrées())
+
+
+if __name__ == '__main__':
+    main(Path('~/Desktop/Test Forms').expanduser())

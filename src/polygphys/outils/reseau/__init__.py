@@ -9,6 +9,9 @@ import time
 import datetime
 import os
 import platform
+import io
+import urllib.request
+import requests
 
 from subprocess import run
 from pathlib import Path
@@ -286,6 +289,46 @@ class DisqueRéseau:
     def __rtruediv__(self, other):
         """Rien."""
         return NotImplemented
+
+
+class FichierLointain:
+
+    def __init__(self, chemin_distant, chemin_local):
+        self.chemin_distant = chemin_distant
+        self.chemin_local = Path(chemin_local)
+
+    def update(self):
+        self.open()
+        self.close()
+
+    def open(self, mode='rb'):
+        req = requests.get(self.chemin_distant)
+        with self.chemin_local.open('wb') as g:
+            g.write(req.content)
+
+        self.fichier = self.chemin_local.open(mode)
+        return self.fichier
+
+    def close(self):
+        self.fichier.close()
+
+    def read(self, *args, **kargs):
+        return self.fichier.read(*args, **kargs)
+
+    def readlines(self, *args, **kargs):
+        return self.fichier.read(*args, **kargs)
+
+    def seek(self, *args, **kargs):
+        return self.fichier.seek(*args, **kargs)
+
+    def tell(self, *args, **kargs):
+        return self.fichier.tell(*args, **kargs)
+
+    def __enter__(self):
+        return self.open()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
 
 def main():
