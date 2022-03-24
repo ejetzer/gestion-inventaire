@@ -12,18 +12,17 @@ import subprocess
 import getpass
 import time
 
-import tkinter as tk
-import configparser as cp
-
 from pathlib import Path
 from datetime import datetime as dt
 from subprocess import run
 
 import pptx
 import pandas as pd
+import schedule
+import keyring
 
 from ...outils.reseau.msforms import MSFormConfig, MSForm
-from ...outils.reseau import FichierLointain, DisqueRéseau
+from ...outils.reseau import FichierLointain, DisqueRéseau, OneDrive
 
 
 class SSTLaserCertificatsConfig(MSFormConfig):
@@ -71,11 +70,16 @@ class SSTLaserCertificatsForm(MSForm):
                 url = self.config.get(disque, 'url')
                 chemin = self.config.getpath(disque, 'mount_point')
                 drive = self.config.get(disque, 'drive')
+                mode = self.config.get(disque, 'method')
 
-                print(f'Connection à {disque}')
-                nom = input('nom: ')
-                mdp = getpass.getpass('mdp: ')
-                with DisqueRéseau(url, chemin, drive, nom, mdp) as d:
+                nom = self.config.get(disque, 'nom')
+                mdp = keyring.get_password(
+                    'system', f'polygphys.sst.laser.{disque}.{nom}')
+                if mdp is None:
+                    mdp = getpass.getpass('mdp: ')
+                    keyring.set_password(
+                        'system', f'polygphys.sst.laser.{disque}.{nom}', mdp)
+                with DisqueRéseau(url, chemin, drive, nom, mdp, mode) as d:
                     sous_dossier = d / self.config.get(disque, 'chemin')
                     sous_dossier = d / self.config.get('certificats', 'ppt')
                     fichier = sous_dossier / f'{entrée.nom}.pptx'
@@ -94,21 +98,25 @@ def main():
     chemin_config = next(Path(__file__).parent.glob('*.cfg'))
     config = SSTLaserCertificatsConfig(chemin_config)
 
-    fichier = FichierLointain(config.get('formulaire', 'url'),
-                              config.getpath('formulaire', 'chemin'))
-    fichier.update()
+    dossier = OneDrive('',
+                       config.get('onedrive', 'organisation'),
+                       config.get('onedrive', 'sous-dossier'),
+                       partagé=True)
+    fichier = dossier / config.get('formulaire', 'nom')
+    config.set('formulaire', 'chemin', str(fichier))
 
     formulaire = SSTLaserCertificatsForm(config)
 
     exporteur = subprocess.Popen(['unoconv', '--listener'])
 
+    schedule.every().day.at('08:00').do(formulaire.mise_à_jour)
+
+    formulaire.mise_à_jour()
     try:
         while True:
-            fichier.update()
-            formulaire.mise_à_jour()
-            time.sleep(60 * 60)  # On roule à chaque heure
+            schedule.run_pending()
+            time.sleep(1)
     finally:
-        config.getpath('formulaire', 'chemin').unlink()
         exporteur.terminate()
 
 

@@ -342,12 +342,49 @@ class FichierLointain:
         self.close()
 
 
+class OneDrive:
+
+    def __init__(self, utilisateur, organisation='', *args, partagé=False):
+        self.utilisateur = utilisateur
+        self.organisation = organisation
+        self.sous_dossiers = args
+        self.partagé = partagé
+
+    @property
+    def dossier_onedrive(self):
+        if self.partagé:
+            return self.organisation
+        elif self.organisation:
+            return f'OneDrive -{self.organisation}'
+        else:
+            return 'OneDrive'
+
+    @property
+    def chemin(self):
+        chemin = Path(f'~{self.utilisateur}').expanduser() / \
+            self.dossier_onedrive
+
+        for sd in self.sous_dossiers:
+            chemin /= sd
+
+        return chemin
+
+    def __bool__(self):
+        return self.chemin.exists()
+
+    def __truediv__(self, other):
+        return self.chemin / other
+
+    def __rtruediv__(self, other):
+        return NotImplemented
+
+
 def main():
     drive = 'J'
     chemin = Path('~/Volumes/GeniePhysique').expanduser()
     url = 'phsfiles.phs.polymtl.ca/GeniePhysique'
     nom = input('nom>')
-    mdp = input('mdp>')
+    mdp = getpass.getpass('mdp>')
 
     with DisqueRéseau(url, chemin, drive, nom, mdp) as disque_réseau:
         chemin = disque_réseau / '.'
