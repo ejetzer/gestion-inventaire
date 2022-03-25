@@ -67,10 +67,11 @@ def locaux(metadata: MetaData) -> Table:
         DESCRIPTION.
 
     """
-    matricule = metadata.tables['personnes'].columns['matricule']
+    matricule = metadata.tables['personnes'].columns['index']
     cols = [col_index(),
             column('porte principale', str),
-            column('responsable', str, ForeignKey(matricule)),
+            column('responsable', int, ForeignKey(
+                matricule, onupdate='CASCADE')),
             column('description', str),
             column('utilisation', str)
             ]
@@ -93,10 +94,10 @@ def portes(metadata: MetaData) -> Table:
         DESCRIPTION.
 
     """
-    local = metadata.tables['locaux'].columns['porte principale']
+    local = metadata.tables['locaux'].columns['index']
     cols = [col_index(),
             column('numéro', str),
-            column('local', str, ForeignKey(local))
+            column('local', int, ForeignKey(local, onupdate='CASCADE'))
             ]
 
     return Table('portes', metadata, *cols)
@@ -117,11 +118,12 @@ def etageres(metadata: MetaData) -> Table:
         DESCRIPTION.
 
     """
-    local = metadata.tables['locaux'].columns['porte principale']
-    matricule = metadata.tables['personnes'].columns['matricule']
+    local = metadata.tables['locaux'].columns['index']
+    matricule = metadata.tables['personnes'].columns['index']
     cols = [col_index(),
-            column('local', str, ForeignKey(local)),
-            column('responsable', str, ForeignKey(matricule)),
+            column('local', int, ForeignKey(local, onupdate='CASCADE')),
+            column('responsable', int, ForeignKey(
+                matricule, onupdate='CASCADE')),
             column('numéro', str),
             column('tablette', str),
             column('sous-division', str),

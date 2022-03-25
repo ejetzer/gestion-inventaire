@@ -31,38 +31,26 @@ class InventaireConfig(FichierConfig):
 
 def main():
     fichier_config = Path('~/inventaire.cfg').expanduser()
-    config_locale = InventaireConfig(fichier_config)
+    config = InventaireConfig(fichier_config)
 
-    chemin = config_locale.get('disque', 'chemin')
-    chemin = str(Path(chemin).expanduser())
-    config_locale.set('disque', 'chemin', chemin)
-
-    adresse = config_locale.get('disque', 'adresse')
-    nom = config_locale.get('disque', 'nom')
-    mdp = keyring.get_password('system',
-                               mdp_id := f'polygphys.inventaire.main.disque.{adresse}.{nom}')
+    nom = config.get('bd', 'nom')
+    utilisateur = config.get('bd', 'utilisateur')
+    mdp_id = f'polygphys.inventaire.main.bd.{nom}.{utilisateur}'
+    mdp = keyring.get_password('system', mdp_id)
 
     if mdp is None:
         mdp = getpass.getpass('mdp>')
         keyring.set_password('system', mdp_id, mdp)
 
-    with DisqueRéseau(**config_locale['disque'], mdp=mdp) as disque:
-        config_disque = InventaireConfig(disque / 'inventaire.cfg')
+    metadata = créer_dbs(MetaData())
+    adresse = f'mysql+pymysql://{utilisateur}:{mdp}@{nom}'
+    config.set('bd', 'adresse', adresse.replace('%', '%%'))
+    base_de_données = BaseDeDonnées(adresse, metadata)
+    base_de_données.initialiser()
 
-        metadata = créer_dbs(MetaData())
-        nom = config_disque.get('bd', 'nom',
-                                fallback=config_locale.get('bd',
-                                                           'nom'))
-        adresse = f'sqlite:///{disque / nom}'
-        config_disque.set('bd', 'adresse', adresse)
-        base_de_données = BaseDeDonnées(adresse, metadata)
-        base_de_données.initialiser()
-
-        racine = tk.Tk()
-        titre = config_disque.get('tkinter', 'titre',
-                                  fallback=config_locale.get('tkinter',
-                                                             'titre'))
-        racine.title(titre)
-        onglets = Onglets(racine, config_disque, metadata)
-        onglets.grid(sticky='nsew')
-        racine.mainloop()
+    racine = tk.Tk()
+    titre = config.get('tkinter', 'titre')
+    racine.title(titre)
+    onglets = Onglets(racine, config, metadata, dialect='mysql')
+    onglets.grid(sticky='nsew')
+    racine.mainloop()

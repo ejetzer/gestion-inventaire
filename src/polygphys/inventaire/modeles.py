@@ -32,11 +32,12 @@ def appareils(metadata: MetaData) -> Table:
         DESCRIPTION.
 
     """
-    matricule = metadata.tables['personnes'].columns['matricule']
-    designation = metadata.tables['etageres'].columns['designation']
+    matricule = metadata.tables['personnes'].columns['index']
+    designation = metadata.tables['etageres'].columns['index']
     cols = [col_index(),
-            column('responsable', str, ForeignKey(matricule)),
-            column('place', str, ForeignKey(designation)),
+            column('responsable', int, ForeignKey(
+                matricule, onupdate='CASCADE')),
+            column('place', int, ForeignKey(designation, onupdate='CASCADE')),
             column('numéro de série', str),
             column('numéro de modèle', str),
             column('fournisseur', str),
@@ -51,11 +52,12 @@ def appareils(metadata: MetaData) -> Table:
 
 
 def consommables(metadata: MetaData) -> Table:
-    matricule = metadata.tables['personnes'].columns['matricule']
-    designation = metadata.tables['etageres'].columns['designation']
+    matricule = metadata.tables['personnes'].columns['index']
+    designation = metadata.tables['etageres'].columns['index']
     cols = [col_index(),
-            column('responsable', str, ForeignKey(matricule)),
-            column('place', str, ForeignKey(designation)),
+            column('responsable', int, ForeignKey(
+                matricule, onupdate='CASCADE')),
+            column('place', int, ForeignKey(designation, onupdate='CASCADE')),
             column('numéro de fabricant', str),
             column('numéro de fournisseur', str),
             column('fournisseur', str),
@@ -84,11 +86,12 @@ def boites(metadata: MetaData) -> Table:
         DESCRIPTION.
 
     """
-    matricule = metadata.tables['personnes'].columns['matricule']
-    designation = metadata.tables['etageres'].columns['designation']
+    matricule = metadata.tables['personnes'].columns['index']
+    designation = metadata.tables['etageres'].columns['index']
     cols = [col_index(),
-            column('responsable', str, ForeignKey(matricule)),
-            column('place', str, ForeignKey(designation)),
+            column('responsable', int, ForeignKey(
+                matricule, onupdate='CASCADE')),
+            column('place', int, ForeignKey(designation, onupdate='CASCADE')),
             column('description', str),
             column('dimensions', str)
             ]
@@ -112,11 +115,13 @@ def emprunts(metadata: MetaData) -> Table:
 
     """
     appareil = metadata.tables['appareils'].columns['index']
-    personnes = metadata.tables['personnes'].columns['matricule']
+    personnes = metadata.tables['personnes'].columns['index']
     cols = [col_index(),
-            column('appareil', str, ForeignKey(appareil)),
-            column('responsable', str, ForeignKey(personnes)),
-            column('emprunteur', str, ForeignKey(personnes)),
+            column('appareil', int, ForeignKey(appareil, onupdate='CASCADE')),
+            column('responsable', int, ForeignKey(
+                personnes, onupdate='CASCADE')),
+            column('emprunteur', int, ForeignKey(
+                personnes, onupdate='CASCADE')),
             column('date emprunt', date),
             column('date retour', date),
             column('retourné', bool),
@@ -142,11 +147,13 @@ def utilisation_boites(metadata: MetaData) -> Table:
 
     """
     boite = metadata.tables['appareils'].columns['index']
-    personnes = metadata.tables['personnes'].columns['matricule']
+    personnes = metadata.tables['personnes'].columns['index']
     cols = [col_index(),
-            column('boite', str, ForeignKey(boite)),
-            column('responsable', str, ForeignKey(personnes)),
-            column('emprunteur', str, ForeignKey(personnes)),
+            column('boite', int, ForeignKey(boite, onupdate='CASCADE')),
+            column('responsable', int, ForeignKey(
+                personnes, onupdate='CASCADE')),
+            column('emprunteur', int, ForeignKey(
+                personnes, onupdate='CASCADE')),
             column('date emprunt', date),
             column('date retour', date),
             column('retourné', bool),

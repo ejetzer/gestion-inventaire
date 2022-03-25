@@ -316,7 +316,7 @@ class BaseDeDonnées:
 
         """
         logging.debug('adresse = %r', self.adresse)
-        return sqla.create_engine(str(self.adresse))
+        return sqla.create_engine(str(self.adresse), future=True)
 
     def begin(self):
         """

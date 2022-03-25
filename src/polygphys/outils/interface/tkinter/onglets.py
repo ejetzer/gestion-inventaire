@@ -731,8 +731,7 @@ class Onglets(ttk.Notebook):
         logging.debug('onglet = %r', onglet)
         self.add(onglet, text=Path(onglet.chemin).name)
 
-        db = BaseDeDonnées(config.geturl(
-            'bd', 'adresse', dialect=dialect), schema)
+        db = BaseDeDonnées(config.get('bd', 'adresse'), schema)
         logging.debug('db = %r', db)
 
         tables = config.getlist('bd', 'tables')
