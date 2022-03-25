@@ -15,5 +15,5 @@ from . import main
 from polygphys.outils.journal import Formats
 
 if __name__ == '__main__':
-    logging.basicConfig(format=Formats().détails, level=logging.DEBUG)
+    logging.basicConfig(format=Formats().default, level=logging.WARNING)
     main()

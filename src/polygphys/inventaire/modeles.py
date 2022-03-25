@@ -37,7 +37,7 @@ def appareils(metadata: MetaData) -> Table:
     cols = [col_index(),
             column('responsable', int, ForeignKey(
                 matricule, onupdate='CASCADE')),
-            column('place', int, ForeignKey(designation, onupdate='CASCADE')),
+            column('place', int, ForeignKey(designation)),
             column('numéro de série', str),
             column('numéro de modèle', str),
             column('fournisseur', str),
@@ -55,9 +55,8 @@ def consommables(metadata: MetaData) -> Table:
     matricule = metadata.tables['personnes'].columns['index']
     designation = metadata.tables['etageres'].columns['index']
     cols = [col_index(),
-            column('responsable', int, ForeignKey(
-                matricule, onupdate='CASCADE')),
-            column('place', int, ForeignKey(designation, onupdate='CASCADE')),
+            column('responsable', int, ForeignKey(matricule)),
+            column('place', int, ForeignKey(designation)),
             column('numéro de fabricant', str),
             column('numéro de fournisseur', str),
             column('fournisseur', str),
@@ -89,9 +88,8 @@ def boites(metadata: MetaData) -> Table:
     matricule = metadata.tables['personnes'].columns['index']
     designation = metadata.tables['etageres'].columns['index']
     cols = [col_index(),
-            column('responsable', int, ForeignKey(
-                matricule, onupdate='CASCADE')),
-            column('place', int, ForeignKey(designation, onupdate='CASCADE')),
+            column('responsable', int, ForeignKey(matricule)),
+            column('place', int, ForeignKey(designation)),
             column('description', str),
             column('dimensions', str)
             ]
@@ -117,11 +115,9 @@ def emprunts(metadata: MetaData) -> Table:
     appareil = metadata.tables['appareils'].columns['index']
     personnes = metadata.tables['personnes'].columns['index']
     cols = [col_index(),
-            column('appareil', int, ForeignKey(appareil, onupdate='CASCADE')),
-            column('responsable', int, ForeignKey(
-                personnes, onupdate='CASCADE')),
-            column('emprunteur', int, ForeignKey(
-                personnes, onupdate='CASCADE')),
+            column('appareil', int, ForeignKey(appareil)),
+            column('responsable', int, ForeignKey(personnes)),
+            column('emprunteur', int, ForeignKey(personnes)),
             column('date emprunt', date),
             column('date retour', date),
             column('retourné', bool),
@@ -149,11 +145,9 @@ def utilisation_boites(metadata: MetaData) -> Table:
     boite = metadata.tables['appareils'].columns['index']
     personnes = metadata.tables['personnes'].columns['index']
     cols = [col_index(),
-            column('boite', int, ForeignKey(boite, onupdate='CASCADE')),
-            column('responsable', int, ForeignKey(
-                personnes, onupdate='CASCADE')),
-            column('emprunteur', int, ForeignKey(
-                personnes, onupdate='CASCADE')),
+            column('boite', int, ForeignKey(boite)),
+            column('responsable', int, ForeignKey(personnes)),
+            column('emprunteur', int, ForeignKey(personnes)),
             column('date emprunt', date),
             column('date retour', date),
             column('retourné', bool),
