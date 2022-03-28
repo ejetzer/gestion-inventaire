@@ -8,15 +8,20 @@ Created on Fri Nov  5 14:55:41 2021
 @author: ejetzer
 """
 
+# Bibliothèques standards
 import pathlib
 import logging
 import sys
 
-from typing import Union, Callable
+from typing import Union, Callable, Any
+from functools import partial
+from inspect import signature
 
+# Bibliothèques via PIPy
 import sqlalchemy as sqla
 import pandas as pd
 
+# Imports relatifs
 from .dtypes import get_type
 
 TYPES_FICHIERS: dict[str, Callable] = {'.xlsx': pd.read_excel,
@@ -608,6 +613,103 @@ class BaseDeDonnées:
         logging.debug('df = %r', df)
 
         self.màj(table, df)
+
+
+class BaseTableau:
+    """Encapsulation de la classe BaseDeDonnées."""
+
+    def __init__(self, db: BaseDeDonnées, table: str):
+        """
+        Encapsule de la classe BaseDeDonnées.
+
+        Avec accès seulement à la table table.
+
+        Parameters
+        ----------
+        db : BaseDeDonnées
+            Une interface à une base de données.
+        table : str
+            Le nom d'un tableau dans db.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.table: str = table
+        self.db: BaseDeDonnées = db
+
+    def __getattr__(self, attr: str) -> Any:
+        """
+        Obtiens un attribut de self.db ou self.df.
+
+        Facilite l'encapsulation.
+        BaseDeDonnées a la priorité, ensuite pandas.DataFrame.
+
+        Parameters
+        ----------
+        attr : str
+            Attribut à obtenir.
+
+        Raises
+        ------
+        AttributeError
+            Si l'attribut ne peut pas être trouvé.
+
+        Returns
+        -------
+        Any
+            L'attribut demandé.
+
+        """
+        if hasattr(BaseDeDonnées, attr):
+            obj = getattr(self.db, attr)
+
+            if isinstance(obj, Callable):
+                sig = signature(obj)
+
+                if len(sig.parameters) == 1 and 'table' in sig.parameters:
+                    return partial(obj, self.table)()
+                elif 'table' in sig.parameters:
+                    return partial(obj, self.table)
+                else:
+                    return obj
+            else:
+                return obj
+        elif hasattr(pd.DataFrame, attr):
+            return getattr(self.df, attr)
+        else:
+            msg = f'{self!r} de type {type(self)} n\'a pas d\'attribut {attr}\
+, ni (self.__db: BaseDeDonnées, self.df: pandas.DataFrame).'
+            raise AttributeError(msg)
+
+    @property
+    def df(self) -> pd.DataFrame:
+        """Le tableau comme pandas.DataFrame."""
+        return self.select()
+
+    def append(self, values: Union[pd.Series, pd.DataFrame] = None):
+        """
+        Ajoute des valeurs au tableau.
+
+        Parameters
+        ----------
+        values : Union[pd.Series, pd.DataFrame], optional
+            Valeurs à ajouter. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        if values is None:
+            cols, idx = self.columns, [max(self.index, default=-1) + 1]
+            values = pd.DataFrame(None, columns=cols, index=[idx])
+        elif isinstance(values, pd.Series):
+            cols, idx = self.columns, [max(self.index, default=-1) + 1]
+            values = pd.DataFrame([values], index=[idx])
+
+        self.db.append(self.table, values)
 
 
 def main(dossier: str = None) -> tuple[BaseDeDonnées, sqla.MetaData]:

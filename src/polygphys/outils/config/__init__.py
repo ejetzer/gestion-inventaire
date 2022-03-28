@@ -116,6 +116,8 @@ class FichierConfig(ConfigParser):
         # donc on s'assure de pouvoir convertir les listes, chemins et urls.
         # On garde quand même ça simple pour quelqu'un de remplacer
         # les convertisseurs par défaut.
+        if converters is _UNSET:
+            converters = {}
         if isinstance(converters, dict):
             if 'list' not in converters:
                 converters['list'] = lambda x: list(

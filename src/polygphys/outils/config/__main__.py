@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Démonstration de l'utilisation des classes de fichiers de configuration.
+
+Created on Wed Mar 23 09:43:24 2022
+
+@author: emilejetzer
 """
 
 # Bibliothèque standard
@@ -19,7 +23,7 @@ parseur_darguments.add_argument('-f',
                                 type=str,
                                 help='fichier à lire',
                                 required=False,
-                                default=str(Path(__file__).parent / 'demo.cfg'))
+                                default='demo.cfg')
 arguments = parseur_darguments.parse_args()
 
 # Ouvrir un fichier de configuration
@@ -33,25 +37,6 @@ try:
     # Modifier le contenu du fichier
     config.add_section('test')
     config['test']['sous-test'] = 'valeur test'
-    config['test']['autre'] = str(235)
-
-    print('Après modification:')
-    print(config)
-
-    # Obtenir une valeur
-    print(f'{config["test"]["autre"]=!r}')
-    print(f'{config.getint("test", "autre")=!r}')
-
-    # Retrait d'une option
-    config.remove_option('test', 'autre')
-
-    print('Retrait d\'une option:')
-    print(config)
-
-    # Retrait d'une section
-    config.remove_section('test')
-
-    print('Retrait d\'une section:')
     print(config)
 finally:
     # Détruire le fichier de démonstration

@@ -132,7 +132,7 @@ def etageres(metadata: MetaData) -> Table:
     return Table('etageres', metadata, *cols)
 
 
-def créer_dbs(metadata: MetaData):
+def créer_dbs(metadata: MetaData) -> MetaData:
     """
     Créer les bases de données.
 
