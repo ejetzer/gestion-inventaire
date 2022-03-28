@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Modèles de base de données.
-
-Created on Tue Jan 25 11:51:37 2022
-
-@author: emilejetzer
-"""
+"""Modèles de base de données."""
 
 from sqlalchemy import MetaData, Table, Column, ForeignKey
 

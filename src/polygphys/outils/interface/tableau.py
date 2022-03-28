@@ -1,12 +1,6 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
-"""
-Manipulation et affichage de base de données.
-
-Created on Tue Nov  2 15:40:02 2021
-
-@author: ejetzer
-"""
+"""Manipulation et affichage de base de données."""
 
 import logging
 

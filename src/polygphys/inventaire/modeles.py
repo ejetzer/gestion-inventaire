@@ -1,17 +1,13 @@
-#!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
-"""
-Modèles de bases de données d'inventaire.
+"""Modèles de bases de données d'inventaire."""
 
-Créé le Fri Nov 26 15:36:57 2021
-
-@author: ejetzer
-"""
-
+# Bibliothèques standards
 from datetime import date
 
+# Bibliothèques PIPy
 from sqlalchemy import MetaData, Table, ForeignKey
 
+# Imports relatifs
 from ..outils.database.dtypes import column
 from ..outils.database import modeles
 from ..outils.database.modeles import col_index
@@ -24,7 +20,7 @@ def appareils(metadata: MetaData) -> Table:
     Parameters
     ----------
     metadata : MetaData
-        DESCRIPTION.
+        Description de structure de base de données.
 
     Returns
     -------
