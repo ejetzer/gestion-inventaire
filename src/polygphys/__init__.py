@@ -4,20 +4,17 @@
 Module utilitaire pour des tâches de laboratoire.
 
     - `outils` fournis les outils
-    - les autres sous-modules sont des applications configurables.
-
-Created on Mon Nov 15 15:17:28 2021
-
-@author: ejetzer
+    - les autres sous-modules sont des applications configurables
+    - et des exemples.
 """
 
-import logging
-import sys
-import pathlib
+import logging  # Communiquer des infos pertinentes pendant l'exécution
+import sys  # Accéder à certains aspects du système de l'interpréteur
+import pathlib  # Manipuler facilement des chemins
 
-import polygphys.outils.database
-import polygphys.outils.config
-import polygphys.outils.interface.tkinter.onglets
+import polygphys.outils.database  # Gérer facilement des bases de données
+import polygphys.outils.config  # Gérer facilement des configurations complexes
+import polygphys.outils.interface.tkinter.onglets  # Interface rapide
 
 from .outils.journal import Formats
 

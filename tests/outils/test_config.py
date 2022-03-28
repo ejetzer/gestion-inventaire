@@ -29,6 +29,22 @@ def test_FichierConfig():
         chemin.unlink()
 
 
+def test_FichierConfig_edition():
+    from polygphys.outils.config import FichierConfig
+    from pathlib import Path
+
+    chemin = Path('test_FichierConfig.cfg')
+    fichier_config = FichierConfig(chemin)
+
+    try:
+        fichier_config.add_section('test')
+        fichier_config['test']['soustest'] = '245'
+        assert fichier_config['test']['soustest'] == 'allo'
+        assert fichier_config.getint('test', 'soustest') == 245
+    finally:
+        chemin.unlink()
+
+
 def test_FichierConfig_getlist():
     from polygphys.outils.config import FichierConfig
     from pathlib import Path
@@ -64,10 +80,10 @@ def test_FichierConfig_getpath():
         chemin.unlink()
 
 
-@pytest.mark.xfail
 def test_FichierConfig_geturl():
     from polygphys.outils.config import FichierConfig
     from pathlib import Path
+    from urllib.parse import urlparse
 
     chemin = Path('test_FichierConfig.cfg')
     fichier_config = FichierConfig(chemin)
@@ -77,6 +93,7 @@ def test_FichierConfig_geturl():
         assert 'pytest' in fichier_config.sections()
 
         fichier_config.set('pytest', 'url', 'http://test.com/')
-        assert fichier_config.geturl('pytest', 'url') == 'http://test.com/'
+        assert fichier_config.geturl(
+            'pytest', 'url') == urlparse('http://test.com/')
     finally:
         chemin.unlink()

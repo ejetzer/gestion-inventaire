@@ -1,1 +1,343 @@
-# !/usr/bin/env python3.9# -*- coding: utf-8 -*-"""Enveloppe pour les fichiers de configuration.Permet de garder en mémoire le chemin du fichier.Created on Mon Nov 22 14:22:36 2021@author: ejetzer"""import loggingimport sysfrom pathlib import Pathfrom configparser import ConfigParserfrom urllib.parse import urlparseclass FichierConfig(ConfigParser):    """Garde ConfigParser synchronisé avec un fichier."""    def __init__(self,                 chemin: Path,                 inline_comment_prefixes=('#', ';'),                 **kargs):        """        Sous-classe de configparser.ConfigParser.        Garde le fichier de configuration synchrone avec l'objet Python.        Parameters        ----------        chemin : Union[Iterable[Path], Path]            Le chemin vers le fichier de configuration.        inline_comment_prefixes : TYPE, optional            Début de commentaire. The default is ('#', ';').        **kargs : TYPE            Autres paramètres transmis au parent.        Returns        -------        None.        """        logging.debug('chemin = %r\tinline_comment_prefixes = %r\tkargs = %r',                      chemin,                      inline_comment_prefixes,                      kargs)        self.chemin = chemin        if not self.chemin.exists():            self.chemin.touch()            with self.chemin.open('w') as f:                f.write(self.default())        super().__init__(inline_comment_prefixes=inline_comment_prefixes,                         **kargs)        self.optionxform = str                self.read()    def default(self):        """        Retourne la configuration par défaut.        Returns        -------        None.        """        return f'''[FichierConfig]    auto: True    class: {type(self)}'''    def read(self):        """        Lis le fichier de configuration associé à l'objet.        Returns        -------        None.        """        logging.debug('chemin = %r', self.chemin)        super().read(self.chemin, encoding='utf-8')    def write(self):        """        Écris au fichier les changements à l'objet Python.        Returns        -------        None.        """        logging.debug('chemin = %r', self.chemin)        chemins = (self.chemin,) if isinstance(            self.chemin, (Path, str)) else self.chemin        logging.debug('chemins = %r', chemins)        for chemin in chemins:            with open(chemin, 'w', encoding='utf-8') as f:                logging.debug('f = %r', f)                super().write(f)    def set(self, section: str, option: str, value: str):        """        Change la valeur d'un champ.        Parameters        ----------        section : str            Section du fichier de configuration.        option : str            Champ à modifier.        value : str            Valeur à assigner.        Returns        -------        None.        """        logging.debug('section = %r\toption = %r\tvalue = %r',                      section,                      option,                      value)        super().set(section, option, value)        self.write()        self.read()    def getlist(self,                sec: str,                clé: str,                fallback: list = tuple()) -> list[str]:        """        Transformer une énumération en une liste Python.        Parameters        ----------        sec : str            Section du fichier de configuration.        clé : str            Champ à obtenir.        fallback : list, optional            Valeur par défaut. The default is [].        Returns        -------        list[str]            DESCRIPTION.        """        logging.debug('sec = %r\tclé = %r\tfallback = %r',                      sec,                      clé,                      fallback)        val = self.get(sec, clé, fallback=None)        logging.debug('val = %r', val)        logging.debug('val is not None = %r', val is not None)        if val is not None:            val = list(map(str.strip, val.strip().split('\n')))        else:            val = fallback        logging.debug('val = %r', val)        return val    def geturl(self,               sec: str,               clé: str,               fallback: str = '',               **kargs) -> str:        """        Retire une url du fichier de configuration.        Parameters        ----------        sec : str            Section.        clé : str            Clé.        fallback : str, optional            Valeur par défaut. The default is ''.        **kargs : TYPE            Valeurs à forcer.        Raises        ------        KeyError            Si clé ou sec n'existent pas.        Returns        -------        str            Adresse (pour base de données).        """        champ = self.get(sec, clé, fallback=None)        if champ is None and fallback != '':            champ = fallback        elif champ is None:            raise KeyError(f'{clé!r} not found in {sec!r}.')        url = urlparse(champ)        d = {'dialect': '',             'driver': '',             'nom': '',             'mdp': '',             'netloc': '',             'port': '',             'path': '',             'params': '',             'query': '',             'fragment': ''}        if '+' in url.scheme:            d['dialect'], d['driver'] = url.scheme.split('+')        else:            d['dialect'] = url.scheme        if '@' in url.netloc:            userdetails, d['netloc'] = url.netloc.split('@')        else:            userdetails, d['netloc'] = '', url.netloc        if ':' in d['netloc']:            d['netloc'], d['port'] = d['netloc'].split(':')        if ':' in userdetails:            d['nom'], d['mdp'] = userdetails.split(':')        else:            d['nom'] = userdetails        d['path'] = url.path        d['params'] = url.params        d['query'] = url.query        d['fragment'] = url.fragment        for c in d.keys() & kargs.keys():            d[c] = kargs[c]        for clé, préfixe in (('driver', '+'),                             ('mdp', ':'),                             ('port', ':'),                             ('params', ';'),                             ('query', '?'),                             ('fragment', '#')):            if d[clé]:                d[clé] = préfixe + d[clé]        logging.debug('d["netloc"] = %r', d['netloc'])        if d['netloc'] in ('localhost', '127.0.0.1', ''):            logging.debug('d["path"] = %r', d['path'])            d['path'] = d['path'].lstrip('\\')            logging.debug('d["path"] = %r', d['path'])        if d['nom']:            d['netloc'] = '@' + d['netloc']        return '{dialect}{driver}://{nom}{mdp}{netloc}{port}/\{path}{params}{query}{fragment}'.format(**d)    def getpath(self,                sec: str,                clé: str,                fallback: str = '') -> Path:        """        Obtiens un chemin dans le fichier de configuration.        Parameters        ----------        sec : str            Section.        clé : str            Clé.        fallback : str, optional            Valeur par défaut. The default is ''.        Returns        -------        Path            Chemin.        """        champ = self.get(sec, clé, fallback=None)        if champ is None:            return fallback        return Path(champ).expanduser().resolve()    def __str__(self) -> str:        """        Retourne le contenu du fichier de configuration.        Returns        -------        str            Contenu du fichier de configuration.        """        résultat = ''        for n in self.sections():            sec = self[n]            résultat += f'[{n}]\n'            for n, v in sec.items():                résultat += f'\t{n}: {v}\n'        return résultatdef main(dossier: str = None) -> FichierConfig:    """Exemple très simple d'utilisation du fichier de configuration."""    logging.basicConfig(level=logging.DEBUG)    logging.info('Ouvrir un fichier de configuration...')    if dossier is None:        if len(sys.argv) > 1:            dossier = Path(sys.argv[1]).resolve()        else:            fichier = Path(__file__).expanduser().resolve()            dossier = fichier.parent.parent    fichier = dossier / next(dossier.glob('*.cfg'))    logging.debug('fichier = %r', fichier)    logging.debug('fichier.exists() = %r', fichier.exists())    config = FichierConfig(fichier)    logging.info('Configuration ouverte...')    logging.info('config = %r', config)    logging.info('Assurer la bonne forme de l\'adresse de base de donnée:')    logging.info(config.geturl('bd', 'adresse', dialect='sqlite'))    return configif __name__ == '__main__':    main()
+# !/usr/bin/env python3.9
+# -*- coding: utf-8 -*-
+"""
+Enveloppe pour les fichiers de configuration.
+
+La classe FichierConfig permet de garder un fichier de configuration
+synchronisé quand des modifications y sont faites dans le programme.
+"""
+
+# Bibliothèque standard
+from io import StringIO  # Pour FichierConfig.__str__
+from pathlib import Path  # Manipulation de chemins
+# Pour parsage d'urls, utilisé dans FichierConfig.__init__
+from urllib.parse import urlparse
+from typing import Any, Callable
+
+# configparser contient la classe ConfigParser qu'on surclasse ici.
+# Certaines constantes de configuration sont aussi importées.
+from configparser import ConfigParser, _UNSET, DEFAULTSECT, _default_dict
+
+
+class FichierConfig(ConfigParser):
+    """Garde ConfigParser synchronisé avec un fichier."""
+
+    def __init__(self,
+                 chemin: Path,
+                 defaults: dict = None,
+                 dict_type: type = _default_dict,
+                 allow_no_value: bool = False,
+                 *,
+                 fichier_defaut: Path = Path(__file__).parent / 'default.cfg',
+                 delimiters: tuple[str] = ('=', ':'),
+                 comment_prefixes: tuple[str] = ('#', ';'),
+                 inline_comment_prefixes: tuple[str] = None,
+                 strict: bool = True,
+                 empty_lines_in_values: bool = True,
+                 default_section: str = DEFAULTSECT,
+                 interpolation: type = _UNSET,
+                 converters: dict[str, Callable] = _UNSET):
+        """
+        Garde un fichier synchronisé avec ConfigParser.
+
+        FichierConfig peut être utilisé exactement comme ConfigParser, mais
+        est spécialement destinée à des cas où des réglages doivent être
+        sauvegardés et sont modifiés souvent.
+
+        Dans le cadre d'une utilisation simple, on peut surclasser
+        FichierConfig et redéfinir la méthode default ou forcer la valeur de
+        l'argument fichier_defaut.
+
+        Parameters
+        ----------
+        chemin: str
+            Le chemin du fichier de configuration.
+        defaults: dict, optionel
+            Les valeurs par défaut. Correspond à la section DEFAULT du
+            fichier de configuration. La valeur par défaut est None.
+        dict_type: type, optionel
+            Le type de dictionnaire à utiliser comme type sous-jacent à
+            ConfigParser. La valeur par défaut est dict.
+        allow_no_value: bool, optionel
+            Détermine si une option peut être laissée sans valeur.
+            La valeur par défaut est False.
+        fichier_defaut: Path, optionel
+            Le fichier contenant le modèle de fichier par défaut.
+            La valeur par défaut désigne le fichier `default.cfg` inclut
+            dans le module.
+        delimiters: tuple[str], optionel
+            Les caractères servant à délimiter les options et leur valeurs.
+            Par défaut, les caractères ':' et '=' sont utilisés.
+        comment_prefixes: tuple[str], optionel
+            Les caractères permettant d'insérer des blocs de commentaires.
+            Par défaut, les caractères '#' et ';' sont utilisés.
+        inline_comment_prefixes: tuple[str], optionel
+            Les caractères permettant d'insérer des commentaires en fin
+            de ligne. Par défaut, ils ne sont pas permis.
+        strict: bool, optionel
+            Détermine le comportement du parseur.
+            La valeur par défaut est True.
+        empty_lines_in_values: bool, optionel
+            Détermine si les lignes vides sont gardées dans les valeurs
+            multiligne. La valeur par défaut est True.
+        default_section : str, optionel
+            Le nom de la section par défaut, utilisée pour les valeurs
+            par défaut. La valeur par défaut est 'DEFAULT'.
+        interpolation : type, optionel
+            Classe d'interpolation à utiliser.
+            La valeur par défaut correspond à BasicInterpolation.
+        converters : dict[str, Callable], optionel
+            Les convertisseurs à utiliser. Un dictionnaire en argument ayant
+            la clé 'test' associée à la fonction `test_func` permettra
+            d'utiliser la méthode `gettest` qui retournera le résultat de
+            `test_func`. La valeur par défaut inclut 'int', 'float', 'boolean',
+            'list', 'path' et 'url'.
+
+        Returns
+        -------
+        None.
+
+        """
+        # Principale différence avec ConfigParser:
+        # l'attribut chemin réfère au fichier de configuration
+        # lu et écrit dans le programme.
+        self.chemin: Path = Path(chemin)
+
+        # Si le fichier n'existe pas, il est créé,
+        # et on lui donne la valeur par défaut,
+        # telle que définie par la méthode défaut
+        self.fichier_defaut: Path = fichier_defaut
+        if not self.chemin.exists():
+            self.chemin.touch()
+            with self.chemin.open('w') as f:
+                f.write(self.default())
+
+        # Certaines conversions sont utiles dans beaucoup de cas
+        # donc on s'assure de pouvoir convertir les listes, chemins et urls.
+        # On garde quand même ça simple pour quelqu'un de remplacer
+        # les convertisseurs par défaut.
+        if isinstance(converters, dict):
+            if 'list' not in converters:
+                converters['list'] = lambda x: list(
+                    map(
+                        str.strip,
+                        x.strip().split('\n')
+                    )
+                )
+            if 'path' not in converters:
+                converters['path'] = lambda x: Path(x).expanduser().resolve()
+            if 'url' not in converters:
+                converters['url'] = urlparse
+
+        # On crée l'objet ConfigParser sous-jacent.
+        super().__init__(defaults,
+                         dict_type,
+                         allow_no_value,
+                         delimiters=delimiters,
+                         comment_prefixes=comment_prefixes,
+                         inline_comment_prefixes=inline_comment_prefixes,
+                         strict=strict,
+                         empty_lines_in_values=empty_lines_in_values,
+                         default_section=default_section,
+                         interpolation=interpolation,
+                         converters=converters)
+
+        # Et on synchronise une première fois.
+        self.read()
+
+    def optionxform(self, option: str) -> str:
+        """
+        Formater une option.
+
+        Pour assurer l'uniformité et la facilité
+        d'écriture et d'utilisation.
+
+        Parameters
+        ----------
+        option : str
+            Nom à formater.
+
+        Returns
+        -------
+        str
+            Le nom, formaté. Par défaut, rien n'est changé.
+
+        """
+        return str(option)
+
+    def default(self) -> str:
+        """
+        Retourner le contenu du fichier de configuration par défaut.
+
+        Un minimum de formatage peut y être apporté via la méthode
+        `str.format`, par défaut seul `self` est passée en argument
+        pour le formatage.
+
+        Returns
+        -------
+        str
+            Contenu par défaut.
+
+        """
+        return self.fichier_defaut.open().read().format(self=self)
+
+    def read(self, encoding: str = 'utf-8'):
+        """
+        Lire le contenu du fichier.
+
+        Parameters
+        ----------
+        encoding : str, optional
+            Encodage de lecture. The default is 'utf-8'.
+
+        Returns
+        -------
+        None.
+
+        """
+        super().read(self.chemin, encoding=encoding)
+
+    def write(self, space_around_delimiters: bool = True):
+        """
+        Écrire le fichier de configuration à self.chemin.
+
+        Parameters
+        ----------
+        space_around_delimiters : bool, optional
+            Détermine si des espaces sont placés autour des séparateurs.
+            The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
+        with self.chemin.open('w') as f:
+            super().write(f, space_around_delimiters)
+
+    def __delitem__(self, section: str):
+        """
+        Retirer une section.
+
+        Parameters
+        ----------
+        section : str
+            Section à retirer.
+
+        Returns
+        -------
+        None.
+
+        """
+        super().__delitem__(section)
+        self.write()
+
+    def __setitem__(self, section: str, value: Any):
+        """
+        Modifier une section.
+
+        Parameters
+        ----------
+        section : str
+            Section à redéfinir.
+        value : Any
+            Valeur.
+
+        Returns
+        -------
+        None.
+
+        """
+        super().__setitem__(section, value)
+        self.write()
+
+    def set(self, section: str, option: str, value: Any = None):
+        """
+        Modifier une option.
+
+        Parameters
+        ----------
+        section : str
+            Section contenant l'option.
+        option : str
+            Option à modifier.
+        value : Any, optional
+            Valeur. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        super().set(section, option, value)
+        self.write()
+
+    def add_section(self, section: str):
+        """
+        Ajouter une section.
+
+        Parameters
+        ----------
+        section : str
+            Nom de la section à ajouter.
+
+        Returns
+        -------
+        None.
+
+        """
+        super().add_section(section)
+        self.write()
+
+    def remove_section(self, section: str):
+        """
+        Retirer une section.
+
+        Parameters
+        ----------
+        section : str
+            Section à retirer.
+
+        Returns
+        -------
+        None.
+
+        """
+        super().remove_section(section)
+        self.write()
+
+    def remove_option(self, section: str, option: str):
+        """
+        Retirer une option.
+
+        Parameters
+        ----------
+        section : str
+            Section contenant l'option.
+        option : str
+            Option à retirer.
+
+        Returns
+        -------
+        None.
+
+        """
+        super().remove_option(section, option)
+        self.write()
+
+    def __str__(self) -> str:
+        """
+        Retourner le fichier de configuration comme une chaîne.
+
+        Returns
+        -------
+        str
+            Contenu du fichier de configuration.
+
+        """
+        # Simuler un fichier avec StringIO
+        with StringIO() as fp:
+            super().write(fp)
+            rés: str = fp.getvalue()
+
+        return rés
