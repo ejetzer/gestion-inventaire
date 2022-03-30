@@ -4,7 +4,6 @@
 # Bibliothèque standard
 import pathlib
 import logging
-import sys
 
 import tkinter as tk
 
@@ -17,10 +16,9 @@ import sqlalchemy as sqla
 
 # Imports relatifs
 from . import tkHandler
-from ..tableau import Tableau, Formulaire,
+from ..tableau import Tableau, Formulaire
 from ...base_de_donnees import BaseDeDonnées
 from ...config import FichierConfig
-from ...journal import Formats
 
 
 class OngletConfig(tk.Frame):

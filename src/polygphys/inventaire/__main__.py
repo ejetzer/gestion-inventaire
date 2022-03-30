@@ -15,8 +15,8 @@ from sqlalchemy import MetaData
 # Imports relatifs
 from . import InventaireConfig
 from .modeles import créer_dbs
-from ..outils.database import BaseDeDonnées
-from ..outils.interface.tkinter import Onglets
+from ..outils.base_de_donnees import BaseDeDonnées
+from ..outils.interface_graphique.tkinter.onglets import Onglets
 
 # Obtenir le fichier de configuration
 # Un bon endroit où le placer est le répertoire racine de l'utilisateur.

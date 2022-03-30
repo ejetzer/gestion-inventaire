@@ -10,9 +10,10 @@ from sqlalchemy import MetaData, Table, ForeignKey
 
 # Imports relatifs
 # Facilite la description de colones
-from ..outils.database.dtypes import column
-from ..outils.database import modeles  # Structures déjà prêtes
-from ..outils.database.modeles import col_index  # Index standard du paquet
+from ..outils.base_de_donnees.dtypes import column
+from ..outils.base_de_donnees import modeles  # Structures déjà prêtes
+# Index standard du paquet
+from ..outils.base_de_donnees.modeles import col_index
 
 # TODO Utiliser le ORM pour définir les tables.
 
@@ -49,7 +50,7 @@ def appareils(metadata: MetaData) -> Table:
             column('place', int, ForeignKey(designation)),  # Rangement
 
             # Description de l'appareil
-            column('numéro de série', str)
+            column('numéro de série', str),
             column('numéro de modèle', str),
             column('fournisseur', str),
             column('fabricant', str),

@@ -2,21 +2,17 @@
 """Manipulation et affichage de base de données."""
 
 # Bibliothèque standard
-import logging
-
 import itertools as it
 import tkinter as tk
 
-from typing import Callable, Any, Union
-from functools import partial
-from inspect import signature
+from typing import Callable
 
 # Biblothèque PIPy
 import pandas as pd
 
 # Imposts relatifs
-from ..base_de_données import BaseDeDonnées, BaseTableau
-from ..base_de_données.dtypes import default
+from ..base_de_donnees import BaseDeDonnées, BaseTableau
+from ..base_de_donnees.dtypes import default
 from . import InterfaceHandler
 
 
