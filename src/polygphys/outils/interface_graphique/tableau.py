@@ -219,21 +219,6 @@ class Tableau(BaseTableau):
         self.grid(**self.__grid_params)
 
 
-class TableauFiltré(Tableau):
-
-    def __init__(self,
-                 handler: InterfaceHandler,
-                 db: BaseDeDonnées,
-                 table: str):
-        self.filtres = []
-        super().__init__(handler, db, table)
-
-    @property
-    def df(self):
-        """Le tableau comme pandas.DataFrame."""
-        return self.db.select(self.table, where=self.filtres)
-
-
 class Formulaire(BaseTableau):
     """Formulaire d'entrée de données."""
 
@@ -296,7 +281,6 @@ class Formulaire(BaseTableau):
         None.
 
         """
-
         _ = {}
         for c, v in self.widgets.loc[0, :].items():
             if hasattr(v, 'get'):
@@ -334,7 +318,6 @@ class Formulaire(BaseTableau):
         None.
 
         """
-
         self.widgets = pd.DataFrame(None, columns=self.columns, index=[0])
 
         colonnes = filter(lambda x: x != 'index', self.columns)
@@ -419,7 +402,6 @@ class Formulaire(BaseTableau):
 
         """
         for widget in self.children:
-            logger.debug('widget = %r', widget)
             widget.destroy()
 
     def destroy(self):

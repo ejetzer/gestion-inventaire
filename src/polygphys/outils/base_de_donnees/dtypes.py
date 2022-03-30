@@ -12,7 +12,6 @@ from typing import Union, Any
 
 # Bibliothèque PIPy
 import sqlalchemy as sqla
-import tkinter as tk
 
 # Correspondances de types entre différents modules standards.
 # Pour tkinter, voir la section «variables» de
