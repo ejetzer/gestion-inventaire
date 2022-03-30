@@ -1,12 +1,5 @@
-#!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
-"""
-Exemple de programme de base de données.
-
-Créé le Thu Dec 16 13:37:59 2021
-
-@author: ejetzer
-"""
+"""Exemple de programme de base de données."""
 
 # Bibliothèques standard
 import argparse
@@ -29,6 +22,7 @@ parseur_darguments.add_argument('-f',
                                 default='demo.cfg')
 arguments = parseur_darguments.parse_args()
 
+# Fichier de configuration
 fichier_config = Path(arguments.fichier)
 config = BaseDeDonnéesConfig(arguments.fichier)
 
@@ -43,9 +37,12 @@ try:
 
     try:
         adresse = f'{protocole}:///{fichier_bd}'
+
+        # Exemple de l'objet BaseDeDonnées
         base = BaseDeDonnées(adresse, md)
         base.réinitialiser()
 
+        # Exemple de l'objet BaseTableau
         for nom_tab in config.getlist('bd', 'tables'):
             tab = BaseTableau(base, nom_tab)
     finally:

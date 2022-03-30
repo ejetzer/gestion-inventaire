@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 """Migration et gestion particulière de bases de données."""
 
+# Bibliothèque standard
+from typing import Callable
+
+# Bibliothèque PIPy
 from sqlalchemy import MetaData
 
+# Improts relatifs
 from ..database import BaseDeDonnées
 
 
@@ -21,6 +26,9 @@ def init(adresse: str, schema: MetaData):
             pass
 
 
-def migrer(adresse: str, a: MetaData, b: MetaData):
+def migrer(a: BaseDeDonnées,
+           b: BaseDeDonnées,
+           clé: dict[str, str],
+           conv: dict[str, Callable]):
     """Migrer d'une structure à une autre."""
     pass

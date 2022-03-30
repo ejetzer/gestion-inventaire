@@ -1,12 +1,31 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 24 10:07:10 2022
+"""Transmettre les nouvelles inscriptions au SIMDUT."""
 
-@author: emilejetzer
-"""
+# Bibliothèque standard
+from pathlib import Path
+import time
 
-from . import main
+# Bibliothèque PIPy
+import schedule
 
-if __name__ == '__main__':
-    main()
+# Imports relatifs
+from . import SSTSIMDUTInscriptionConfig, SSTSIMDUTInscriptionForm
+from ...outils.reseau import OneDrive
+
+chemin_config = next(Path(__file__).parent.glob('*.cfg'))
+config = SSTSIMDUTInscriptionConfig(chemin_config)
+
+dossier = OneDrive('',
+                   config.get('onedrive', 'organisation'),
+                   config.get('onedrive', 'sous-dossier'),
+                   partagé=True)
+fichier = dossier / config.get('formulaire', 'nom')
+config.set('formulaire', 'chemin', str(fichier))
+
+formulaire = SSTSIMDUTInscriptionForm(config)
+
+schedule.every().monday.at('09:00').do(formulaire.mise_à_jour)
+
+while True:
+    schedule.run_pending()
+    time.sleep(1)

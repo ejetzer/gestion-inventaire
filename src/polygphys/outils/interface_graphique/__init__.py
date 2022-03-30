@@ -10,9 +10,11 @@ Créé le Fri Nov 26 10:41:14 2021
 @author: ejetzer
 """
 
+# Bibliothèque standard
 from typing import Callable, Any
 from dataclasses import dataclass
 
+# Bibliothèque PIPy
 from pandas import DataFrame
 
 

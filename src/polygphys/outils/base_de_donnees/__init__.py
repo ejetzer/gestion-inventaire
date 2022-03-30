@@ -1,4 +1,3 @@
-#!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """Construire une base de donnée selon un fichier de configuration simple."""
 
@@ -29,8 +28,16 @@ TYPES_FICHIERS: dict[str, Callable] = {'.xlsx': pd.read_excel,
 
 
 class BaseDeDonnéesConfig(FichierConfig):
+    """Configuration de base de données."""
 
-    def default(self):
+    def default(self) -> str:
+        """
+        Retourne le contenu par défaut de la configuration.
+
+        :return: Contenu par défaut de la configuration.
+        :rtype: str
+
+        """
         return (pathlib.Path(__file__).parent / 'default.cfg').open().read()
 
 
@@ -41,20 +48,16 @@ class BaseDeDonnées:
         """
         Lien avec la base de donnée se trouvant à adresse.
 
-        Utilise le schema schema.
+        Utilise le schema metadata.
 
-        Parameters
-        ----------
-        adresse : str
-            Adresse vers la base de données.
-            https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls
-        metadata : sqla.MetaData
-            Structure de la base de données.
-            https://docs.sqlalchemy.org/en/14/core/schema.html
-
-        Returns
-        -------
-        None.
+        :param adresse: Adresse vers la base de données.
+            Voir https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls
+        :type adresse: str
+        :param metadata: Structure de la base de données.
+            Voir https://docs.sqlalchemy.org/en/14/core/schema.html
+        :type metadata: sqla.MetaData
+        :return: DESCRIPTION
+        :rtype: TYPE
 
         """
         # Adresse de la base de données
@@ -94,23 +97,20 @@ class BaseDeDonnées:
 
         Selon les  critères fournis.
 
-        Parameters
-        ----------
-        table : str
-            Tableau d'où extraire les données.
-        columns : tuple[str], optional
-            Colonnes à extraire. The default is tuple(). Un tuple vide
-            sélectionne toutes les colonnes.
-        where : tuple, optional
-            Critères supplémentaires. The default is tuple().
-        errors : str, optional
-            Comportement des erreurs. The default is 'ignore'.
-
-        Returns
-        -------
-        df : pandas.DataFrame
-            Retourne un DataFrame contenant les items et colonnes
-            sélectionnées.
+        :param table: Tableau d'où extraire les données.
+        :type table: str
+        :param columns: Colonnes à extraire. The default is tuple().
+            Un tuple vide sélectionne toutes les colonnes,
+            defaults to tuple()
+        :type columns: tuple[str], optional
+        :param where: Critères supplémentaires. The default is tuple(),
+            defaults to tuple()
+        :type where: tuple, optional
+        :param errors: Comportement des erreurs., defaults to 'ignore'
+        :type errors: str, optional
+        :return: Retourne un DataFrame contenant les items et colonnes
+        sélectionnées.
+        :rtype: pandas.DataFrame
 
         """
         # Si aucune colonne n'est spécifiée, on les prends toutes.
@@ -137,17 +137,13 @@ class BaseDeDonnées:
         """
         Mets à jour des items déjà présents dans la base de données.
 
-        Parameters
-        ----------
-        table : str
-            Tableau où se trouvent les données.
-        values : pandas.DataFrame
-            DataFrame contenant les valeurs à modifier.
-            L'index est le critère de sélection.
-
-        Returns
-        -------
-        None.
+        :param table: Tableau où se trouvent les données.
+        :type table: str
+        :param values: DataFrame contenant les valeurs à modifier.
+        L'index est le critère de sélection.
+        :type values: pd.DataFrame
+        :return: None
+        :rtype: NoneType
 
         """
         requête = self.table(table).update()
@@ -163,16 +159,12 @@ class BaseDeDonnées:
         """
         Insère un nouvel élément dans la base de données.
 
-        Parameters
-        ----------
-        table : str
-            Tableau utilisé.
-        values : pd.DataFrame
-            Valeurs à insérer.
-
-        Returns
-        -------
-        None.
+        :param table: Tableau utilisé.
+        :type table: str
+        :param values: Valeurs à insérer.
+        :type values: pd.DataFrame
+        :return: None
+        :rtype: NoneType
 
         """
         params = [({'index': i} | {c: v for c, v in r.items()})
@@ -184,16 +176,12 @@ class BaseDeDonnées:
         """
         Ajoute un item à la fin de la base de données.
 
-        Parameters
-        ----------
-        table : str
-            Table où ajouter les données.
-        values : pd.DataFrame
-            Valuers à ajouter.
-
-        Returns
-        -------
-        None.
+        :param table: Table où ajouter les données.
+        :type table: str
+        :param values: Valuers à ajouter.
+        :type values: pd.DataFrame
+        :return: None
+        :rtype: NoneType
 
         """
         # Réassigner les indices:
@@ -213,18 +201,12 @@ class BaseDeDonnées:
         """
         Retire une entrée de la base de données.
 
-        L'index de values sert de critère.
-
-        Parameters
-        ----------
-        table : str
-            Tableau d'où retirer l'entrée.
-        values : pd.DataFrame
-            Valeurs à retirer.
-
-        Returns
-        -------
-        None.
+        :param table: Tableau d'où retirer l'entrée.
+        :type table: str
+        :param values: Valeurs à retirer.
+        :type values: pd.DataFrame
+        :return: None
+        :rtype: NoneType
 
         """
         requête = self.table(table).delete()
@@ -248,16 +230,12 @@ class BaseDeDonnées:
         Utilise update ou insert selon la préexistence de l'élément.
         L'index de values est utilisé comme critère.
 
-        Parameters
-        ----------
-        table : str
-            Tableau à mettre à jour.
-        values : pd.DataFrame
-            Valeurs à mettre à jour.
-
-        Returns
-        -------
-        None.
+        :param table: Tableau à mettre à jour.
+        :type table: str
+        :param values: Valeurs à mettre à jour.
+        :type values: pd.DataFrame
+        :return: None
+        :rtype: NoneType
 
         """
         index = self.index(table)
@@ -273,10 +251,8 @@ class BaseDeDonnées:
         """
         Créer le moteur de base de données.
 
-        Returns
-        -------
-        sqlalchemy.engine
-            Moteur de base de données.
+        :return: Moteur de base de données.
+        :rtype: sqlalchemy.engine
 
         """
         return sqla.create_engine(str(self.adresse), future=True)
@@ -289,10 +265,8 @@ class BaseDeDonnées:
             with instance_BdD.begin() as con:
                 ...
 
-        Returns
-        -------
-        Connection SQLAlchemy
-            Connection active..
+        :return: Connection active
+        :rtype: Connection SQLAlchemy
 
         """
         return self.create_engine().begin()
@@ -301,15 +275,11 @@ class BaseDeDonnées:
         """
         Créer les tableaux d'une base de données.
 
-        Parameters
-        ----------
-        checkfirst : bool, optional
-            Vérfier ou non l'existence des tableaux et champs.
-            The default is True.
-
-        Returns
-        -------
-        None.
+        :param checkfirst: Vérfier ou non l'existence des tableaux et champs,
+            defaults to True
+        :type checkfirst: bool, optional
+        :return: None
+        :rtype: NoneType
 
         """
         with self.begin() as con:
@@ -319,15 +289,11 @@ class BaseDeDonnées:
         """
         Effacer puis créer les tableaux d'une base de données.
 
-        Parameters
-        ----------
-        checkfirst : bool, optional
-            Vérifier ou non l'existence des tableaux et champs.
-            The default is True.
-
-        Returns
-        -------
-        None.
+        :param checkfirst: Vérifier ou non l'existence des tableaux et champs
+            , defaults to True
+        :type checkfirst: bool, optional
+        :return: None
+        :rtype: NoneType
 
         """
         with self.begin() as con:
@@ -340,17 +306,12 @@ class BaseDeDonnées:
         """
         Retourne le type de données d'un champ dans un tableau.
 
-        Parameters
-        ----------
-        table : str
-            Tableau.
-        champ : str
-            Champ dont on veut le type.
-
-        Returns
-        -------
-        type_champ : str
-            dtype selon pandas.
+        :param table: Tableau.
+        :type table: str
+        :param champ: Champ dont on veut le type.
+        :type champ: str
+        :return: dtype selon pandas.
+        :rtype: str
 
         """
         type_champ = self.table(table).columns[champ].type
@@ -361,15 +322,10 @@ class BaseDeDonnées:
         """
         Retourne les types des colonnes d'un tableau.
 
-        Parameters
-        ----------
-        table : str
-            Tableau dont on veut les types.
-
-        Returns
-        -------
-        dtypes : pandas.Series
-            Series avec les colonnes comme index, les types comme valeurs.
+        :param table: Tableau dont on veut les types.
+        :type table: str
+        :return: Series avec les colonnes comme index, les types comme valeurs.
+        :rtype: pandas.Series
 
         """
         cols = self.columns(table)
@@ -379,6 +335,15 @@ class BaseDeDonnées:
         return dtypes
 
     def columns(self, table: str) -> pd.Index:
+        """
+
+        :param table: Retourne un index des colonnes présentes dans le tableau.
+
+        :type table: str
+        :return: DESCRIPTION
+        :rtype: TYPE
+
+        """
         """
         Retourne un index des colonnes présentes dans le tableau.
 
@@ -402,15 +367,10 @@ class BaseDeDonnées:
         """
         Retourne l'index d'un tableau (colonne `index`).
 
-        Parameters
-        ----------
-        table : str
-            Tableau dont on veut l'index.
-
-        Returns
-        -------
-        res : pandas.Index
-            Index du tableau.
+        :param table: Tableau dont on veut l'index.
+        :type table: str
+        :return: Index du tableau.
+        :rtype: pandas.Index
 
         """
         requête = sqla.select([self.table(
@@ -429,21 +389,16 @@ class BaseDeDonnées:
         """
         Retourne un objet de sélection pandas.
 
-        Parameters
-        ----------
-        table : str
-            Tableau à extraire.
-        columns : tuple[str], optional
-            Colonnes à sélectionner. The default is None.
-        where : tuple, optional
-            Contraintes supplémentaires. The default is tuple().
-        errors : str, optional
-            Traitement des erreurs. The default is 'ignore'.
-
-        Returns
-        -------
-        res : pandas.DataFrame.loc
-            Objet de sélection.
+        :param table: Tableau à extraire.
+        :type table: str
+        :param columns: Colonnes à sélectionner, defaults to None
+        :type columns: tuple[str], optional
+        :param where: Contraintes supplémentaires, defaults to tuple()
+        :type where: tuple, optional
+        :param errors: Traitement des erreurs, defaults to 'ignore'
+        :type errors: str, optional
+        :return: Objet de sélection.
+        :rtype: pandas.DataFrame.loc
 
         """
         if columns is None:
@@ -461,21 +416,16 @@ class BaseDeDonnées:
         """
         Retourne un objet de sélection numérique pandas.
 
-        Parameters
-        ----------
-        table : str
-            Tableau à extraire.
-        columns : tuple[str], optional
-            Colonnes à sélectionner. The default is tuple().
-        where : tuple, optional
-            Contraintes supplémentaires. The default is tuple().
-        errors : str, optional
-            Traitement des erreurs. The default is 'ignore'.
-
-        Returns
-        -------
-        res : pandas.DataFrame.iloc
-            Objet de sélection numérique.
+        :param table: Tableau à extraire.
+        :type table: str
+        :param columns: Colonnes à sélectionner., defaults to tuple()
+        :type columns: tuple[str], optional
+        :param where: Contraintes supplémentaires, defaults to tuple()
+        :type where: tuple, optional
+        :param errors: Traitement des erreurs, defaults to 'ignore'
+        :type errors: str, optional
+        :return: Objet de sélection numérique.
+        :rtype: pandas.DataFrame.iloc
 
         """
         if columns is None:
@@ -489,17 +439,10 @@ class BaseDeDonnées:
         """
         Retourne la fonction pandas à utiliser pour importer un fichier.
 
-        La fonction est choisie selon l'extension.
-
-        Parameters
-        ----------
-        chemin : pathlib.Path
-            Chemin du fichier qu'on veut importer.
-
-        Returns
-        -------
-        Callable
-            Fonction du module pandas pour importer un fichier.
+        :param chemin: Chemin du fichier qu'on veut importer.
+        :type chemin: pathlib.Path
+        :return: Fonction du module pandas pour importer un fichier.
+        :rtype: Callable
 
         """
         return TYPES_FICHIERS[chemin.suffix]
@@ -511,19 +454,15 @@ class BaseDeDonnées:
         """
         Importer un fichier dans la base de données.
 
-        Parameters
-        ----------
-        table : str
-            Tableau dans lequel importer les données.
-        chemin : pathlib.Path
-            Fichier à importer.
-        type_fichier : Union[str, Callable], optional
-            Type de fichier. The default is None.
-            Si non spécifié, on devine avec l'extension.
-
-        Returns
-        -------
-        None.
+        :param table: Tableau dans lequel importer les données.
+        :type table: str
+        :param chemin: Fichier à importer.
+        :type chemin: pathlib.Path
+        :param type_fichier: Type de fichier.
+            Si non spécifié, on devine avec l'extension, defaults to None
+        :type type_fichier: Union[str, Callable], optional
+        :return: None
+        :rtype: NoneType
 
         """
         if type_fichier is None:
@@ -545,16 +484,12 @@ class BaseTableau:
 
         Avec accès seulement à la table table.
 
-        Parameters
-        ----------
-        db : BaseDeDonnées
-            Une interface à une base de données.
-        table : str
-            Le nom d'un tableau dans db.
-
-        Returns
-        -------
-        None.
+        :param db: Une interface à une base de données.
+        :type db: BaseDeDonnées
+        :param table: Le nom d'un tableau dans db.
+        :type table: str
+        :return: None
+        :rtype: NoneType
 
         """
         self.table: str = table
@@ -564,23 +499,12 @@ class BaseTableau:
         """
         Obtiens un attribut de self.db ou self.df.
 
-        Facilite l'encapsulation.
-        BaseDeDonnées a la priorité, ensuite pandas.DataFrame.
+        :param attr: Attribut à obtenir.
+        :type attr: str
+        :return: L'attribut demandé.
+        :rtype: Any
 
-        Parameters
-        ----------
-        attr : str
-            Attribut à obtenir.
-
-        Raises
-        ------
-        AttributeError
-            Si l'attribut ne peut pas être trouvé.
-
-        Returns
-        -------
-        Any
-            L'attribut demandé.
+        :raises AttributeError: Si l'attribut ne peut pas être trouvé.
 
         """
         if hasattr(BaseDeDonnées, attr):
@@ -613,14 +537,10 @@ class BaseTableau:
         """
         Ajoute des valeurs au tableau.
 
-        Parameters
-        ----------
-        values : Union[pd.Series, pd.DataFrame], optional
-            Valeurs à ajouter. The default is None.
-
-        Returns
-        -------
-        None.
+        :param values: Valeurs à ajouter, defaults to None
+        :type values: Union[pd.Series, pd.DataFrame], optional
+        :return: None
+        :rtype: NoneType
 
         """
         if values is None:

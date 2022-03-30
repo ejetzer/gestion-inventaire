@@ -1,4 +1,3 @@
-#!python
 # -*- coding: utf-8 -*-
 """
 Module utilitaire pour des tâches de laboratoire.
@@ -23,10 +22,8 @@ class DemoConfig(FichierConfig):
         """
         Retourne le modèle de configuration par défaut.
 
-        Returns
-        -------
-        str
-            Contenus du fichier demo.cfg.
+        :return: Le modèle de configuration par défaut.
+        :rtype: str
 
         """
         return (Path(__file__).parent / 'demo.cfg').open().read()

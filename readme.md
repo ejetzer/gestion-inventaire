@@ -5,7 +5,7 @@
     pip install polygphys
     ```
 - Documentation sur Read The Docs: https://polygphys.readthedocs.io/en/latest/
-- Contributions via Github: https://github.com/ejetzer/polygphys 
+- Contributions via Github: https://github.com/ejetzer/polygphys
 
 
 
@@ -55,26 +55,51 @@ git checkout alpha
 pip install -e .
 ```
 
-## À faire
+### À faire
 
-Dans le sous module `polygphys.outils.database`:
+0. [ ] Uniformiser et éttofer la documentation du module.
 
-0. [ ] Rendre les programmes exécutables avec un argument en ligne de commande & comme application
-1. [x] Définir plus adéquatement les bases de données et leurs relations
+Dans le sous module `polygphys.outils.base_de_donnees`:
+
 1. [ ] Filtrer par valeur dans des colonnes
 2. [ ] Permettre l'ajout de colonnes de l'intérieur de l'application
-3. [ ] Permettre d'ajouter des sections de configuration
+5. [ ] ~~Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes~~
+0. [x] Rendre les programmes exécutables avec un argument en ligne de commande & comme application
+1. [x] Définir plus adéquatement les bases de données et leurs relations
+3. [x] Permettre d'ajouter des sections de configuration
 4. [x] Permettre d'ajouter des champs de configuration
-5. [ ] Placer la base de données dans son propre répertoire git externe, et automatiquement en faire des sauvegardes
 6. [x] Rendre le logging plus compatible avec sqlalchemy.
-7. [ ] Retirer les logs sql, utiliser ceux de sqlalchemy à la place.
+7. [x] Retirer les logs sql, utiliser ceux de sqlalchemy à la place.
 
 Dans les sous modules `polygphys.laboratoires`, `polygphys.outils.appareils` et `polygphys.sst`:
 
-8. [ ] Intégrer les applications externes
+8. [x] Intégrer les applications externes
     - Certificats laser
     - PHS8302
 
 En général:
 
 1. [ ] Compléter la suite de tests
+
+## Guide stylistique
+
+Pendant le code, il est important de garder en tête les principes énoncés
+dans les documents suivants:
+
+- [PEP8], le guide stylistique de base pour le développement en Python
+    En fait, ces principes sont tellement importants que je recommande
+    d'utiliser le programme `autopep8` qui peut formater un fichier
+    automatiquement.
+- [PEP20], le Zen de Python, des principes génériques de développement à favoriser quand c'est possible.
+- [Sphinx] pour les chaines de documentation. Ça rend la compréhension future des programmes beaucoup plus facile. On se remerciera quand on sera vieux!
+- Les noms de variables, modules, etc devraient suivre [ces conventions].
+- Dans la mesure du pratique, les noms de classes, fonctions et variables devraient être en français, de même pour la documentation.
+
+[PEP20]: https://peps.python.org/pep-0020/
+[PEP8]: https://peps.python.org/pep-0008/
+[Sphinx]: https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html
+[ces conventions]: https://namingconvention.org/python/
+
+Généralement, on veut aussi structurer les fichiers comme le document [`exemple.py`].
+
+[`exemple.py`]: ./exemple.py

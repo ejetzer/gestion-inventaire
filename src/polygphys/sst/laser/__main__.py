@@ -1,12 +1,39 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Mar  3 11:22:11 2022.
+"""Créer de nouveaux certificats laser au besoin."""
 
-@author: emilejetzer
-"""
+# Bibliothèque standard
+import subprocess
+import time
 
-from . import main
+from pathlib import Path
 
-if __name__ == '__main__':
-    main()
+# Bibliothèque PIPy
+import schedule
+
+# Imports relatifs
+from . import SSTLaserCertificatsConfig, SSTLaserCertificatsForm
+from ...outils.reseau import OneDrive
+
+chemin_config = next(Path(__file__).parent.glob('*.cfg'))
+config = SSTLaserCertificatsConfig(chemin_config)
+
+dossier = OneDrive('',
+                   config.get('onedrive', 'organisation'),
+                   config.get('onedrive', 'sous-dossier'),
+                   partagé=True)
+fichier = dossier / config.get('formulaire', 'nom')
+config.set('formulaire', 'chemin', str(fichier))
+
+formulaire = SSTLaserCertificatsForm(config)
+
+exporteur = subprocess.Popen(['unoconv', '--listener'])
+
+schedule.every().day.at('08:00').do(formulaire.mise_à_jour)
+
+formulaire.mise_à_jour()
+try:
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+finally:
+    exporteur.terminate()

@@ -5,6 +5,7 @@ Gestion de connexions réseau.
 Facilite les connexions à des disques réseau ou à des VPNs.
 """
 
+# Bibliothèque standard
 import time
 import datetime
 import os
@@ -377,22 +378,3 @@ class OneDrive:
 
     def __rtruediv__(self, other):
         return NotImplemented
-
-
-def main():
-    drive = 'J'
-    chemin = Path('~/Volumes/GeniePhysique').expanduser()
-    url = 'phsfiles.phs.polymtl.ca/GeniePhysique'
-    nom = input('nom>')
-    mdp = getpass.getpass('mdp>')
-
-    with DisqueRéseau(url, chemin, drive, nom, mdp) as disque_réseau:
-        chemin = disque_réseau / '.'
-
-        print(chemin, ':')
-        for i in chemin.iterdir():
-            print('\t', i)
-
-
-if __name__ == '__main__':
-    main()

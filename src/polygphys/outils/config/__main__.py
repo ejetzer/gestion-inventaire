@@ -1,12 +1,5 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Démonstration de l'utilisation des classes de fichiers de configuration.
-
-Created on Wed Mar 23 09:43:24 2022
-
-@author: emilejetzer
-"""
+"""Démonstration de l'utilisation des classes de fichiers de configuration."""
 
 # Bibliothèque standard
 import argparse

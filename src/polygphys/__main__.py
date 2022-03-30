@@ -12,8 +12,8 @@ from pandas import DataFrame, Index
 
 # Imports relatifs
 from . import DemoConfig
-from .outils.database.modeles import créer_dbs
-from .outils.database import BaseDeDonnées, BaseTableau
+from .outils.base_de_donnees.modeles import créer_dbs
+from .outils.base_de_donnees import BaseDeDonnées, BaseTableau
 
 # Arguments en ligne de commande
 parseur_darguments = argparse.ArgumentParser()

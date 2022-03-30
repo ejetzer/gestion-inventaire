@@ -1,264 +1,88 @@
 # -*- coding: utf-8 -*-
 """
-Programme ou module pour ...
+Programme ou module pour gérer des appareils de mesure.
 
-Créé le Thu Jan 13 09:45:19 2022
+Ce module contient les classes génériques pour communiquer avec et contrôler
+des appareils de mesures, et donc automatiser certaines tâches de laboratoire.
 
-@author: ejetzer
+Le module utilise pyVISA et l'interface VISA plus généralement pour les
+communications. VISA fonctionne sur Windows, MacOS et Linux une fois les
+drivers adéquats installés.
 """
 
-import tkinter
+# Bibliothèques standard
+from pathlib import Path  # Manipulation de chemins et fichiers
 
-from pathlib import Path
+# Bibliothèques via PIPy
+import pyvisa as visa  # Communication série avec des appareils externes
 
-import pyvisa as visa
-
-from ..config import FichierConfig
+# Imports relatifs
+from ..config import FichierConfig  # Fichiers de configuration
 
 
 class Gestionnaire:
     """Gestionnaire d'appareils."""
 
     def __init__(self):
-        """
-        Gestionnaire d'appareils.
-
-        Returns
-        -------
-        None.
-
-        """
         self.rm = visa.ResourceManager()
 
     def list_resources(self):
-        """
-        Appareils disponibles.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        """
         return self.rm.list_resources()
 
-    def open(self, nom: str) -> visa.Resource:
-        """
-        Ouvrir un appareil.
-
-        Parameters
-        ----------
-        nom : str
-            DESCRIPTION.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        """
-        return Appareil(nom)
+    def open(self, nom: str) -> Appareil:
+        return Appareil(self, nom).open()
 
     def grid(self):
-        """
-        Afficher le contrôleur.
-
-        Returns
-        -------
-        None.
-
-        """
         pass
 
     def pack(self):
-        """
-        Afficher le contrôleur.
-
-        Returns
-        -------
-        None.
-
-        """
         pass
 
 
 class Appareil:
     """Appareil."""
 
-    def __init__(self, nom: str, root: tkinter.Tk = None):
-        """
-        Appareil.
-
-        Parameters
-        ----------
-        nom : str
-            DESCRIPTION.
-        root : tkinter.Tk, optional
-            DESCRIPTION. The default is None.
-
-        Returns
-        -------
-        None.
-
-        """
+    def __init__(self, gestionnaire: Gestionnaire, nom: str):
         self.nom = nom
-        self.resource: visa.Resource = None
-        self.root: tkinter.Tk = root
+        self.gestionnaire: Gestionnaire = gestionnaire
 
     def open(self):
-        """
-        Ouvrir la connection.
-
-        Returns
-        -------
-        None.
-
-        """
-        rm: visa.ResourceManager = visa.ResourceManager()
+        rm = self.gestionnaire.rm
         self.resource = rm.open_resource(self.nom)
+        return self
 
     def close(self):
-        """
-        Fermer la connection.
-
-        Returns
-        -------
-        None.
-
-        """
         self.resource.close()
 
     def read(self) -> str:
-        """
-        Lire l'entrée.
-
-        Returns
-        -------
-        str
-            DESCRIPTION.
-
-        """
         return self.resource.read()
 
     def write(self, m: str):
-        """
-        Écrire.
-
-        Parameters
-        ----------
-        m : str
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
-        """
         self.resource.write(m)
 
     def query(self, q: str) -> str:
-        """
-        Écrire, puis attendre la réponse.
-
-        Parameters
-        ----------
-        q : str
-            DESCRIPTION.
-
-        Returns
-        -------
-        str
-            DESCRIPTION.
-
-        """
         return self.resource.query(q)
 
     def get(self):
-        """
-        Obtenir une information.
-
-        Returns
-        -------
-        None.
-
-        """
         pass
 
     def set(self):
-        """
-        Ajuster un réglage.
-
-        Returns
-        -------
-        None.
-
-        """
         pass
 
     def grid(self):
-        """
-        Afficher l'appareil.
-
-        Returns
-        -------
-        None.
-
-        """
         pass
 
     def pack(self):
-        """
-        Afficher l'appareil.
-
-        Returns
-        -------
-        None.
-
-        """
         pass
 
     def __enter__(self):
-        """
-        Ouvrir la connection de manière sécuritaire.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        """
         self.open()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """
-        Fermer la connection.
-
-        Parameters
-        ----------
-        exc_type : TYPE
-            DESCRIPTION.
-        exc_value : TYPE
-            DESCRIPTION.
-        traceback : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
-        """
         self.close()
 
     def export(self):
-        """
-        Exporter les données.
-
-        Returns
-        -------
-        None.
-
-        """
         pass
 
 
@@ -266,28 +90,10 @@ class Expérience:
     """Montage et prise de mesures."""
 
     def __init__(self, fichier_config: Path):
-        """
-        Montage et prise de mesures.
-
-        Parameters
-        ----------
-        fichier_config : Path
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
-        """
         self.config = FichierConfig(fichier_config)
 
+    def build(self):
+        pass
+
     def run(self):
-        """
-        Prendre des mesures.
-
-        Returns
-        -------
-        None.
-
-        """
         pass

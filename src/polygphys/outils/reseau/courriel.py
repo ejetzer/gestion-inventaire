@@ -1,20 +1,11 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 24 10:28:19 2022
+"""Envoi facile de courriels."""
 
-@author: emilejetzer
-"""
-
-from email.message import EmailMessage
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
-
+# Bibliothèque standard
 import mimetypes
 import smtplib
 
+from email.message import EmailMessage
 from pathlib import Path
 
 

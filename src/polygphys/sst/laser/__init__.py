@@ -1,28 +1,20 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Créer de nouveaux certificats de sureté laser.
+"""Créer de nouveaux certificats de sureté laser."""
 
-Created on Thu Mar  3 11:22:01 2022
-
-@author: emilejetzer
-"""
-
-import subprocess
+# Bibliothèque standard
 import getpass
-import time
 
 from pathlib import Path
 from datetime import datetime as dt
 from subprocess import run
 
+# Bibliothèque PIPy
 import pptx
-import pandas as pd
-import schedule
 import keyring
 
+# Imports relatifs
 from ...outils.reseau.msforms import MSFormConfig, MSForm
-from ...outils.reseau import FichierLointain, DisqueRéseau, OneDrive
+from ...outils.reseau import DisqueRéseau
 
 
 class SSTLaserCertificatsConfig(MSFormConfig):
@@ -92,33 +84,3 @@ class SSTLaserCertificatsForm(MSForm):
                          '-o',
                          str(fichier_pdf),
                          str(fichier)])
-
-
-def main():
-    chemin_config = next(Path(__file__).parent.glob('*.cfg'))
-    config = SSTLaserCertificatsConfig(chemin_config)
-
-    dossier = OneDrive('',
-                       config.get('onedrive', 'organisation'),
-                       config.get('onedrive', 'sous-dossier'),
-                       partagé=True)
-    fichier = dossier / config.get('formulaire', 'nom')
-    config.set('formulaire', 'chemin', str(fichier))
-
-    formulaire = SSTLaserCertificatsForm(config)
-
-    exporteur = subprocess.Popen(['unoconv', '--listener'])
-
-    schedule.every().day.at('08:00').do(formulaire.mise_à_jour)
-
-    formulaire.mise_à_jour()
-    try:
-        while True:
-            schedule.run_pending()
-            time.sleep(1)
-    finally:
-        exporteur.terminate()
-
-
-if __name__ == '__main__':
-    main()

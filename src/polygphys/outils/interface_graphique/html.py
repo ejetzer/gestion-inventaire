@@ -1,13 +1,7 @@
-#!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
-"""
-Éléments d'interface HTML.
+"""Éléments d'interface HTML."""
 
-Créé le Fri Nov 26 10:42:59 2021
-
-@author: ejetzer
-"""
-
+# Bibliothèque standard
 from typing import Callable
 
 

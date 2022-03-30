@@ -1,7 +1,7 @@
-#!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
 """Manipulation et affichage de base de données."""
 
+# Bibliothèque standard
 import logging
 
 import itertools as it
@@ -11,13 +11,13 @@ from typing import Callable, Any, Union
 from functools import partial
 from inspect import signature
 
+# Biblothèque PIPy
 import pandas as pd
 
-from ..database import BaseDeDonnées, BaseTableau
-from ..database.dtypes import default
-from ..interface import InterfaceHandler
-
-logger = logging.getLogger(__name__)
+# Imposts relatifs
+from ..base_de_données import BaseDeDonnées, BaseTableau
+from ..base_de_données.dtypes import default
+from . import InterfaceHandler
 
 
 class Tableau(BaseTableau):
@@ -44,7 +44,6 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug('handler = %r\tdb = %r\ttable = %r', handler, db, table)
         super().__init__(db, table)
         self.widgets = pd.DataFrame()
         self.commandes = []
@@ -69,14 +68,10 @@ class Tableau(BaseTableau):
             Fonction enveloppée.
 
         """
-        logger.debug('f = %r\targs = %r', f, args)
 
         def F():
-            logger.debug('** F() avec f=%r et args=%r.', f, args)
             f(*args)
             self.update_grid()
-
-        logger.debug('F = %r', F)
 
         return F
 
@@ -97,12 +92,9 @@ class Tableau(BaseTableau):
             Les widgets.
 
         """
-        logger.debug('rangée = %r', rangée)
-
         a = self.handler.bouton('+', self.oublie_pas_la_màj(self.append))
         b = self.handler.bouton('-', self.oublie_pas_la_màj(self.delete,
                                                             rangée))
-        logger.debug('a = %r\tb = %r', a, b)
 
         return a, b
 
@@ -116,37 +108,23 @@ class Tableau(BaseTableau):
 
         """
         self.widgets = self.df.copy()
-        logger.debug('widgets = %r', self.widgets)
 
         colonnes = filter(lambda x: x != 'index', self.columns)
         colonnes = list(map(self.handler.texte, colonnes))
         self.widgets.columns = colonnes
-        logger.debug('widgets = %r', self.widgets)
 
         index = list(map(self.handler.texte, self.index))
         self.widgets.index = index
-        logger.debug('widgets = %r', self.widgets)
 
         I, C = self.widgets.shape
-        logger.debug('I = %r\tC = %r', I, C)
 
         for i, c in it.product(range(I), range(C)):
-            logger.debug('i = %r\tc = %r', i, c)
-
             df = self.iloc()[[i], [c]]
-            logger.debug('df = %r', df)
-
             dtype = self.dtype(self.columns[c])
-            logger.debug('dtype = %r', dtype)
-
             _ = self.handler.entrée(df, self.màj, dtype)
-            logger.debug('_ = %r', _)
-
             self.widgets.iloc[i, c] = _
-            logger.debug('widgets = %r', self.widgets)
 
         self.commandes = list(map(self.build_commandes, self.index))
-        logger.debug('commandes = %r', self.commandes)
 
     @property
     def rowspan(self):
@@ -174,18 +152,12 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug('row = %r\tcolumn = %r', row, column)
-
         self.__grid_params = {'row': row, 'column': column}
-
         self.build()
 
-        logger.debug('widgets.columns = %r', self.widgets.columns)
         for i, c in enumerate(self.widgets.columns):
             c.grid(row=row, column=column + i + 3)
 
-        logger.debug('widgets = %r', self.widgets)
-        logger.debug('commandes = %r', self.commandes)
         for i, ((idx, rang),
                 (plus, moins)) in enumerate(zip(self.widgets.iterrows(),
                                                 self.commandes)):
@@ -223,7 +195,6 @@ class Tableau(BaseTableau):
         None.
 
         """
-        logger.debug('children = %r', self.children)
         for widget in self.children:
             widget.destroy()
 
@@ -264,7 +235,6 @@ class TableauFiltré(Tableau):
     @property
     def df(self):
         """Le tableau comme pandas.DataFrame."""
-        logger.debug(f'{self!r} .df')
         return self.db.select(self.table, where=self.filtres)
 
 
@@ -292,7 +262,6 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug('handler = %r\tdb = %r\ttable = %r', handler, db, table)
         super().__init__(db, table)
         self.widgets = pd.DataFrame()
         self.commandes = []
@@ -304,14 +273,10 @@ class Formulaire(BaseTableau):
 
         À utiliser après un changement à la base de données.
         """
-        logger.debug('f = %r\targs = %r', f, args)
 
         def F():
-            logger.debug('** F() avec %r et %r.', f, args)
             f(*args)
             self.update_grid()
-
-        logger.debug('F = %r', F)
 
         return F
 
@@ -344,7 +309,6 @@ class Formulaire(BaseTableau):
                 _[c.cget('text')] = v.instate(['selected'])
 
         _ = pd.Series(_)
-        logger.debug('_ = %r', _)
 
         self.append(_)
         self.effacer()
@@ -362,11 +326,7 @@ class Formulaire(BaseTableau):
 
         """
         a = self.handler.bouton('Effacer', self.effacer)
-        logger.debug('a = %r', a)
-
         b = self.handler.bouton('Soumettre', self.soumettre)
-        logger.debug('b = %r', b)
-
         return a, b
 
     def build(self):
@@ -380,30 +340,21 @@ class Formulaire(BaseTableau):
         """
 
         self.widgets = pd.DataFrame(None, columns=self.columns, index=[0])
-        logger.debug('widgets = %r', self.widgets)
 
         colonnes = filter(lambda x: x != 'index', self.columns)
         colonnes = list(map(self.handler.texte, colonnes))
         self.widgets.columns = colonnes
-        logger.debug('widgets = %r', self.widgets)
 
-        logger.debug('colonnes = %r', colonnes)
         for n, col in zip(self.columns, colonnes):
             dtype = self.dtype(n)
-            logger.debug('dtype = %r', dtype)
 
             df = pd.DataFrame(default(dtype),
                               columns=[col],
                               index=[max(self.index, default=0) + 1])
-            logger.debug('df = %r', df)
 
             _ = self.handler.entrée(df, lambda x: None, dtype)
-            logger.debug('_ = %r', _)
-
             self.widgets.loc[0, col] = _
-        logger.debug('widgets = %r', self.widgets)
 
-        logger.debug('commandes = %r', self.commandes)
         self.commandes = self.build_commandes()
 
     @ property
@@ -432,7 +383,6 @@ class Formulaire(BaseTableau):
         None.
 
         """
-        logger.debug('row = %r\tcolumn = %r', row, column)
         self.__grid_params = {'row': row, 'column': column}
 
         self.build()
@@ -501,133 +451,6 @@ class Formulaire(BaseTableau):
         self.grid(**self.__grid_params)
 
 
-class Filtre(Formulaire):
-
-    def __init__(self,
-                 handler: InterfaceHandler,
-                 tableau: TableauFiltré):
-        self.tableau = tableau
-        super().__init__(handler, tableau.db, tableau.table)
-
-    def build(self):
-        """
-        Construire tous les widgets.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.fenetre = self.handler.fenetre()
-        self.handler2 = self.handler.handler(self.fenetre)
-
-        self.widgets = pd.DataFrame(
-            None, columns=self.columns, index=[0, 1, 2])
-        logger.debug('widgets = %r', self.widgets)
-
-        colonnes = filter(lambda x: x != 'index', self.columns)
-        colonnes = list(map(self.handler2.texte, colonnes))
-        self.widgets.columns = colonnes
-        logger.debug('widgets = %r', self.widgets)
-
-        logger.debug('colonnes = %r', colonnes)
-        for n, col in zip(self.columns, colonnes):
-            dtype = self.dtype(n)
-            logger.debug('dtype = %r', dtype)
-
-            df = pd.DataFrame(default(dtype),
-                              columns=[col],
-                              index=[max(self.index, default=0) + 1])
-            logger.debug('df = %r', df)
-
-            _ = self.handler2.entrée(df, lambda x: None, dtype)
-            logger.debug('_ = %r', _)
-
-            self.widgets.loc[0, col] = _
-        logger.debug('widgets = %r', self.widgets)
-
-        logger.debug('commandes = %r', self.commandes)
-        self.commandes = self.build_commandes()
-
-    def build_commandes(self) -> tuple:
-        """
-        Construit les widgets de commandes.
-
-        Eg: boutons.
-
-        Returns
-        -------
-        tuple
-            Boutons créés.
-
-        """
-        a = self.handler2.bouton('Effacer', self.effacer)
-        logger.debug('a = %r', a)
-
-        b = self.handler2.bouton('Filtrer', self.filtrer)
-        logger.debug('b = %r', b)
-
-        return a, b
-
-    def build_button(self):
-        self.bouton = self.handler.bouton('Filtre', self.afficher_filtre)
-
-    def grid(self, row: int, column: int):
-        """
-        Affiche le formulaire.
-
-        Parameters
-        ----------
-        row : int
-            Rangée initiale.
-        column : int
-            Colonne initiale.
-
-        Returns
-        -------
-        None.
-
-        """
-        logger.debug('row = %r\tcolumn = %r', row, column)
-        self.__grid_params = {'row': row, 'column': column}
-
-        self.build_button()
-
-        self.bouton.grid(**self.__grid_params)
-
-    def afficher_filtre(self):
-        self.build()
-
-        for j, (c, v) in enumerate(zip(self.widgets.columns,
-                                       self.widgets.loc[0, :])):
-            c.grid(row=j, column=0)
-            v.grid(row=j, column=1)
-
-        for i, c in enumerate(self.commandes):
-            c.grid(row=j + 1, column=i)
-
-    def destroy_children(self):
-        super().destroy_children()
-        self.bouton.destroy()
-
-    def filtrer(self):
-        clauses = []
-
-        for c, w in zip(self.columns, self.widgets.loc[0, :]):
-            col = self.tables[self.table].columns[c]
-            val = w.get()
-
-            logger.debug('col = %r, widget = %r', col, val)
-
-            if val:
-                clause = col == w.get()
-                logger.debug('clause: %r', clause)
-                clauses.append(clause)
-
-        self.tableau.filtres = clauses
-        self.tableau.update_grid()
-
-
 class Graphe(Tableau):
 
     def build(self):
@@ -641,79 +464,3 @@ class Graphe(Tableau):
 
     def update_grid(self):
         pass
-
-
-def main(dossier=None):
-    """Exemple d'affichage de base de données."""
-    import polygphys.outils.database
-    import sys
-    import pathlib
-    import logging
-
-    logging.basicConfig(level=logging.DEBUG)
-
-    if dossier is None:
-        if len(sys.argv) > 1:
-            dossier = pathlib.Path(sys.argv[1]).resolve()
-        else:
-            fichier = pathlib.Path(__file__).expanduser().resolve()
-            dossier = fichier.parent.parent.parent
-
-    logger.debug('__file__ = %r', __file__)
-    logger.debug('fichier = %r', fichier)
-    logger.debug('dossier = %r', dossier)
-
-    base, md = polygphys.outils.database.main(dossier)
-
-    import polygphys.outils.interface.tkinter
-    import tkinter
-
-    # logger.info('Test d\'interface...')
-    # racine = tkinter.Tk()
-    # handler = polygphys.outils.interface.tkinter.tkHandler(racine)
-
-    # logger.info('Tableau...')
-    # tableau = Tableau(handler, base, 'demo')
-    # logger.info(f'{tableau.index=}')
-
-    # tableau.grid(0, 0)
-
-    # racine.mainloop()
-
-#     logger.info(
-#         'On réouvre, pour montrer que les changements sont bien soumis à la \
-# base de données...')
-#     racine = tkinter.Tk()
-#     handler = polygphys.outils.interface.tkinter.tkHandler(racine)
-#     tableau = Tableau(handler, base, 'demo')
-#     tableau.grid(0, 0)
-#     racine.mainloop()
-
-#     logger.info('On teste le formulaire...')
-#     racine = tkinter.Tk()
-#     handler = polygphys.outils.interface.tkinter.tkHandler(racine)
-#     formulaire = Formulaire(handler, base, 'demo')
-#     formulaire.grid(0, 0)
-#     racine.mainloop()
-
-#     logger.info(
-#         'On réouvre, pour montrer que les changements sont bien soumis à la \
-# base de données...')
-#     racine = tkinter.Tk()
-#     handler = polygphys.outils.interface.tkinter.tkHandler(racine)
-#     tableau = Tableau(handler, base, 'demo')
-#     tableau.grid(0, 0)
-#     racine.mainloop()
-
-    logger.info('On essaie le filtre!')
-    racine = tkinter.Tk()
-    handler = polygphys.outils.interface.tkinter.tkHandler(racine)
-    tableau = TableauFiltré(handler, base, 'demo')
-    filtre = Filtre(handler, tableau)
-    filtre.grid(0, 0)
-    tableau.grid(1, 1)
-    racine.mainloop()
-
-
-if __name__ == '__main__':
-    main()

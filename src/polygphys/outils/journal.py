@@ -1,4 +1,3 @@
-#!python
 # -*- coding: utf-8 -*-
 """
 Journalisation synchrone avec différents modules.
@@ -6,24 +5,19 @@ Journalisation synchrone avec différents modules.
 - le module logging
 - un répertoire git
 - une base de données.
-
-Créé le Mon Dec 20 14:48:04 2021
-
-@author: ejetzer
 """
 
-import logging
-
+# Bibliothèque standard
 from pathlib import Path
 from logging import Handler, LogRecord
 from subprocess import run
-
-import pandas as pd
-
-# from git import Repo
 from dataclasses import dataclass
 
-from .interface.tableau import BaseTableau
+# Bibliothèque PIPy
+import pandas as pd
+
+# Imports relatifs
+from .base_de_donnees import BaseTableau
 
 
 @dataclass
@@ -227,7 +221,6 @@ class Journal(Handler):
         """
         self.repo: Repository = Repository(dossier)
         self.tableau: BaseTableau = tableau
-        logging.debug('repo = %r\ttableau = %r', self.repo, self.tableau)
 
         super().__init__(level)
 
@@ -266,7 +259,6 @@ class Journal(Handler):
 
         """
         msg = record.getMessage()
-        logging.debug('msg = %r', msg)
 
         self.repo.commit(msg, '-a')
 
@@ -275,7 +267,7 @@ class Journal(Handler):
                                 'logger': [record.name],
                                 'msg': [msg],
                                 'head': [self.repo.head.commit.hexsha]})
-        logging.debug('message = %r', message)
 
         self.tableau.append(message)
-        logging.debug('tableau = %r', self.tableau)
+
+# TODO Modèle de base de données pour journal

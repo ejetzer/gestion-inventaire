@@ -1,25 +1,20 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 msforms.
 
 Suivre les modifications à des fichiers Excel contenant les résultats de
-formulaires.
+formulaires."""
 
-Created on Wed Feb 23 15:15:44 2022
-
-@author: emilejetzer
-"""
-
-# import tkinter as tk
+# Bibliothèque standard
 import configparser as cp
 
 from pathlib import Path
 from datetime import datetime as dt
-# from subprocess import run
 
+# Bibliothèque PIPy
 import pandas as pd
 
+# Improts relatifs
 from ..config import FichierConfig
 from . import FichierLointain
 
@@ -187,24 +182,3 @@ class MSForm:
         cadre = self.nouvelles_entrées()
         self.config.set('màj', 'dernière', dt.now().isoformat())
         self.action(cadre)
-
-
-def main(dossier='.'):
-    dossier = Path(dossier)
-    config = next(dossier.glob('*.cfg'))
-    config = MSFormConfig(config)
-    print(config)
-
-    fichier = FichierLointain(config.get('formulaire', 'url'),
-                              config.getpath('formulaire', 'chemin'))
-    fichier.update()
-
-    form = MSForm(config)
-    print(form.fichier)
-    print(form.colonnes)
-    print(form.dernière_mise_à_jour)
-    print(form.nouvelles_entrées())
-
-
-if __name__ == '__main__':
-    main(Path('~/Desktop/Test Forms').expanduser())
