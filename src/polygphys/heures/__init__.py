@@ -15,10 +15,10 @@ import tkinter as tk
 from pathlib import Path
 
 from ..outils.config import FichierConfig
-from ..outils.database import BaseDeDonnées
-from ..outils.interface.tableau import Formulaire
-from ..outils.interface import InterfaceHandler
-from ..outils.interface.tkinter import tkHandler
+from ..outils.base_de_donnees import BaseDeDonnées
+from ..outils.interface_graphique.tableau import Formulaire
+from ..outils.interface_graphique import InterfaceHandler
+from ..outils.interface_graphique.tkinter import tkHandler
 from ..outils.journal import Formats, Journal
 from ..outils.reseau import DisqueRéseau
 

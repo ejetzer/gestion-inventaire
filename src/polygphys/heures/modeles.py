@@ -12,7 +12,7 @@ import datetime
 
 from sqlalchemy import MetaData, Table
 
-from ..outils.database.dtypes import column
+from ..outils.base_de_donnees.dtypes import column
 
 metadata = MetaData()
 
