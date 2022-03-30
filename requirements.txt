@@ -34,3 +34,5 @@ matplotlib
 plistop>=0.2
 python-usbtmc
 schedule
+pymysql
+requests
