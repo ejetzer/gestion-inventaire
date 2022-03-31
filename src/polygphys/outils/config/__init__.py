@@ -12,6 +12,7 @@ from pathlib import Path  # Manipulation de chemins
 # Pour parsage d'urls, utilisé dans FichierConfig.__init__
 from urllib.parse import urlparse
 from typing import Any, Callable
+from functools import partial
 
 # configparser contient la classe ConfigParser qu'on surclasse ici.
 # Certaines constantes de configuration sont aussi importées.
@@ -129,6 +130,8 @@ class FichierConfig(ConfigParser):
                 converters['path'] = lambda x: Path(x).expanduser().resolve()
             if 'url' not in converters:
                 converters['url'] = urlparse
+            if 'bytes' not in converters:
+                converters['bytes'] = partial(bytes, encoding='utf-8')
 
         # On crée l'objet ConfigParser sous-jacent.
         super().__init__(defaults,
