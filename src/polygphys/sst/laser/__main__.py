@@ -14,7 +14,7 @@ import schedule
 from . import SSTLaserCertificatsConfig, SSTLaserCertificatsForm
 from ...outils.reseau import OneDrive
 
-chemin_config = next(Path(__file__).parent.glob('*.cfg'))
+chemin_config = Path('~').expanduser() / 'certificats_laser.cfg'
 config = SSTLaserCertificatsConfig(chemin_config)
 
 dossier = OneDrive('',

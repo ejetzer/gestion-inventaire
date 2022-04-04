@@ -12,7 +12,7 @@ import schedule
 from . import SSTSIMDUTInscriptionConfig, SSTSIMDUTInscriptionForm
 from ...outils.reseau import OneDrive
 
-chemin_config = next(Path(__file__).parent.glob('*.cfg'))
+chemin_config = Path('~').expanduser() / 'simdut.cfg'
 config = SSTSIMDUTInscriptionConfig(chemin_config)
 
 dossier = OneDrive('',
