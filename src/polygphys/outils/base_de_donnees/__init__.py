@@ -16,7 +16,7 @@ import pandas as pd  # Manipulations de données en Python
 # Imports relatifs
 # Conversion en types internes de différents modules
 from ..config import FichierConfig
-from .dtypes import get_type
+from .dtypes import get_type, default
 
 # Certains types de fichiers, pour deviner quelle fonction de lecture
 # utiliser quand on importe un fichier dans une base de données.
@@ -152,7 +152,6 @@ class BaseDeDonnées:
         it = values.iterrows()
         for i, rangée in it:
             clause = self.table(table).columns[index] == i
-            rangée[rangée.isnull()] = None
             r = requête.where(clause).values(**rangée)
             self.execute(r)
 
@@ -168,7 +167,7 @@ class BaseDeDonnées:
         :rtype: NoneType
 
         """
-        params = [({'index': i} | {c: v for c, v in r.items()})
+        params = [({'index': i} | {c: (v if v else default(self.dtype(table, c))) for c, v in r.items()})
                   for i, r in values.iterrows()]
         requête = self.table(table).insert(params)
         self.execute(requête)
@@ -529,7 +528,7 @@ class BaseTableau:
 , ni (self.__db: BaseDeDonnées, self.df: pandas.DataFrame).'
             raise AttributeError(msg)
 
-    @property
+    @ property
     def df(self) -> pd.DataFrame:
         """Le tableau comme pandas.DataFrame."""
         return self.select()

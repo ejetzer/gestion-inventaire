@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Interface graphique avec tkinter"""
+"""Interface graphique avec tkinter."""
 
 # Bibliothèque standard
 import tkinter as tk
@@ -32,8 +32,13 @@ def tkHandler(master: tk.Tk, editable: bool = True) -> InterfaceHandler:
                commande: Callable,
                dtype: str = 'object',
                editable: bool = editable) -> tk.Entry:
-        variable = get_type('pandas', dtype, 'tk')(master, value.iloc[0, 0])
         conversion = get_type('pandas', dtype, 'python')
+        if dtype == 'boolean':
+            val = conversion(value.iloc[0, 0])
+        else:
+            val = value.iloc[0, 0]
+
+        variable = get_type('pandas', dtype, 'tk')(master, val)
 
         def F(x, i, m, v=variable):
             res = v.get()
