@@ -82,7 +82,7 @@ TYPES: tuple[dict[str, Union[str, type]]] = (
         'python': bool,
         'pandas': 'boolean',
         'sqlalchemy': sqla.Boolean(),
-        'tk': tk.IntVar
+        'tk': tk.BooleanVar
     },
     {  # Chemins de fichiers
         'config': 'pathlib.Path',

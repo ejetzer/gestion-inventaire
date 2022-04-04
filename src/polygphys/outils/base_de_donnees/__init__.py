@@ -152,6 +152,7 @@ class BaseDeDonnées:
         it = values.iterrows()
         for i, rangée in it:
             clause = self.table(table).columns[index] == i
+            rangée[rangée.isnull()] = None
             r = requête.where(clause).values(**rangée)
             self.execute(r)
 
