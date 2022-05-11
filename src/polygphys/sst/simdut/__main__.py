@@ -26,6 +26,7 @@ formulaire = SSTSIMDUTInscriptionForm(config)
 
 schedule.every().monday.at('09:00').do(formulaire.mise_à_jour)
 
+formulaire.mise_à_jour()
 while True:
     schedule.run_pending()
     time.sleep(1)
