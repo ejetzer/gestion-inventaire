@@ -146,14 +146,8 @@ class BaseDeDonnées:
         :rtype: NoneType
 
         """
-        requête = self.table(table).update()
-
-        index = values.index.name
-        it = values.iterrows()
-        for i, rangée in it:
-            clause = self.table(table).columns[index] == i
-            r = requête.where(clause).values(**rangée)
-            self.execute(r)
+        with self.begin() as con:
+            values.to_sql(table, con, if_exists='replace')
 
     def insert(self, table: str, values: pd.DataFrame):
         """
@@ -167,10 +161,8 @@ class BaseDeDonnées:
         :rtype: NoneType
 
         """
-        params = [({'index': i} | {c: (v if v else default(self.dtype(table, c))) for c, v in r.items()})
-                  for i, r in values.iterrows()]
-        requête = self.table(table).insert(params)
-        self.execute(requête)
+        with self.begin() as con:
+            values.to_sql(table, con, if_exists='fail')
 
     def append(self, table: str, values: pd.DataFrame):
         """
@@ -184,18 +176,8 @@ class BaseDeDonnées:
         :rtype: NoneType
 
         """
-        # Réassigner les indices:
-        # On veut s'assurer qu'ils sont tous plus hauts
-        # que le dernier indice déjà dans le tableau.
-        indice_min = max(self.index(table), default=-1) + 1
-        nouvel_index = pd.Index(range(len(values.index)),
-                                name='index') + indice_min
-
-        # Faire une copie des valeurs avec le bon index.
-        values = values.copy()
-        values.index = nouvel_index
-
-        self.insert(table, values)
+        with self.begin() as con:
+            values.to_sql(table, con, if_exists='append')
 
     def delete(self, table: str, values: pd.DataFrame):
         """
