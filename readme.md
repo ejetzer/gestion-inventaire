@@ -1,4 +1,4 @@
-# Outils & programmes du département de génie physique de Polytechnique [![Python application](https://github.com/ejetzer/polygphys/actions/workflows/python-app.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/python-app.yml) [![CodeQL](https://github.com/ejetzer/polygphys/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/codeql-analysis.yml) [![Upload Python Package](https://github.com/ejetzer/polygphys/actions/workflows/python-publish.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/python-publish.yml)
+# Outils & programmes du département de génie physique de Polytechnique [![Python application](https://github.com/ejetzer/polygphys/actions/workflows/python-app.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/python-app.yml) [![CodeQL](https://github.com/ejetzer/polygphys/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/codeql-analysis.yml) [![Upload Python Package](https://github.com/ejetzer/polygphys/actions/workflows/python-publish.yml/badge.svg)](https://github.com/ejetzer/polygphys/actions/workflows/python-publish.yml) [![Documentation Status](https://readthedocs.org/projects/polygphys/badge/?version=latest)](https://polygphys.readthedocs.io/en/latest/?badge=latest)
 
 - Installation via PyPI: https://pypi.org/project/polygphys/
     ```
@@ -11,7 +11,7 @@
 
 ## Prérequis & conseils
 
-Ce programme est en développement actif, et ne devrait être utilisé que
+La version accessible par `pip` peut être utilisée telle quelle. Les branches `beta` et `alpha` sont en développement actif, et ne devrait être utilisées que
 
 - Si vous avez une bonne idée de la structure du programme;
 - Si vous êtes capable de lire et déboguer du [Python]
@@ -55,9 +55,11 @@ git checkout alpha
 pip install -e .
 ```
 
+La branche `main` est gardée à jour avec la dernière version du programme. Les branches `v0` servent à identifier les versions majeures. Si on utilise une version majeure particulière, la commande `git checkout v0` permettra d'y accéder, puis `git pull origin v0` la mettra à jour. Les versions mineures sont indiquées par des étiquettes de la forme `v0.0.0`. Le second nombre indique les passes `beta` et le troisième les passes `alpha`.
+
 ### À faire
 
-0. [ ] Uniformiser et éttofer la documentation du module.
+0. [ ] Uniformiser et étoffer la documentation du module.
 
 Dans le sous module `polygphys.outils.base_de_donnees`:
 
@@ -74,8 +76,8 @@ Dans le sous module `polygphys.outils.base_de_donnees`:
 Dans les sous modules `polygphys.laboratoires`, `polygphys.outils.appareils` et `polygphys.sst`:
 
 8. [x] Intégrer les applications externes
-    - Certificats laser
-    - PHS8302
+    - [ ] Certificats laser
+    - [ ] PHS8302
 
 En général:
 

@@ -47,7 +47,7 @@ def appareils(metadata: MetaData) -> Table:
     cols = [col_index(),  # Index
             column('responsable',
                    int,
-                   ForeignKey(matricule, onupdate='CASCADE'),
+                   ForeignKey(matricule),
                    default=1),  # Personne responsable
             column('place', int, ForeignKey(
                 designation), default=1),  # Rangement

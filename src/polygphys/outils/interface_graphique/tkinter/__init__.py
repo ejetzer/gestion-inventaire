@@ -31,7 +31,9 @@ def tkHandler(master: tk.Tk, editable: bool = True) -> InterfaceHandler:
     def entrée(value: pd.DataFrame,
                commande: Callable,
                dtype: str = 'object',
-               editable: bool = editable) -> tk.Entry:
+               editable: bool = editable,
+               référence: bool = False,
+               valeurs_référencées: list[str] = tuple()) -> tk.Entry:
         conversion = get_type('pandas', dtype, 'python')
         if dtype == 'boolean':
             val = conversion(value.iloc[0, 0])
@@ -58,6 +60,9 @@ def tkHandler(master: tk.Tk, editable: bool = True) -> InterfaceHandler:
         elif dtype == 'boolean':
             widget = ttk.Checkbutton(master,
                                      variable=variable)
+        elif dtype == 'int64' and référence:
+            widget = ttk.OptionMenu(
+                master, textvariable=variable, **valeurs_référencées)
         elif dtype in ('int64', 'float64'):
             widget = ttk.Spinbox(master, textvariable=variable)
         elif any(i in variable.get() for i in ('\n', '\r', '\t', '  ')):
